@@ -1,0 +1,15 @@
+[package]
+name = "xsd-types"
+version = "0.1.0"
+edition = "2021"
+authors = ["Timothée Haudebourg <author@haudebourg.net>"]
+description = "Built-in XSD data types."
+categories = ["data-structures"]
+keywords = ["xsd", "w3c", "datatype"]
+repository = "https://github.com/timothee-haudebourg/xsd-types"
+documentation = "https://docs.rs/xsd-types"
+license = "MIT/Apache-2.0"
+readme = "README.md"
+
+[dependencies]
+pretty_dtoa = "0.3.0"
