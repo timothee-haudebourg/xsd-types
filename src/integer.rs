@@ -7,11 +7,17 @@ use std::str::FromStr;
 #[derive(Debug)]
 pub struct InvalidInteger;
 
-/// XSD decimal.
+/// Integer number.
+///
+/// See: <https://www.w3.org/TR/xmlschema-2/#integer>
 #[derive(PartialEq, Eq, Hash)]
 pub struct Integer(str);
 
 impl Integer {
+	/// Creates a new `Integer` from a string.
+	///
+	/// If the input string is ot a [valid XSD integer](https://www.w3.org/TR/xmlschema-2/#integer),
+	/// an [`InvalidInteger`] error is returned.
 	#[inline(always)]
 	pub fn new(s: &str) -> Result<&Self, InvalidInteger> {
 		if check(s.chars()) {
@@ -21,6 +27,11 @@ impl Integer {
 		}
 	}
 
+	/// Creates a new `Integer` from a string without checking it.
+	///
+	/// # Safety
+	///
+	/// The input string must be a [valid XSD integer](https://www.w3.org/TR/xmlschema-2/#integer).
 	#[inline(always)]
 	pub unsafe fn new_unchecked(s: &str) -> &Self {
 		std::mem::transmute(s)
@@ -93,10 +104,17 @@ impl<'a> From<&'a IntegerBuf> for &'a Integer {
 	}
 }
 
+/// Owned integer number.
+///
+/// See: <https://www.w3.org/TR/xmlschema-2/#integer>
 #[derive(Clone, PartialEq, Eq, Hash)]
 pub struct IntegerBuf(String);
 
 impl IntegerBuf {
+	/// Creates a new `IntegerBuf` from a `String`.
+	///
+	/// If the input string is ot a [valid XSD integer](https://www.w3.org/TR/xmlschema-2/#integer),
+	/// an [`InvalidInteger`] error is returned.
 	#[inline(always)]
 	pub fn new(s: String) -> Result<Self, InvalidInteger> {
 		if check(s.chars()) {
@@ -106,6 +124,11 @@ impl IntegerBuf {
 		}
 	}
 
+	/// Creates a new `IntegerBuf` from a `String` without checking it.
+	///
+	/// # Safety
+	///
+	/// The input string must be a [valid XSD integer](https://www.w3.org/TR/xmlschema-2/#integer).
 	#[inline(always)]
 	pub unsafe fn new_unchecked(s: String) -> Self {
 		std::mem::transmute(s)

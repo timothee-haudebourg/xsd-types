@@ -7,11 +7,17 @@ use std::str::FromStr;
 #[derive(Debug)]
 pub struct InvalidDecimal;
 
-/// XSD decimal.
+/// Decimal number.
+///
+/// See: <https://www.w3.org/TR/xmlschema-2/#decimal>
 #[derive(PartialEq, Eq, Hash)]
 pub struct Decimal(str);
 
 impl Decimal {
+	/// Creates a new `Decimal` from a string.
+	///
+	/// If the input string is ot a [valid XSD decimal](https://www.w3.org/TR/xmlschema-2/#decimal),
+	/// an [`InvalidDecimal`] error is returned.
 	#[inline(always)]
 	pub fn new(s: &str) -> Result<&Self, InvalidDecimal> {
 		if check(s.chars()) {
@@ -21,6 +27,11 @@ impl Decimal {
 		}
 	}
 
+	/// Creates a new `Decimal` from a string without checking it.
+	///
+	/// # Safety
+	///
+	/// The input string must be a [valid XSD decimal](https://www.w3.org/TR/xmlschema-2/#decimal).
 	#[inline(always)]
 	pub unsafe fn new_unchecked(s: &str) -> &Self {
 		std::mem::transmute(s)
@@ -91,7 +102,6 @@ integer_conversion! {
 	usize,
 	isize
 }
-
 
 const DTOA_CONFIG: pretty_dtoa::FmtFloatConfig =
 	pretty_dtoa::FmtFloatConfig::default().force_no_e_notation();
@@ -193,10 +203,17 @@ impl<'a> From<&'a IntegerBuf> for &'a Decimal {
 	}
 }
 
+/// Owned decimal number.
+///
+/// See: <https://www.w3.org/TR/xmlschema-2/#decimal>
 #[derive(Clone, PartialEq, Eq, Hash)]
 pub struct DecimalBuf(String);
 
 impl DecimalBuf {
+	/// Creates a new `DecimalBuf` from a `String`.
+	///
+	/// If the input string is ot a [valid XSD decimal](https://www.w3.org/TR/xmlschema-2/#decimal),
+	/// an [`InvalidDecimal`] error is returned.
 	#[inline(always)]
 	pub fn new(s: String) -> Result<Self, InvalidDecimal> {
 		if check(s.chars()) {
@@ -206,6 +223,11 @@ impl DecimalBuf {
 		}
 	}
 
+	/// Creates a new `DecimalBuf` from a `String` without checking it.
+	///
+	/// # Safety
+	///
+	/// The input string must be a [valid XSD decimal](https://www.w3.org/TR/xmlschema-2/#decimal).
 	#[inline(always)]
 	pub unsafe fn new_unchecked(s: String) -> Self {
 		std::mem::transmute(s)
@@ -316,7 +338,7 @@ fn check<C: Iterator<Item = char>>(mut chars: C) -> bool {
 				Some('0'..='9') => State::Decimal,
 				Some(_) => break false,
 				None => break true,
-			}
+			},
 		}
 	}
 }

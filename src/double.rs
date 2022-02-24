@@ -7,15 +7,21 @@ use std::str::FromStr;
 #[derive(Debug)]
 pub struct InvalidDouble;
 
-pub const NAN: &'static Double = unsafe { Double::new_unchecked("NaN") };
-pub const POSITIVE_INFINITY: &'static Double = unsafe { Double::new_unchecked("INF") };
-pub const NEGATIVE_INFINITY: &'static Double = unsafe { Double::new_unchecked("-INF") };
+pub const NAN: &Double = unsafe { Double::new_unchecked("NaN") };
+pub const POSITIVE_INFINITY: &Double = unsafe { Double::new_unchecked("INF") };
+pub const NEGATIVE_INFINITY: &Double = unsafe { Double::new_unchecked("-INF") };
 
-/// XSD double.
+/// Double number.
+///
+/// See: <https://www.w3.org/TR/xmlschema-2/#double>
 #[derive(PartialEq, Eq, Hash)]
 pub struct Double(str);
 
 impl Double {
+	/// Creates a new `Double` from a string.
+	///
+	/// If the input string is ot a [valid XSD double](https://www.w3.org/TR/xmlschema-2/#double),
+	/// an [`InvalidDouble`] error is returned.
 	#[inline(always)]
 	pub fn new(s: &str) -> Result<&Self, InvalidDouble> {
 		if check(s) {
@@ -25,6 +31,11 @@ impl Double {
 		}
 	}
 
+	/// Creates a new `Double` from a string without checking it.
+	///
+	/// # Safety
+	///
+	/// The input string must be a [valid XSD double](https://www.w3.org/TR/xmlschema-2/#double).
 	#[inline(always)]
 	pub const unsafe fn new_unchecked(s: &str) -> &Self {
 		std::mem::transmute(s)
@@ -119,8 +130,7 @@ integer_conversion! {
 	isize
 }
 
-const DTOA_CONFIG: pretty_dtoa::FmtFloatConfig =
-	pretty_dtoa::FmtFloatConfig::default();
+const DTOA_CONFIG: pretty_dtoa::FmtFloatConfig = pretty_dtoa::FmtFloatConfig::default();
 
 impl From<f32> for DoubleBuf {
 	fn from(i: f32) -> Self {
@@ -249,10 +259,17 @@ impl<'a> From<&'a DoubleBuf> for &'a Double {
 	}
 }
 
+/// Owned double number.
+///
+/// See: <https://www.w3.org/TR/xmlschema-2/#double>
 #[derive(Clone, PartialEq, Eq, Hash)]
 pub struct DoubleBuf(String);
 
 impl DoubleBuf {
+	/// Creates a new `DoubleBuf` from a `String`.
+	///
+	/// If the input string is ot a [valid XSD double](https://www.w3.org/TR/xmlschema-2/#double),
+	/// an [`InvalidDouble`] error is returned.
 	#[inline(always)]
 	pub fn new(s: String) -> Result<Self, InvalidDouble> {
 		if check(&s) {
@@ -262,6 +279,11 @@ impl DoubleBuf {
 		}
 	}
 
+	/// Creates a new `DoubleBuf` from a `String` without checking it.
+	///
+	/// # Safety
+	///
+	/// The input string must be a [valid XSD double](https://www.w3.org/TR/xmlschema-2/#double).
 	#[inline(always)]
 	pub unsafe fn new_unchecked(s: String) -> Self {
 		std::mem::transmute(s)
