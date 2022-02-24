@@ -1,4 +1,4 @@
-use super::{Double, Integer, IntegerBuf, Overflow};
+use super::{Double, DoubleBuf, Integer, IntegerBuf, Overflow};
 use std::borrow::{Borrow, ToOwned};
 use std::fmt;
 use std::ops::Deref;
@@ -203,6 +203,24 @@ impl<'a> From<&'a IntegerBuf> for &'a Decimal {
 	}
 }
 
+impl<'a> TryFrom<&'a Double> for &'a Decimal {
+	type Error = InvalidDecimal;
+
+	#[inline(always)]
+	fn try_from(i: &'a Double) -> Result<Self, Self::Error> {
+		Decimal::new(i.as_str())
+	}
+}
+
+impl<'a> TryFrom<&'a DoubleBuf> for &'a Decimal {
+	type Error = InvalidDecimal;
+
+	#[inline(always)]
+	fn try_from(i: &'a DoubleBuf) -> Result<Self, Self::Error> {
+		Decimal::new(i.as_str())
+	}
+}
+
 /// Owned decimal number.
 ///
 /// See: <https://www.w3.org/TR/xmlschema-2/#decimal>
@@ -213,13 +231,13 @@ impl DecimalBuf {
 	/// Creates a new `DecimalBuf` from a `String`.
 	///
 	/// If the input string is ot a [valid XSD decimal](https://www.w3.org/TR/xmlschema-2/#decimal),
-	/// an [`InvalidDecimal`] error is returned.
+	/// an [`InvalidDecimal`] error is returned along with the input string.
 	#[inline(always)]
-	pub fn new(s: String) -> Result<Self, InvalidDecimal> {
+	pub fn new(s: String) -> Result<Self, (InvalidDecimal, String)> {
 		if check(s.chars()) {
 			Ok(unsafe { Self::new_unchecked(s) })
 		} else {
-			Err(InvalidDecimal)
+			Err((InvalidDecimal, s))
 		}
 	}
 
@@ -237,6 +255,11 @@ impl DecimalBuf {
 	pub fn as_decimal(&self) -> &Decimal {
 		unsafe { Decimal::new_unchecked(&self.0) }
 	}
+
+	#[inline(always)]
+	pub fn into_string(self) -> String {
+		self.0
+	}
 }
 
 impl FromStr for DecimalBuf {
@@ -244,7 +267,19 @@ impl FromStr for DecimalBuf {
 
 	#[inline(always)]
 	fn from_str(s: &str) -> Result<Self, InvalidDecimal> {
-		Self::new(s.to_owned())
+		Self::new(s.to_owned()).map_err(|(e, _)| e)
+	}
+}
+
+impl TryFrom<DoubleBuf> for DecimalBuf {
+	type Error = (InvalidDecimal, DoubleBuf);
+
+	#[inline(always)]
+	fn try_from(i: DoubleBuf) -> Result<Self, Self::Error> {
+		match Self::new(i.into_string()) {
+			Ok(d) => Ok(d),
+			Err((e, s)) => Err((e, unsafe { DoubleBuf::new_unchecked(s) })),
+		}
 	}
 }
 

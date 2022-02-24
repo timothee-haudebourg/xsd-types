@@ -269,13 +269,13 @@ impl DoubleBuf {
 	/// Creates a new `DoubleBuf` from a `String`.
 	///
 	/// If the input string is ot a [valid XSD double](https://www.w3.org/TR/xmlschema-2/#double),
-	/// an [`InvalidDouble`] error is returned.
+	/// an [`InvalidDouble`] error is returned along with the input string.
 	#[inline(always)]
-	pub fn new(s: String) -> Result<Self, InvalidDouble> {
+	pub fn new(s: String) -> Result<Self, (InvalidDouble, String)> {
 		if check(&s) {
 			Ok(unsafe { Self::new_unchecked(s) })
 		} else {
-			Err(InvalidDouble)
+			Err((InvalidDouble, s))
 		}
 	}
 
@@ -289,21 +289,24 @@ impl DoubleBuf {
 		std::mem::transmute(s)
 	}
 
+	#[inline(always)]
 	pub fn nan() -> Self {
 		NAN.to_owned()
 	}
 
+	#[inline(always)]
 	pub fn positive_infinity() -> Self {
 		POSITIVE_INFINITY.to_owned()
 	}
 
+	#[inline(always)]
 	pub fn negative_infinity() -> Self {
 		NEGATIVE_INFINITY.to_owned()
 	}
 
 	#[inline(always)]
-	pub fn from_suffix(suffix: &str) -> Result<Self, InvalidDouble> {
-		Self::new(format!("_:{}", suffix))
+	pub fn into_string(self) -> String {
+		self.0
 	}
 }
 
@@ -311,7 +314,7 @@ impl FromStr for DoubleBuf {
 	type Err = InvalidDouble;
 
 	fn from_str(s: &str) -> Result<Self, InvalidDouble> {
-		Self::new(s.to_owned())
+		Self::new(s.to_owned()).map_err(|(e, _)| e)
 	}
 }
 

@@ -1,4 +1,4 @@
-use super::{Decimal, Double, Overflow};
+use super::{Decimal, DecimalBuf, Double, DoubleBuf, Overflow};
 use std::borrow::{Borrow, ToOwned};
 use std::fmt;
 use std::ops::Deref;
@@ -104,6 +104,42 @@ impl<'a> From<&'a IntegerBuf> for &'a Integer {
 	}
 }
 
+impl<'a> TryFrom<&'a Decimal> for &'a Integer {
+	type Error = InvalidInteger;
+
+	#[inline(always)]
+	fn try_from(i: &'a Decimal) -> Result<Self, Self::Error> {
+		Integer::new(i.as_str())
+	}
+}
+
+impl<'a> TryFrom<&'a DecimalBuf> for &'a Integer {
+	type Error = InvalidInteger;
+
+	#[inline(always)]
+	fn try_from(i: &'a DecimalBuf) -> Result<Self, Self::Error> {
+		Integer::new(i.as_str())
+	}
+}
+
+impl<'a> TryFrom<&'a Double> for &'a Integer {
+	type Error = InvalidInteger;
+
+	#[inline(always)]
+	fn try_from(i: &'a Double) -> Result<Self, Self::Error> {
+		Integer::new(i.as_str())
+	}
+}
+
+impl<'a> TryFrom<&'a DoubleBuf> for &'a Integer {
+	type Error = InvalidInteger;
+
+	#[inline(always)]
+	fn try_from(i: &'a DoubleBuf) -> Result<Self, Self::Error> {
+		Integer::new(i.as_str())
+	}
+}
+
 /// Owned integer number.
 ///
 /// See: <https://www.w3.org/TR/xmlschema-2/#integer>
@@ -114,13 +150,13 @@ impl IntegerBuf {
 	/// Creates a new `IntegerBuf` from a `String`.
 	///
 	/// If the input string is ot a [valid XSD integer](https://www.w3.org/TR/xmlschema-2/#integer),
-	/// an [`InvalidInteger`] error is returned.
+	/// an [`InvalidInteger`] error is returned along with the input string.
 	#[inline(always)]
-	pub fn new(s: String) -> Result<Self, InvalidInteger> {
+	pub fn new(s: String) -> Result<Self, (InvalidInteger, String)> {
 		if check(s.chars()) {
 			Ok(unsafe { Self::new_unchecked(s) })
 		} else {
-			Err(InvalidInteger)
+			Err((InvalidInteger, s))
 		}
 	}
 
@@ -138,13 +174,18 @@ impl IntegerBuf {
 	pub fn as_integer(&self) -> &Integer {
 		self.into()
 	}
+
+	#[inline(always)]
+	pub fn into_string(self) -> String {
+		self.0
+	}
 }
 
 impl FromStr for IntegerBuf {
 	type Err = InvalidInteger;
 
 	fn from_str(s: &str) -> Result<Self, InvalidInteger> {
-		Self::new(s.to_owned())
+		Self::new(s.to_owned()).map_err(|(e, _)| e)
 	}
 }
 
@@ -187,6 +228,30 @@ number_conversion! {
 	i64,
 	usize,
 	isize
+}
+
+impl TryFrom<DecimalBuf> for IntegerBuf {
+	type Error = (InvalidInteger, DecimalBuf);
+
+	#[inline(always)]
+	fn try_from(i: DecimalBuf) -> Result<Self, Self::Error> {
+		match Self::new(i.into_string()) {
+			Ok(d) => Ok(d),
+			Err((e, s)) => Err((e, unsafe { DecimalBuf::new_unchecked(s) })),
+		}
+	}
+}
+
+impl TryFrom<DoubleBuf> for IntegerBuf {
+	type Error = (InvalidInteger, DoubleBuf);
+
+	#[inline(always)]
+	fn try_from(i: DoubleBuf) -> Result<Self, Self::Error> {
+		match Self::new(i.into_string()) {
+			Ok(d) => Ok(d),
+			Err((e, s)) => Err((e, unsafe { DoubleBuf::new_unchecked(s) })),
+		}
+	}
 }
 
 impl Deref for IntegerBuf {
