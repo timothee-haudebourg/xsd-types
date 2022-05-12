@@ -1,8 +1,13 @@
-use super::{Double, DoubleBuf, Integer, IntegerBuf, Overflow};
+use super::{Float, FloatBuf, Integer, IntegerBuf, Overflow, Sign};
 use std::borrow::{Borrow, ToOwned};
 use std::fmt;
 use std::ops::Deref;
 use std::str::FromStr;
+use std::hash::{
+	Hash,
+	Hasher
+};
+use std::cmp::Ordering;
 
 #[derive(Debug)]
 pub struct InvalidDecimal;
@@ -10,7 +15,6 @@ pub struct InvalidDecimal;
 /// Decimal number.
 ///
 /// See: <https://www.w3.org/TR/xmlschema-2/#decimal>
-#[derive(PartialEq, Eq, Hash)]
 pub struct Decimal(str);
 
 impl Decimal {
@@ -43,8 +47,67 @@ impl Decimal {
 	}
 
 	#[inline(always)]
-	pub fn as_double(&self) -> &Double {
+	pub fn as_float(&self) -> &Float {
 		self.into()
+	}
+
+	/// Returns `true` if `self` is positive
+	/// and `false` is the number is zero or negative.
+	pub fn is_positive(&self) -> bool {
+		let mut sign_positive = true;
+		for c in self.0.chars() {
+			match c {
+				'+' | '0' | '.' => (),
+				'-' => sign_positive = false,
+				_ => return sign_positive
+			}
+		}
+
+		false
+	}
+
+	/// Returns `true` if `self` is negative
+	/// and `false` is the number is zero or positive.
+	pub fn is_negative(&self) -> bool {
+		let mut sign_negative = true;
+		for c in self.0.chars() {
+			match c {
+				'-' | '0' | '.' => (),
+				'+' => sign_negative = false,
+				_ => return sign_negative
+			}
+		}
+
+		false
+	}
+
+	/// Returns `true` if `self` is zero
+	/// and `false` otherwise.
+	pub fn is_zero(&self) -> bool {
+		for c in self.0.chars() {
+			if !matches!(c, '+' | '-' | '0' | '.') {
+				return false
+			}
+		}
+
+		true
+	}
+
+	pub fn sign(&self) -> Sign {
+		let mut sign_positive = true;
+		for c in self.0.chars() {
+			match c {
+				'+' | '0' | '.' => (),
+				'-' => sign_positive = false,
+				_ => if sign_positive {
+					return Sign::Positive
+				} else {
+					return Sign::Negative
+				}
+			}
+		}
+
+		Sign::Zero
 	}
 
 	#[inline(always)]
@@ -56,9 +119,73 @@ impl Decimal {
 	}
 
 	#[inline(always)]
-	pub fn fractional_part(&self) -> Option<&Integer> {
+	pub fn fractional_part(&self) -> Option<&FractionalPart> {
 		self.split_once('.')
-			.map(|(_, fractional_part)| unsafe { Integer::new_unchecked(fractional_part) })
+			.map(|(_, fractional_part)| unsafe { FractionalPart::new_unchecked(fractional_part) })
+	}
+
+	#[inline(always)]
+	pub fn parts(&self) -> (&Integer, Option<&FractionalPart>) {
+		match self.split_once('.') {
+			Some((i, f)) => unsafe { (
+				Integer::new_unchecked(i),
+				Some(FractionalPart::new_unchecked(f))
+			) },
+			None => unsafe { (Integer::new_unchecked(self), None) },
+		}
+	}
+}
+
+impl PartialEq for Decimal {
+	fn eq(&self, other: &Self) -> bool {
+		self.integer_part() == other.integer_part() && self.fractional_part() == other.fractional_part()
+	}
+}
+
+impl Eq for Decimal {}
+
+impl Hash for Decimal {
+	fn hash<H: Hasher>(&self, h: &mut H) {
+		self.integer_part().hash(h);
+		match self.fractional_part() {
+			Some(f) => f.hash(h),
+			None => FractionalPart::empty().hash(h)
+		}
+	}
+}
+
+impl Ord for Decimal {
+	fn cmp(&self, other: &Self) -> Ordering {
+		let sign = self.sign();
+		match sign.cmp(&other.sign()) {
+			Ordering::Equal => {
+				let (integer_part, fractional_part) = self.parts();
+				let (other_integer_part, other_fractional_part) = other.parts();
+				match integer_part.cmp(other_integer_part) {
+					Ordering::Equal => {
+						let fractional_part = fractional_part.unwrap_or(FractionalPart::empty());
+						let other_fractional_part = other_fractional_part.unwrap_or(FractionalPart::empty());
+						if sign.is_negative() {
+							fractional_part.cmp(other_fractional_part).reverse()
+						} else {
+							fractional_part.cmp(other_fractional_part)
+						}
+					}
+					other => if sign.is_negative() {
+						other.reverse()
+					} else {
+						other
+					}
+				}
+			}
+			other => other
+		}
+	}
+}
+
+impl PartialOrd for Decimal {
+	fn partial_cmp(&self, other: &Self) -> Option<Ordering> {
+		Some(self.cmp(other))
 	}
 }
 
@@ -182,10 +309,10 @@ impl fmt::Debug for Decimal {
 	}
 }
 
-impl AsRef<Double> for Decimal {
+impl AsRef<Float> for Decimal {
 	#[inline(always)]
-	fn as_ref(&self) -> &Double {
-		self.as_double()
+	fn as_ref(&self) -> &Float {
+		self.as_float()
 	}
 }
 
@@ -203,21 +330,78 @@ impl<'a> From<&'a IntegerBuf> for &'a Decimal {
 	}
 }
 
-impl<'a> TryFrom<&'a Double> for &'a Decimal {
+impl<'a> TryFrom<&'a Float> for &'a Decimal {
 	type Error = InvalidDecimal;
 
 	#[inline(always)]
-	fn try_from(i: &'a Double) -> Result<Self, Self::Error> {
+	fn try_from(i: &'a Float) -> Result<Self, Self::Error> {
 		Decimal::new(i.as_str())
 	}
 }
 
-impl<'a> TryFrom<&'a DoubleBuf> for &'a Decimal {
+impl<'a> TryFrom<&'a FloatBuf> for &'a Decimal {
 	type Error = InvalidDecimal;
 
 	#[inline(always)]
-	fn try_from(i: &'a DoubleBuf) -> Result<Self, Self::Error> {
+	fn try_from(i: &'a FloatBuf) -> Result<Self, Self::Error> {
 		Decimal::new(i.as_str())
+	}
+}
+
+pub struct FractionalPart(str);
+
+impl FractionalPart {
+	#[inline(always)]
+	pub unsafe fn new_unchecked(s: &str) -> &Self {
+		std::mem::transmute(s)
+	}
+
+	pub fn empty() -> &'static Self {
+		unsafe {
+			Self::new_unchecked("")
+		}
+	}
+
+	/// Returns the fractional part without the trailing zeros.
+	/// 
+	/// The returned fractional part may be empty.
+	pub fn trimmed(&self) -> &FractionalPart {
+		let mut end = 0;
+		for (i, c) in self.0.char_indices() {
+			if c != '0' {
+				end = i+1
+			}
+		}
+
+		unsafe {
+			Self::new_unchecked(&self.0[0..end])
+		}
+	}
+}
+
+impl PartialEq for FractionalPart {
+	fn eq(&self, other: &Self) -> bool {
+		self.trimmed().0 == other.trimmed().0
+	}
+}
+
+impl Eq for FractionalPart {}
+
+impl Hash for FractionalPart {
+	fn hash<H: Hasher>(&self, h: &mut H) {
+		self.trimmed().0.hash(h)
+	}
+}
+
+impl Ord for FractionalPart {
+	fn cmp(&self, other: &Self) -> Ordering {
+		self.trimmed().0.cmp(&other.trimmed().0)
+	}
+}
+
+impl PartialOrd for FractionalPart {
+	fn partial_cmp(&self, other: &Self) -> Option<Ordering> {
+		Some(self.cmp(other))
 	}
 }
 
@@ -271,14 +455,14 @@ impl FromStr for DecimalBuf {
 	}
 }
 
-impl TryFrom<DoubleBuf> for DecimalBuf {
-	type Error = (InvalidDecimal, DoubleBuf);
+impl TryFrom<FloatBuf> for DecimalBuf {
+	type Error = (InvalidDecimal, FloatBuf);
 
 	#[inline(always)]
-	fn try_from(i: DoubleBuf) -> Result<Self, Self::Error> {
+	fn try_from(i: FloatBuf) -> Result<Self, Self::Error> {
 		match Self::new(i.into_string()) {
 			Ok(d) => Ok(d),
-			Err((e, s)) => Err((e, unsafe { DoubleBuf::new_unchecked(s) })),
+			Err((e, s)) => Err((e, unsafe { FloatBuf::new_unchecked(s) })),
 		}
 	}
 }
@@ -299,9 +483,9 @@ impl AsRef<Decimal> for DecimalBuf {
 	}
 }
 
-impl AsRef<Double> for DecimalBuf {
+impl AsRef<Float> for DecimalBuf {
 	#[inline(always)]
-	fn as_ref(&self) -> &Double {
+	fn as_ref(&self) -> &Float {
 		Decimal::as_ref(self)
 	}
 }
@@ -418,26 +602,26 @@ partial_eq! {
 	Integer
 }
 
-impl PartialEq<Decimal> for DecimalBuf {
-	#[inline(always)]
-	fn eq(&self, other: &Decimal) -> bool {
-		self.as_decimal() == other
-	}
-}
+// impl PartialEq<Decimal> for DecimalBuf {
+// 	#[inline(always)]
+// 	fn eq(&self, other: &Decimal) -> bool {
+// 		self.as_decimal() == other
+// 	}
+// }
 
-impl<'a> PartialEq<&'a Decimal> for DecimalBuf {
-	#[inline(always)]
-	fn eq(&self, other: &&'a Decimal) -> bool {
-		self.as_decimal() == *other
-	}
-}
+// impl<'a> PartialEq<&'a Decimal> for DecimalBuf {
+// 	#[inline(always)]
+// 	fn eq(&self, other: &&'a Decimal) -> bool {
+// 		self.as_decimal() == *other
+// 	}
+// }
 
-impl PartialEq<DecimalBuf> for Decimal {
-	#[inline(always)]
-	fn eq(&self, other: &DecimalBuf) -> bool {
-		self == other.as_decimal()
-	}
-}
+// impl PartialEq<DecimalBuf> for Decimal {
+// 	#[inline(always)]
+// 	fn eq(&self, other: &DecimalBuf) -> bool {
+// 		self == other.as_decimal()
+// 	}
+// }
 
 #[cfg(test)]
 mod tests {
@@ -500,5 +684,25 @@ mod tests {
 	#[test]
 	fn format_01() {
 		assert_eq!(DecimalBuf::from(1.0e10f32).to_string(), "10000000000.0")
+	}
+
+	#[test]
+	fn cmp_01() {
+		assert!(Decimal::new("0.123").unwrap() < Decimal::new("1.123").unwrap())
+	}
+
+	#[test]
+	fn cmp_02() {
+		assert!(Decimal::new("0.123").unwrap() < Decimal::new("0.1234").unwrap())
+	}
+
+	#[test]
+	fn cmp_03() {
+		assert!(Decimal::new("0.123").unwrap() > Decimal::new("-0.123").unwrap())
+	}
+
+	#[test]
+	fn cmp_04() {
+		assert!(Decimal::new("-0.123").unwrap() > Decimal::new("-0.1234").unwrap())
 	}
 }
