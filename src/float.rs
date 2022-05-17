@@ -7,15 +7,15 @@ use std::str::FromStr;
 #[derive(Debug)]
 pub struct InvalidFloat;
 
-pub const NAN: &Float = unsafe { Float::new_unchecked("NaN") };
-pub const POSITIVE_INFINITY: &Float = unsafe { Float::new_unchecked("INF") };
-pub const NEGATIVE_INFINITY: &Float = unsafe { Float::new_unchecked("-INF") };
+pub const NAN: &Float = unsafe { Float::new_unchecked_from_slice(b"NaN") };
+pub const POSITIVE_INFINITY: &Float = unsafe { Float::new_unchecked_from_slice(b"INF") };
+pub const NEGATIVE_INFINITY: &Float = unsafe { Float::new_unchecked_from_slice(b"-INF") };
 
 /// Float number.
 ///
 /// See: <https://www.w3.org/TR/xmlschema-2/#float>
 #[derive(PartialEq, Eq, Hash)]
-pub struct Float(str);
+pub struct Float([u8]);
 
 impl Float {
 	/// Creates a new `Float` from a string.
@@ -23,8 +23,8 @@ impl Float {
 	/// If the input string is ot a [valid XSD float](https://www.w3.org/TR/xmlschema-2/#float),
 	/// an [`InvalidFloat`] error is returned.
 	#[inline(always)]
-	pub fn new(s: &str) -> Result<&Self, InvalidFloat> {
-		if check(s) {
+	pub fn new<S: ?Sized + AsRef<[u8]>>(s: &S) -> Result<&Self, InvalidFloat> {
+		if check(s.as_ref()) {
 			Ok(unsafe { Self::new_unchecked(s) })
 		} else {
 			Err(InvalidFloat)
@@ -37,30 +37,45 @@ impl Float {
 	///
 	/// The input string must be a [valid XSD float](https://www.w3.org/TR/xmlschema-2/#float).
 	#[inline(always)]
-	pub const unsafe fn new_unchecked(s: &str) -> &Self {
+	pub unsafe fn new_unchecked<S: ?Sized + AsRef<[u8]>>(s: &S) -> &Self {
+		std::mem::transmute(s.as_ref())
+	}
+
+	/// Creates a new `Float` from a byte slice without checking it.
+	///
+	/// # Safety
+	///
+	/// The input string must be a [valid XSD float](https://www.w3.org/TR/xmlschema-2/#float).
+	#[inline(always)]
+	pub const unsafe fn new_unchecked_from_slice(s: &[u8]) -> &Self {
 		std::mem::transmute(s)
 	}
 
 	#[inline(always)]
 	pub fn as_str(&self) -> &str {
+		unsafe { core::str::from_utf8_unchecked(&self.0) }
+	}
+
+	#[inline(always)]
+	pub fn as_bytes(&self) -> &[u8] {
 		&self.0
 	}
 
 	pub fn is_infinite(&self) -> bool {
-		matches!(self.as_str(), "INF" | "-INF")
+		matches!(&self.0, b"INF" | b"-INF")
 	}
 
 	pub fn is_finite(&self) -> bool {
-		!matches!(self.as_str(), "INF" | "-INF" | "NaN")
+		!matches!(&self.0, b"INF" | b"-INF" | b"NaN")
 	}
 
 	pub fn is_nan(&self) -> bool {
-		self.as_str() == "NaN"
+		&self.0 == b"NaN"
 	}
 
 	fn exponent_separator_index(&self) -> Option<usize> {
-		for (i, c) in self.as_str().char_indices() {
-			if matches!(c, 'e' | 'E') {
+		for (i, c) in self.0.iter().enumerate() {
+			if matches!(c, b'e' | b'E') {
 				return Some(i);
 			}
 		}
@@ -86,6 +101,18 @@ impl Float {
 		} else {
 			None
 		}
+	}
+}
+
+impl AsRef<[u8]> for Float {
+	fn as_ref(&self) -> &[u8] {
+		&self.0
+	}
+}
+
+impl AsRef<str> for Float {
+	fn as_ref(&self) -> &str {
+		self.as_str()
 	}
 }
 
@@ -213,14 +240,14 @@ impl ToOwned for Float {
 impl fmt::Display for Float {
 	#[inline(always)]
 	fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-		self.0.fmt(f)
+		self.as_str().fmt(f)
 	}
 }
 
 impl fmt::Debug for Float {
 	#[inline(always)]
 	fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-		self.0.fmt(f)
+		self.as_str().fmt(f)
 	}
 }
 
@@ -263,7 +290,7 @@ impl<'a> From<&'a FloatBuf> for &'a Float {
 ///
 /// See: <https://www.w3.org/TR/xmlschema-2/#float>
 #[derive(Clone, PartialEq, Eq, Hash)]
-pub struct FloatBuf(String);
+pub struct FloatBuf(Vec<u8>);
 
 impl FloatBuf {
 	/// Creates a new `FloatBuf` from a `String`.
@@ -271,8 +298,8 @@ impl FloatBuf {
 	/// If the input string is ot a [valid XSD float](https://www.w3.org/TR/xmlschema-2/#float),
 	/// an [`InvalidFloat`] error is returned along with the input string.
 	#[inline(always)]
-	pub fn new(s: String) -> Result<Self, (InvalidFloat, String)> {
-		if check(&s) {
+	pub fn new<S: AsRef<[u8]> + Into<Vec<u8>>>(s: S) -> Result<Self, (InvalidFloat, S)> {
+		if check(s.as_ref()) {
 			Ok(unsafe { Self::new_unchecked(s) })
 		} else {
 			Err((InvalidFloat, s))
@@ -285,8 +312,8 @@ impl FloatBuf {
 	///
 	/// The input string must be a [valid XSD float](https://www.w3.org/TR/xmlschema-2/#float).
 	#[inline(always)]
-	pub unsafe fn new_unchecked(s: String) -> Self {
-		std::mem::transmute(s)
+	pub unsafe fn new_unchecked(s: impl Into<Vec<u8>>) -> Self {
+		std::mem::transmute(s.into())
 	}
 
 	#[inline(always)]
@@ -305,8 +332,14 @@ impl FloatBuf {
 	}
 
 	#[inline(always)]
-	pub fn into_string(self) -> String {
-		self.0
+	pub fn into_string(mut self) -> String {
+		let buf = self.0.as_mut_ptr();
+		let len = self.0.len();
+		let capacity = self.0.capacity();
+		core::mem::forget(self);
+		unsafe {
+			String::from_raw_parts(buf, len, capacity)
+		}
 	}
 }
 
@@ -344,22 +377,22 @@ impl Borrow<Float> for FloatBuf {
 impl fmt::Display for FloatBuf {
 	#[inline(always)]
 	fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-		self.0.fmt(f)
+		self.as_str().fmt(f)
 	}
 }
 
 impl fmt::Debug for FloatBuf {
 	#[inline(always)]
 	fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-		self.0.fmt(f)
+		self.as_str().fmt(f)
 	}
 }
 
-fn check(s: &str) -> bool {
-	s == "INF" || s == "-INF" || s == "NaN" || check_normal(s.chars())
+fn check(s: &[u8]) -> bool {
+	s == b"INF" || s == b"-INF" || s == b"NaN" || check_normal(s.iter().cloned())
 }
 
-fn check_normal<C: Iterator<Item = char>>(mut chars: C) -> bool {
+fn check_normal<C: Iterator<Item = u8>>(mut chars: C) -> bool {
 	enum State {
 		Initial,
 		NonEmptyInteger,
@@ -376,91 +409,50 @@ fn check_normal<C: Iterator<Item = char>>(mut chars: C) -> bool {
 	loop {
 		state = match state {
 			State::Initial => match chars.next() {
-				Some('+') => State::NonEmptyInteger,
-				Some('-') => State::NonEmptyInteger,
-				Some('.') => State::NonEmptyDecimal,
-				Some('0'..='9') => State::Integer,
+				Some(b'+') => State::NonEmptyInteger,
+				Some(b'-') => State::NonEmptyInteger,
+				Some(b'.') => State::NonEmptyDecimal,
+				Some(b'0'..=b'9') => State::Integer,
 				_ => break false,
 			},
 			State::NonEmptyInteger => match chars.next() {
-				Some('0'..='9') => State::Integer,
-				Some('.') => State::Decimal,
+				Some(b'0'..=b'9') => State::Integer,
+				Some(b'.') => State::Decimal,
 				_ => break false,
 			},
 			State::Integer => match chars.next() {
-				Some('0'..='9') => State::Integer,
-				Some('.') => State::Decimal,
-				Some('e' | 'E') => State::ExponentSign,
+				Some(b'0'..=b'9') => State::Integer,
+				Some(b'.') => State::Decimal,
+				Some(b'e' | b'E') => State::ExponentSign,
 				Some(_) => break false,
 				None => break true,
 			},
 			State::NonEmptyDecimal => match chars.next() {
-				Some('0'..='9') => State::Decimal,
+				Some(b'0'..=b'9') => State::Decimal,
 				_ => break false,
 			},
 			State::Decimal => match chars.next() {
-				Some('0'..='9') => State::Decimal,
-				Some('e' | 'E') => State::ExponentSign,
+				Some(b'0'..=b'9') => State::Decimal,
+				Some(b'e' | b'E') => State::ExponentSign,
 				Some(_) => break false,
 				None => break true,
 			},
 			State::ExponentSign => match chars.next() {
-				Some('+' | '-') => State::NonEmptyExponent,
-				Some('0'..='9') => State::Exponent,
+				Some(b'+' | b'-') => State::NonEmptyExponent,
+				Some(b'0'..=b'9') => State::Exponent,
 				_ => break false,
 			},
 			State::NonEmptyExponent => match chars.next() {
-				Some('0'..='9') => State::Exponent,
+				Some(b'0'..=b'9') => State::Exponent,
 				_ => break false,
 			},
 			State::Exponent => match chars.next() {
-				Some('0'..='9') => State::Exponent,
+				Some(b'0'..=b'9') => State::Exponent,
 				Some(_) => break false,
 				None => break true,
 			},
 		}
 	}
-}
-
-macro_rules! partial_eq {
-	{ $($ty:ty),* } => {
-		$(
-			impl PartialEq<$ty> for Float {
-				#[inline(always)]
-				fn eq(&self, other: &$ty) -> bool {
-					self.as_str() == other
-				}
-			}
-
-			impl PartialEq<$ty> for FloatBuf {
-				#[inline(always)]
-				fn eq(&self, other: &$ty) -> bool {
-					self.as_str() == other
-				}
-			}
-
-			impl PartialEq<Float> for $ty {
-				#[inline(always)]
-				fn eq(&self, other: &Float) -> bool {
-					self == other.as_str()
-				}
-			}
-
-			impl PartialEq<FloatBuf> for $ty {
-				#[inline(always)]
-				fn eq(&self, other: &FloatBuf) -> bool {
-					self == other.as_str()
-				}
-			}
-		)*
-	};
-}
-
-partial_eq! {
-	str,
-	String,
-	Integer,
-	Decimal
 }
 
 impl PartialEq<Float> for FloatBuf {

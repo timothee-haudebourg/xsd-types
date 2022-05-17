@@ -15,7 +15,7 @@ pub struct InvalidDecimal;
 /// Decimal number.
 ///
 /// See: <https://www.w3.org/TR/xmlschema-2/#decimal>
-pub struct Decimal(str);
+pub struct Decimal([u8]);
 
 impl Decimal {
 	/// Creates a new `Decimal` from a string.
@@ -23,8 +23,8 @@ impl Decimal {
 	/// If the input string is ot a [valid XSD decimal](https://www.w3.org/TR/xmlschema-2/#decimal),
 	/// an [`InvalidDecimal`] error is returned.
 	#[inline(always)]
-	pub fn new(s: &str) -> Result<&Self, InvalidDecimal> {
-		if check(s.chars()) {
+	pub fn new<S: ?Sized + AsRef<[u8]>>(s: &S) -> Result<&Self, InvalidDecimal> {
+		if check(s.as_ref().iter().cloned()) {
 			Ok(unsafe { Self::new_unchecked(s) })
 		} else {
 			Err(InvalidDecimal)
@@ -37,12 +37,17 @@ impl Decimal {
 	///
 	/// The input string must be a [valid XSD decimal](https://www.w3.org/TR/xmlschema-2/#decimal).
 	#[inline(always)]
-	pub unsafe fn new_unchecked(s: &str) -> &Self {
-		std::mem::transmute(s)
+	pub unsafe fn new_unchecked<S: ?Sized + AsRef<[u8]>>(s: &S) -> &Self {
+		std::mem::transmute(s.as_ref())
 	}
 
 	#[inline(always)]
 	pub fn as_str(&self) -> &str {
+		unsafe { core::str::from_utf8_unchecked(&self.0) }
+	}
+
+	#[inline(always)]
+	pub fn as_bytes(&self) -> &[u8] {
 		&self.0
 	}
 
@@ -55,10 +60,10 @@ impl Decimal {
 	/// and `false` is the number is zero or negative.
 	pub fn is_positive(&self) -> bool {
 		let mut sign_positive = true;
-		for c in self.0.chars() {
+		for c in &self.0 {
 			match c {
-				'+' | '0' | '.' => (),
-				'-' => sign_positive = false,
+				b'+' | b'0' | b'.' => (),
+				b'-' => sign_positive = false,
 				_ => return sign_positive
 			}
 		}
@@ -70,10 +75,10 @@ impl Decimal {
 	/// and `false` is the number is zero or positive.
 	pub fn is_negative(&self) -> bool {
 		let mut sign_negative = true;
-		for c in self.0.chars() {
+		for c in &self.0 {
 			match c {
-				'-' | '0' | '.' => (),
-				'+' => sign_negative = false,
+				b'-' | b'0' | b'.' => (),
+				b'+' => sign_negative = false,
 				_ => return sign_negative
 			}
 		}
@@ -84,8 +89,8 @@ impl Decimal {
 	/// Returns `true` if `self` is zero
 	/// and `false` otherwise.
 	pub fn is_zero(&self) -> bool {
-		for c in self.0.chars() {
-			if !matches!(c, '+' | '-' | '0' | '.') {
+		for c in &self.0 {
+			if !matches!(c, b'+' | b'-' | b'0' | b'.') {
 				return false
 			}
 		}
@@ -95,10 +100,10 @@ impl Decimal {
 
 	pub fn sign(&self) -> Sign {
 		let mut sign_positive = true;
-		for c in self.0.chars() {
+		for c in &self.0 {
 			match c {
-				'+' | '0' | '.' => (),
-				'-' => sign_positive = false,
+				b'+' | b'0' | b'.' => (),
+				b'-' => sign_positive = false,
 				_ => if sign_positive {
 					return Sign::Positive
 				} else {
@@ -163,8 +168,8 @@ impl Ord for Decimal {
 				let (other_integer_part, other_fractional_part) = other.parts();
 				match integer_part.cmp(other_integer_part) {
 					Ordering::Equal => {
-						let fractional_part = fractional_part.unwrap_or(FractionalPart::empty());
-						let other_fractional_part = other_fractional_part.unwrap_or(FractionalPart::empty());
+						let fractional_part = fractional_part.unwrap_or_else(FractionalPart::empty);
+						let other_fractional_part = other_fractional_part.unwrap_or_else(FractionalPart::empty);
 						if sign.is_negative() {
 							fractional_part.cmp(other_fractional_part).reverse()
 						} else {
@@ -186,6 +191,18 @@ impl Ord for Decimal {
 impl PartialOrd for Decimal {
 	fn partial_cmp(&self, other: &Self) -> Option<Ordering> {
 		Some(self.cmp(other))
+	}
+}
+
+impl AsRef<[u8]> for Decimal {
+	fn as_ref(&self) -> &[u8] {
+		&self.0
+	}
+}
+
+impl AsRef<str> for Decimal {
+	fn as_ref(&self) -> &str {
+		self.as_str()
 	}
 }
 
@@ -298,7 +315,7 @@ impl ToOwned for Decimal {
 impl fmt::Display for Decimal {
 	#[inline(always)]
 	fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-		self.0.fmt(f)
+		self.as_str().fmt(f)
 	}
 }
 
@@ -348,17 +365,23 @@ impl<'a> TryFrom<&'a FloatBuf> for &'a Decimal {
 	}
 }
 
-pub struct FractionalPart(str);
+pub struct FractionalPart([u8]);
 
 impl FractionalPart {
+	/// Creates a new fractional part from a byte slice.
+	/// 
+	/// # Safety
+	/// 
+	/// The input byte slice must be a valid fractional part lexical
+	/// representation.
 	#[inline(always)]
-	pub unsafe fn new_unchecked(s: &str) -> &Self {
-		std::mem::transmute(s)
+	pub unsafe fn new_unchecked<S: ?Sized + AsRef<[u8]>>(s: &S) -> &Self {
+		std::mem::transmute(s.as_ref())
 	}
 
-	pub fn empty() -> &'static Self {
+	pub fn empty<'a>() -> &'a Self {
 		unsafe {
-			Self::new_unchecked("")
+			Self::new_unchecked(b"")
 		}
 	}
 
@@ -367,8 +390,8 @@ impl FractionalPart {
 	/// The returned fractional part may be empty.
 	pub fn trimmed(&self) -> &FractionalPart {
 		let mut end = 0;
-		for (i, c) in self.0.char_indices() {
-			if c != '0' {
+		for (i, &c) in self.0.iter().enumerate() {
+			if c != b'0' {
 				end = i+1
 			}
 		}
@@ -409,7 +432,7 @@ impl PartialOrd for FractionalPart {
 ///
 /// See: <https://www.w3.org/TR/xmlschema-2/#decimal>
 #[derive(Clone, PartialEq, Eq, Hash)]
-pub struct DecimalBuf(String);
+pub struct DecimalBuf(Vec<u8>);
 
 impl DecimalBuf {
 	/// Creates a new `DecimalBuf` from a `String`.
@@ -417,8 +440,8 @@ impl DecimalBuf {
 	/// If the input string is ot a [valid XSD decimal](https://www.w3.org/TR/xmlschema-2/#decimal),
 	/// an [`InvalidDecimal`] error is returned along with the input string.
 	#[inline(always)]
-	pub fn new(s: String) -> Result<Self, (InvalidDecimal, String)> {
-		if check(s.chars()) {
+	pub fn new<S: AsRef<[u8]> + Into<Vec<u8>>>(s: S) -> Result<Self, (InvalidDecimal, S)> {
+		if check(s.as_ref().iter().cloned()) {
 			Ok(unsafe { Self::new_unchecked(s) })
 		} else {
 			Err((InvalidDecimal, s))
@@ -431,8 +454,8 @@ impl DecimalBuf {
 	///
 	/// The input string must be a [valid XSD decimal](https://www.w3.org/TR/xmlschema-2/#decimal).
 	#[inline(always)]
-	pub unsafe fn new_unchecked(s: String) -> Self {
-		std::mem::transmute(s)
+	pub unsafe fn new_unchecked(s: impl Into<Vec<u8>>) -> Self {
+		std::mem::transmute(s.into())
 	}
 
 	#[inline(always)]
@@ -441,8 +464,14 @@ impl DecimalBuf {
 	}
 
 	#[inline(always)]
-	pub fn into_string(self) -> String {
-		self.0
+	pub fn into_string(mut self) -> String {
+		let buf = self.0.as_mut_ptr();
+		let len = self.0.len();
+		let capacity = self.0.capacity();
+		core::mem::forget(self);
+		unsafe {
+			String::from_raw_parts(buf, len, capacity)
+		}
 	}
 }
 
@@ -507,18 +536,18 @@ impl<'a> From<&'a DecimalBuf> for &'a Decimal {
 impl fmt::Display for DecimalBuf {
 	#[inline(always)]
 	fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-		self.0.fmt(f)
+		self.as_str().fmt(f)
 	}
 }
 
 impl fmt::Debug for DecimalBuf {
 	#[inline(always)]
 	fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-		self.0.fmt(f)
+		self.as_str().fmt(f)
 	}
 }
 
-fn check<C: Iterator<Item = char>>(mut chars: C) -> bool {
+fn check<C: Iterator<Item = u8>>(mut chars: C) -> bool {
 	enum State {
 		Initial,
 		NonEmptyInteger,
@@ -532,29 +561,29 @@ fn check<C: Iterator<Item = char>>(mut chars: C) -> bool {
 	loop {
 		state = match state {
 			State::Initial => match chars.next() {
-				Some('+') => State::NonEmptyInteger,
-				Some('-') => State::NonEmptyInteger,
-				Some('.') => State::NonEmptyDecimal,
-				Some('0'..='9') => State::Integer,
+				Some(b'+') => State::NonEmptyInteger,
+				Some(b'-') => State::NonEmptyInteger,
+				Some(b'.') => State::NonEmptyDecimal,
+				Some(b'0'..=b'9') => State::Integer,
 				_ => break false,
 			},
 			State::NonEmptyInteger => match chars.next() {
-				Some('0'..='9') => State::Integer,
-				Some('.') => State::Decimal,
+				Some(b'0'..=b'9') => State::Integer,
+				Some(b'.') => State::Decimal,
 				_ => break false,
 			},
 			State::Integer => match chars.next() {
-				Some('0'..='9') => State::Integer,
-				Some('.') => State::Decimal,
+				Some(b'0'..=b'9') => State::Integer,
+				Some(b'.') => State::Decimal,
 				Some(_) => break false,
 				None => break true,
 			},
 			State::NonEmptyDecimal => match chars.next() {
-				Some('0'..='9') => State::Decimal,
+				Some(b'0'..=b'9') => State::Decimal,
 				_ => break false,
 			},
 			State::Decimal => match chars.next() {
-				Some('0'..='9') => State::Decimal,
+				Some(b'0'..=b'9') => State::Decimal,
 				Some(_) => break false,
 				None => break true,
 			},
@@ -568,28 +597,28 @@ macro_rules! partial_eq {
 			impl PartialEq<$ty> for Decimal {
 				#[inline(always)]
 				fn eq(&self, other: &$ty) -> bool {
-					self.as_str() == other
+					self == other.as_decimal()
 				}
 			}
 
 			impl PartialEq<$ty> for DecimalBuf {
 				#[inline(always)]
 				fn eq(&self, other: &$ty) -> bool {
-					self.as_str() == other
+					self.as_decimal() == other.as_decimal()
 				}
 			}
 
 			impl PartialEq<Decimal> for $ty {
 				#[inline(always)]
 				fn eq(&self, other: &Decimal) -> bool {
-					self == other.as_str()
+					self.as_decimal() == other
 				}
 			}
 
 			impl PartialEq<DecimalBuf> for $ty {
 				#[inline(always)]
 				fn eq(&self, other: &DecimalBuf) -> bool {
-					self == other.as_str()
+					self.as_decimal() == other.as_decimal()
 				}
 			}
 		)*
@@ -597,31 +626,29 @@ macro_rules! partial_eq {
 }
 
 partial_eq! {
-	str,
-	String,
 	Integer
 }
 
-// impl PartialEq<Decimal> for DecimalBuf {
-// 	#[inline(always)]
-// 	fn eq(&self, other: &Decimal) -> bool {
-// 		self.as_decimal() == other
-// 	}
-// }
+impl PartialEq<Decimal> for DecimalBuf {
+	#[inline(always)]
+	fn eq(&self, other: &Decimal) -> bool {
+		self.as_decimal() == other
+	}
+}
 
-// impl<'a> PartialEq<&'a Decimal> for DecimalBuf {
-// 	#[inline(always)]
-// 	fn eq(&self, other: &&'a Decimal) -> bool {
-// 		self.as_decimal() == *other
-// 	}
-// }
+impl<'a> PartialEq<&'a Decimal> for DecimalBuf {
+	#[inline(always)]
+	fn eq(&self, other: &&'a Decimal) -> bool {
+		self.as_decimal() == *other
+	}
+}
 
-// impl PartialEq<DecimalBuf> for Decimal {
-// 	#[inline(always)]
-// 	fn eq(&self, other: &DecimalBuf) -> bool {
-// 		self == other.as_decimal()
-// 	}
-// }
+impl PartialEq<DecimalBuf> for Decimal {
+	#[inline(always)]
+	fn eq(&self, other: &DecimalBuf) -> bool {
+		self == other.as_decimal()
+	}
+}
 
 #[cfg(test)]
 mod tests {
