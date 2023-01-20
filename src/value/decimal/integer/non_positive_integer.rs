@@ -6,6 +6,7 @@ use num_traits::Zero;
 
 use crate::{lexical, Datatype, NonPositiveIntegerDatatype, XsdDatatype};
 
+#[derive(Clone, PartialEq, Eq, PartialOrd, Ord, Hash, Debug)]
 pub struct NonPositiveInteger(BigInt);
 
 impl NonPositiveInteger {
@@ -63,6 +64,7 @@ impl Deref for NonPositiveInteger {
 	}
 }
 
+#[derive(Clone, PartialEq, Eq, PartialOrd, Ord, Hash, Debug)]
 pub struct NegativeInteger(BigInt);
 
 impl XsdDatatype for NegativeInteger {

@@ -19,6 +19,7 @@ pub use non_negative_integer::*;
 pub use non_positive_integer::*;
 
 /// Integer number.
+#[derive(Clone, PartialEq, Eq, PartialOrd, Ord, Hash, Debug)]
 pub struct Integer(BigInt);
 
 impl Integer {

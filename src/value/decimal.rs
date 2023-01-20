@@ -40,6 +40,7 @@ lazy_static! {
 ///
 /// Internally a decimal number is represented as a `BigRational` with a finite
 /// decimal representation.
+#[derive(Clone, PartialEq, Eq, PartialOrd, Ord, Hash, Debug)]
 pub struct Decimal(BigRational);
 
 /// Checks that a rational has a finite decimal representation.

@@ -10,6 +10,7 @@ use crate::{
 	UnsignedShortDatatype, XsdDatatype,
 };
 
+#[derive(Clone, PartialEq, Eq, PartialOrd, Ord, Hash, Debug)]
 pub struct NonNegativeInteger(BigInt);
 
 impl NonNegativeInteger {
@@ -155,6 +156,7 @@ impl XsdDatatype for UnsignedByte {
 	}
 }
 
+#[derive(Clone, PartialEq, Eq, PartialOrd, Ord, Hash, Debug)]
 pub struct PositiveInteger(BigInt);
 
 impl XsdDatatype for PositiveInteger {
