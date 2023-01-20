@@ -89,6 +89,13 @@ impl From<lexical::NonPositiveIntegerBuf> for Integer {
 	}
 }
 
+impl From<NonNegativeInteger> for Integer {
+	fn from(value: NonNegativeInteger) -> Self {
+		let n: BigInt = value.into();
+		Self(n)
+	}
+}
+
 impl AsRef<BigInt> for Integer {
 	#[inline(always)]
 	fn as_ref(&self) -> &BigInt {

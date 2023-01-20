@@ -27,6 +27,12 @@ impl XsdDatatype for NonPositiveInteger {
 	}
 }
 
+impl From<NonPositiveInteger> for BigInt {
+	fn from(value: NonPositiveInteger) -> Self {
+		value.0
+	}
+}
+
 impl<'a> From<&'a lexical::NonPositiveInteger> for NonPositiveInteger {
 	#[inline(always)]
 	fn from(value: &'a lexical::NonPositiveInteger) -> Self {
