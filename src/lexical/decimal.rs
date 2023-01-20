@@ -1,13 +1,39 @@
-use super::{Float, FloatBuf, Integer, IntegerBuf, Overflow, Sign};
+use super::{Double, DoubleBuf, Float, FloatBuf};
 use std::borrow::{Borrow, ToOwned};
+use std::cmp::Ordering;
 use std::fmt;
+use std::hash::{Hash, Hasher};
 use std::ops::Deref;
 use std::str::FromStr;
-use std::hash::{
-	Hash,
-	Hasher
-};
-use std::cmp::Ordering;
+
+/// Numeric sign.
+#[derive(Clone, Copy, PartialEq, Eq, Hash, PartialOrd, Ord, Debug)]
+pub enum Sign {
+	Negative,
+	Zero,
+	Positive,
+}
+
+impl Sign {
+	pub fn is_positive(&self) -> bool {
+		matches!(self, Self::Positive)
+	}
+
+	pub fn is_negative(&self) -> bool {
+		matches!(self, Self::Negative)
+	}
+
+	pub fn is_zero(&self) -> bool {
+		matches!(self, Self::Zero)
+	}
+}
+
+/// Error thrown when a conversion function overflowed.
+pub struct Overflow;
+
+mod integer;
+
+pub use integer::*;
 
 #[derive(Debug)]
 pub struct InvalidDecimal;
@@ -56,6 +82,11 @@ impl Decimal {
 		self.into()
 	}
 
+	#[inline(always)]
+	pub fn as_double(&self) -> &Double {
+		self.into()
+	}
+
 	/// Returns `true` if `self` is positive
 	/// and `false` is the number is zero or negative.
 	pub fn is_positive(&self) -> bool {
@@ -64,7 +95,7 @@ impl Decimal {
 			match c {
 				b'+' | b'0' | b'.' => (),
 				b'-' => sign_positive = false,
-				_ => return sign_positive
+				_ => return sign_positive,
 			}
 		}
 
@@ -79,7 +110,7 @@ impl Decimal {
 			match c {
 				b'-' | b'0' | b'.' => (),
 				b'+' => sign_negative = false,
-				_ => return sign_negative
+				_ => return sign_negative,
 			}
 		}
 
@@ -91,7 +122,7 @@ impl Decimal {
 	pub fn is_zero(&self) -> bool {
 		for c in &self.0 {
 			if !matches!(c, b'+' | b'-' | b'0' | b'.') {
-				return false
+				return false;
 			}
 		}
 
@@ -104,10 +135,12 @@ impl Decimal {
 			match c {
 				b'+' | b'0' | b'.' => (),
 				b'-' => sign_positive = false,
-				_ => if sign_positive {
-					return Sign::Positive
-				} else {
-					return Sign::Negative
+				_ => {
+					if sign_positive {
+						return Sign::Positive;
+					} else {
+						return Sign::Negative;
+					}
 				}
 			}
 		}
@@ -130,12 +163,26 @@ impl Decimal {
 	}
 
 	#[inline(always)]
+	pub fn trimmed_fractional_part(&self) -> Option<&FractionalPart> {
+		self.split_once('.').and_then(|(_, fractional_part)| {
+			let f = unsafe { FractionalPart::new_unchecked(fractional_part) }.trimmed();
+			if f.is_empty() {
+				None
+			} else {
+				Some(f)
+			}
+		})
+	}
+
+	#[inline(always)]
 	pub fn parts(&self) -> (&Integer, Option<&FractionalPart>) {
 		match self.split_once('.') {
-			Some((i, f)) => unsafe { (
-				Integer::new_unchecked(i),
-				Some(FractionalPart::new_unchecked(f))
-			) },
+			Some((i, f)) => unsafe {
+				(
+					Integer::new_unchecked(i),
+					Some(FractionalPart::new_unchecked(f)),
+				)
+			},
 			None => unsafe { (Integer::new_unchecked(self), None) },
 		}
 	}
@@ -143,7 +190,8 @@ impl Decimal {
 
 impl PartialEq for Decimal {
 	fn eq(&self, other: &Self) -> bool {
-		self.integer_part() == other.integer_part() && self.fractional_part() == other.fractional_part()
+		self.integer_part() == other.integer_part()
+			&& self.fractional_part() == other.fractional_part()
 	}
 }
 
@@ -154,7 +202,7 @@ impl Hash for Decimal {
 		self.integer_part().hash(h);
 		match self.fractional_part() {
 			Some(f) => f.hash(h),
-			None => FractionalPart::empty().hash(h)
+			None => FractionalPart::empty().hash(h),
 		}
 	}
 }
@@ -169,21 +217,24 @@ impl Ord for Decimal {
 				match integer_part.cmp(other_integer_part) {
 					Ordering::Equal => {
 						let fractional_part = fractional_part.unwrap_or_else(FractionalPart::empty);
-						let other_fractional_part = other_fractional_part.unwrap_or_else(FractionalPart::empty);
+						let other_fractional_part =
+							other_fractional_part.unwrap_or_else(FractionalPart::empty);
 						if sign.is_negative() {
 							fractional_part.cmp(other_fractional_part).reverse()
 						} else {
 							fractional_part.cmp(other_fractional_part)
 						}
 					}
-					other => if sign.is_negative() {
-						other.reverse()
-					} else {
-						other
+					other => {
+						if sign.is_negative() {
+							other.reverse()
+						} else {
+							other
+						}
 					}
 				}
 			}
-			other => other
+			other => other,
 		}
 	}
 }
@@ -333,6 +384,13 @@ impl AsRef<Float> for Decimal {
 	}
 }
 
+impl AsRef<Double> for Decimal {
+	#[inline(always)]
+	fn as_ref(&self) -> &Double {
+		self.as_double()
+	}
+}
+
 impl<'a> From<&'a Integer> for &'a Decimal {
 	#[inline(always)]
 	fn from(d: &'a Integer) -> Self {
@@ -343,6 +401,34 @@ impl<'a> From<&'a Integer> for &'a Decimal {
 impl<'a> From<&'a IntegerBuf> for &'a Decimal {
 	#[inline(always)]
 	fn from(d: &'a IntegerBuf) -> Self {
+		d.as_ref()
+	}
+}
+
+impl<'a> From<&'a NonNegativeInteger> for &'a Decimal {
+	#[inline(always)]
+	fn from(d: &'a NonNegativeInteger) -> Self {
+		unsafe { Decimal::new_unchecked(d) }
+	}
+}
+
+impl<'a> From<&'a NonNegativeIntegerBuf> for &'a Decimal {
+	#[inline(always)]
+	fn from(d: &'a NonNegativeIntegerBuf) -> Self {
+		d.as_ref()
+	}
+}
+
+impl<'a> From<&'a NonPositiveInteger> for &'a Decimal {
+	#[inline(always)]
+	fn from(d: &'a NonPositiveInteger) -> Self {
+		unsafe { Decimal::new_unchecked(d) }
+	}
+}
+
+impl<'a> From<&'a NonPositiveIntegerBuf> for &'a Decimal {
+	#[inline(always)]
+	fn from(d: &'a NonPositiveIntegerBuf) -> Self {
 		d.as_ref()
 	}
 }
@@ -365,13 +451,31 @@ impl<'a> TryFrom<&'a FloatBuf> for &'a Decimal {
 	}
 }
 
+impl<'a> TryFrom<&'a Double> for &'a Decimal {
+	type Error = InvalidDecimal;
+
+	#[inline(always)]
+	fn try_from(i: &'a Double) -> Result<Self, Self::Error> {
+		Decimal::new(i.as_str())
+	}
+}
+
+impl<'a> TryFrom<&'a DoubleBuf> for &'a Decimal {
+	type Error = InvalidDecimal;
+
+	#[inline(always)]
+	fn try_from(i: &'a DoubleBuf) -> Result<Self, Self::Error> {
+		Decimal::new(i.as_str())
+	}
+}
+
 pub struct FractionalPart([u8]);
 
 impl FractionalPart {
 	/// Creates a new fractional part from a byte slice.
-	/// 
+	///
 	/// # Safety
-	/// 
+	///
 	/// The input byte slice must be a valid fractional part lexical
 	/// representation.
 	#[inline(always)]
@@ -379,26 +483,38 @@ impl FractionalPart {
 		std::mem::transmute(s.as_ref())
 	}
 
+	#[inline(always)]
 	pub fn empty<'a>() -> &'a Self {
-		unsafe {
-			Self::new_unchecked(b"")
-		}
+		unsafe { Self::new_unchecked(b"") }
+	}
+
+	#[inline(always)]
+	pub fn as_str(&self) -> &str {
+		unsafe { core::str::from_utf8_unchecked(&self.0) }
+	}
+
+	#[inline(always)]
+	pub fn as_bytes(&self) -> &[u8] {
+		&self.0
+	}
+
+	#[inline(always)]
+	pub fn is_empty(&self) -> bool {
+		self.0.is_empty()
 	}
 
 	/// Returns the fractional part without the trailing zeros.
-	/// 
+	///
 	/// The returned fractional part may be empty.
 	pub fn trimmed(&self) -> &FractionalPart {
 		let mut end = 0;
 		for (i, &c) in self.0.iter().enumerate() {
 			if c != b'0' {
-				end = i+1
+				end = i + 1
 			}
 		}
 
-		unsafe {
-			Self::new_unchecked(&self.0[0..end])
-		}
+		unsafe { Self::new_unchecked(&self.0[0..end]) }
 	}
 }
 
@@ -425,6 +541,17 @@ impl Ord for FractionalPart {
 impl PartialOrd for FractionalPart {
 	fn partial_cmp(&self, other: &Self) -> Option<Ordering> {
 		Some(self.cmp(other))
+	}
+}
+impl AsRef<[u8]> for FractionalPart {
+	fn as_ref(&self) -> &[u8] {
+		&self.0
+	}
+}
+
+impl AsRef<str> for FractionalPart {
+	fn as_ref(&self) -> &str {
+		self.as_str()
 	}
 }
 
@@ -469,9 +596,7 @@ impl DecimalBuf {
 		let len = self.0.len();
 		let capacity = self.0.capacity();
 		core::mem::forget(self);
-		unsafe {
-			String::from_raw_parts(buf, len, capacity)
-		}
+		unsafe { String::from_raw_parts(buf, len, capacity) }
 	}
 }
 
@@ -496,6 +621,18 @@ impl TryFrom<FloatBuf> for DecimalBuf {
 	}
 }
 
+impl TryFrom<DoubleBuf> for DecimalBuf {
+	type Error = (InvalidDecimal, DoubleBuf);
+
+	#[inline(always)]
+	fn try_from(i: DoubleBuf) -> Result<Self, Self::Error> {
+		match Self::new(i.into_string()) {
+			Ok(d) => Ok(d),
+			Err((e, s)) => Err((e, unsafe { DoubleBuf::new_unchecked(s) })),
+		}
+	}
+}
+
 impl Deref for DecimalBuf {
 	type Target = Decimal;
 
@@ -515,6 +652,13 @@ impl AsRef<Decimal> for DecimalBuf {
 impl AsRef<Float> for DecimalBuf {
 	#[inline(always)]
 	fn as_ref(&self) -> &Float {
+		Decimal::as_ref(self)
+	}
+}
+
+impl AsRef<Double> for DecimalBuf {
+	#[inline(always)]
+	fn as_ref(&self) -> &Double {
 		Decimal::as_ref(self)
 	}
 }
