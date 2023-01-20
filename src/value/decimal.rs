@@ -137,6 +137,13 @@ impl From<lexical::DecimalBuf> for Decimal {
 	}
 }
 
+impl From<Integer> for Decimal {
+	fn from(value: Integer) -> Self {
+		let n: BigInt = value.into();
+		Self(n.into())
+	}
+}
+
 impl AsRef<BigRational> for Decimal {
 	#[inline(always)]
 	fn as_ref(&self) -> &BigRational {
