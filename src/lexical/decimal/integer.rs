@@ -407,83 +407,6 @@ impl IntegerBuf {
 		core::mem::forget(self);
 		unsafe { String::from_raw_parts(buf, len, capacity) }
 	}
-
-	fn abs_incr(&mut self) {
-		let bytes = self.0.as_mut_slice();
-		let mut i = bytes.len();
-
-		while i > 0 {
-			i -= 1;
-			match bytes[i] {
-				b'+' => bytes[i] = b'1',
-				b'-' => break,
-				b'0'..=b'8' => {
-					bytes[i] += 1;
-					return;
-				}
-				_ => {
-					bytes[i] = b'0';
-				}
-			}
-		}
-	}
-
-	fn abs_decr(&mut self) {
-		let bytes = self.0.as_mut_slice();
-		let mut i = bytes.len();
-
-		while i > 0 {
-			i -= 1;
-			match bytes[i] {
-				b'1' => {
-					bytes[i] -= 1;
-					break; // might be zero
-				}
-				b'2'..=b'8' => {
-					bytes[i] -= 1;
-					return; // non zero
-				}
-				_ => {
-					bytes[i] = b'9';
-				}
-			}
-		}
-
-		// If we are here, the result might be zero.
-		while i > 0 {
-			i -= 1;
-			if matches!(bytes[i], b'1'..=b'9') {
-				return; // non zero
-			}
-		}
-
-		// If we are here, the result is zero.
-		self.0.clear();
-		self.0.push(b'0');
-	}
-
-	pub fn incr(&mut self) {
-		match self.sign() {
-			Sign::Negative => self.abs_decr(),
-			Sign::Positive => self.abs_incr(),
-			Sign::Zero => {
-				self.0.clear();
-				self.0.push(b'1')
-			}
-		}
-	}
-
-	pub fn decr(&mut self) {
-		match self.sign() {
-			Sign::Negative => self.abs_incr(),
-			Sign::Positive => self.abs_decr(),
-			Sign::Zero => {
-				self.0.clear();
-				self.0.push(b'-');
-				self.0.push(b'1')
-			}
-		}
-	}
 }
 
 impl Default for IntegerBuf {
@@ -837,12 +760,5 @@ mod tests {
 				.cmp(Integer::new("0000123456").unwrap()),
 			Ordering::Equal
 		)
-	}
-
-	#[test]
-	fn incr_01() {
-		let mut i = NonPositiveIntegerBuf::new("0".to_string()).unwrap();
-		i.incr();
-		assert_eq!(i.as_str(), "1")
 	}
 }
