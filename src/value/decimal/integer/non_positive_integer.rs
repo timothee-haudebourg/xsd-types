@@ -1,15 +1,24 @@
-use std::borrow::Borrow;
 use std::ops::Deref;
+use std::{borrow::Borrow, fmt};
 
 use num_bigint::BigInt;
-use num_traits::Zero;
+use num_traits::{Signed, Zero};
 
-use crate::{lexical, Datatype, NonPositiveIntegerDatatype, XsdDatatype};
+use crate::{lexical, Datatype, Integer, NonPositiveIntegerDatatype, XsdDatatype};
 
 #[derive(Clone, PartialEq, Eq, PartialOrd, Ord, Hash, Debug)]
-pub struct NonPositiveInteger(BigInt);
+pub struct NonPositiveInteger(pub BigInt);
 
 impl NonPositiveInteger {
+	/// Create a new non positive integer from a `BigInt`.
+	///
+	/// # Safety
+	///
+	/// The input number must be non positive.
+	pub unsafe fn new_unchecked(n: BigInt) -> Self {
+		Self(n)
+	}
+
 	#[inline(always)]
 	fn non_positive_integer_type(&self) -> Option<NonPositiveIntegerDatatype> {
 		if self.0 > BigInt::zero() {
@@ -47,6 +56,12 @@ impl From<lexical::NonPositiveIntegerBuf> for NonPositiveInteger {
 	}
 }
 
+impl fmt::Display for NonPositiveInteger {
+	fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+		self.0.fmt(f)
+	}
+}
+
 impl AsRef<BigInt> for NonPositiveInteger {
 	#[inline(always)]
 	fn as_ref(&self) -> &BigInt {
@@ -67,6 +82,22 @@ impl Deref for NonPositiveInteger {
 	#[inline(always)]
 	fn deref(&self) -> &Self::Target {
 		&self.0
+	}
+}
+
+#[derive(Debug, thiserror::Error)]
+#[error("integer {0} is negative")]
+pub struct IntegerIsPositive(Integer);
+
+impl TryFrom<Integer> for NonPositiveInteger {
+	type Error = IntegerIsPositive;
+
+	fn try_from(value: Integer) -> Result<Self, Self::Error> {
+		if value.is_positive() {
+			Err(IntegerIsPositive(value))
+		} else {
+			Ok(Self(value.into()))
+		}
 	}
 }
 

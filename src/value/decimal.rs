@@ -1,10 +1,13 @@
+use std::fmt;
+use std::hash::Hash;
 use std::ops::Deref;
 use std::{borrow::Borrow, collections::HashSet};
 
 use lazy_static::lazy_static;
 use num_bigint::BigInt;
 use num_rational::BigRational;
-use num_traits::Zero;
+use num_traits::{Signed, Zero};
+use once_cell::unsync::OnceCell;
 
 use crate::{
 	lexical, Datatype, DecimalDatatype, IntDatatype, IntegerDatatype, LongDatatype,
@@ -40,8 +43,43 @@ lazy_static! {
 ///
 /// Internally a decimal number is represented as a `BigRational` with a finite
 /// decimal representation.
-#[derive(Clone, PartialEq, Eq, PartialOrd, Ord, Hash, Debug)]
-pub struct Decimal(BigRational);
+#[derive(Clone)]
+pub struct Decimal {
+	data: BigRational,
+	lexical: OnceCell<lexical::DecimalBuf>,
+}
+
+impl PartialEq for Decimal {
+	fn eq(&self, other: &Self) -> bool {
+		self.data.eq(&other.data)
+	}
+}
+
+impl Eq for Decimal {}
+
+impl PartialOrd for Decimal {
+	fn partial_cmp(&self, other: &Self) -> Option<std::cmp::Ordering> {
+		self.data.partial_cmp(&other.data)
+	}
+}
+
+impl Ord for Decimal {
+	fn cmp(&self, other: &Self) -> std::cmp::Ordering {
+		self.data.cmp(&other.data)
+	}
+}
+
+impl Hash for Decimal {
+	fn hash<H: std::hash::Hasher>(&self, state: &mut H) {
+		self.data.hash(state)
+	}
+}
+
+impl fmt::Debug for Decimal {
+	fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+		write!(f, "Decimal({:?})", self.data)
+	}
+}
 
 /// Checks that a rational has a finite decimal representation.
 ///
@@ -80,18 +118,71 @@ pub fn is_decimal(r: &BigRational) -> bool {
 	c.is_decimal(r)
 }
 
+/// Returns the decimal lexical representation of the given rational number, if
+/// any.
+pub fn decimal_lexical_representation(r: &BigRational) -> Option<lexical::DecimalBuf> {
+	use std::fmt::Write;
+
+	let mut fraction = String::new();
+	let mut map = std::collections::HashMap::new();
+
+	let mut rem = if r.is_negative() {
+		-r.numer()
+	} else {
+		r.numer().clone()
+	};
+
+	rem %= r.denom();
+	while !rem.is_zero() && !map.contains_key(&rem) {
+		map.insert(rem.clone(), fraction.len());
+		rem *= TEN.clone();
+		fraction.push_str(&(rem.clone() / r.denom()).to_string());
+		rem %= r.denom();
+	}
+
+	let mut output = if r.is_negative() {
+		"-".to_owned()
+	} else {
+		String::new()
+	};
+
+	output.push_str(&(r.numer() / r.denom()).to_string());
+
+	if rem.is_zero() {
+		if !fraction.is_empty() {
+			write!(output, ".{}", &fraction).unwrap();
+		}
+
+		Some(unsafe { lexical::DecimalBuf::new_unchecked(output) })
+	} else {
+		None
+	}
+}
+
 impl Decimal {
+	/// Creates a new decimal number from a rational number.
+	///
+	/// # Safety
+	///
+	/// The input rational number must have a finite decimal representation.
+	pub unsafe fn new_unchecked(r: BigRational) -> Self {
+		Self {
+			data: r,
+			lexical: OnceCell::new(),
+		}
+	}
+
 	pub fn decimal_type(&self) -> Option<DecimalDatatype> {
-		if self.0.is_integer() {
-			if self.0 >= BigRational::zero() {
-				if self.0 > BigRational::zero() {
-					if self.0 <= *U8_MAX_RATIO {
+		if self.data.is_integer() {
+			if self.data >= BigRational::zero() {
+				if self.data > BigRational::zero() {
+					if self.data <= *U8_MAX_RATIO {
 						Some(UnsignedShortDatatype::UnsignedByte.into())
-					} else if self.0 <= *U16_MAX_RATIO {
+					} else if self.data <= *U16_MAX_RATIO {
 						Some(UnsignedIntDatatype::UnsignedShort(None).into())
-					} else if self.0 <= *U32_MAX_RATIO {
+					} else if self.data <= *U32_MAX_RATIO {
 						Some(UnsignedLongDatatype::UnsignedInt(None).into())
-					} else if self.0 <= *U64_MAX_RATIO {
+					} else if self.data <= *U64_MAX_RATIO {
 						Some(NonNegativeIntegerDatatype::UnsignedLong(None).into())
 					} else {
 						Some(NonNegativeIntegerDatatype::PositiveInteger.into())
@@ -99,13 +190,13 @@ impl Decimal {
 				} else {
 					Some(UnsignedShortDatatype::UnsignedByte.into())
 				}
-			} else if self.0 >= *I8_MIN_RATIO {
+			} else if self.data >= *I8_MIN_RATIO {
 				Some(ShortDatatype::Byte.into())
-			} else if self.0 >= *I16_MIN_RATIO {
+			} else if self.data >= *I16_MIN_RATIO {
 				Some(IntDatatype::Short(None).into())
-			} else if self.0 >= *I32_MIN_RATIO {
+			} else if self.data >= *I32_MIN_RATIO {
 				Some(LongDatatype::Int(None).into())
-			} else if self.0 >= *I64_MIN_RATIO {
+			} else if self.data >= *I64_MIN_RATIO {
 				Some(IntegerDatatype::Long(None).into())
 			} else {
 				Some(NonPositiveIntegerDatatype::NegativeInteger.into())
@@ -114,47 +205,74 @@ impl Decimal {
 			None
 		}
 	}
+
+	pub fn lexical_representation(&self) -> &lexical::DecimalBuf {
+		self.lexical
+			.get_or_init(|| decimal_lexical_representation(&self.data).unwrap())
+	}
+}
+
+impl fmt::Display for Decimal {
+	fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+		self.lexical_representation().fmt(f)
+	}
 }
 
 impl<'a> From<&'a lexical::Decimal> for Decimal {
 	fn from(value: &'a lexical::Decimal) -> Self {
-		let numer: BigInt = value.integer_part().as_str().parse().unwrap();
-		match value.fractional_part() {
-			Some(fract) => {
-				let f = BigRational::new(1.into(), fract.as_str().len().into());
-				let fract: BigRational = fract.as_str().parse().unwrap();
-				Self(BigRational::from(numer) + fract * f)
-			}
-			None => Self(numer.into()),
-		}
+		value.to_owned().into()
 	}
 }
 
 impl From<lexical::DecimalBuf> for Decimal {
 	#[inline(always)]
 	fn from(value: lexical::DecimalBuf) -> Self {
-		value.as_decimal().into()
+		let numer: BigInt = value.integer_part().as_str().parse().unwrap();
+		let data = match value.fractional_part() {
+			Some(fract) => {
+				let f = BigRational::new(1.into(), fract.as_str().len().into());
+				let fract: BigRational = fract.as_str().parse().unwrap();
+				BigRational::from(numer) + fract * f
+			}
+			None => numer.into(),
+		};
+
+		Self {
+			data,
+			lexical: value.into(),
+		}
+	}
+}
+
+impl From<BigInt> for Decimal {
+	#[inline(always)]
+	fn from(value: BigInt) -> Self {
+		Self {
+			data: value.into(),
+			lexical: OnceCell::new(),
+		}
 	}
 }
 
 impl From<Integer> for Decimal {
+	#[inline(always)]
 	fn from(value: Integer) -> Self {
 		let n: BigInt = value.into();
-		Self(n.into())
+		n.into()
 	}
 }
 
 impl AsRef<BigRational> for Decimal {
 	#[inline(always)]
 	fn as_ref(&self) -> &BigRational {
-		&self.0
+		&self.data
 	}
 }
 
 impl Borrow<BigRational> for Decimal {
 	#[inline(always)]
 	fn borrow(&self) -> &BigRational {
-		&self.0
+		&self.data
 	}
 }
 
@@ -163,7 +281,7 @@ impl Deref for Decimal {
 
 	#[inline(always)]
 	fn deref(&self) -> &Self::Target {
-		&self.0
+		&self.data
 	}
 }
 
@@ -179,7 +297,7 @@ impl TryFrom<BigRational> for Decimal {
 	#[inline(always)]
 	fn try_from(value: BigRational) -> Result<Self, Self::Error> {
 		if is_decimal(&value) {
-			Ok(Self(value))
+			Ok(unsafe { Self::new_unchecked(value) })
 		} else {
 			Err(NoDecimalRepresentation(value))
 		}
@@ -189,7 +307,7 @@ impl TryFrom<BigRational> for Decimal {
 impl From<Decimal> for BigRational {
 	#[inline(always)]
 	fn from(value: Decimal) -> Self {
-		value.0
+		value.data
 	}
 }
 

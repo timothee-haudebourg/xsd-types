@@ -1,5 +1,5 @@
-use std::borrow::Borrow;
 use std::ops::Deref;
+use std::{borrow::Borrow, fmt};
 
 use num_bigint::BigInt;
 use num_traits::Zero;
@@ -93,6 +93,12 @@ impl From<NonNegativeInteger> for Integer {
 	fn from(value: NonNegativeInteger) -> Self {
 		let n: BigInt = value.into();
 		Self(n)
+	}
+}
+
+impl fmt::Display for Integer {
+	fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+		self.0.fmt(f)
 	}
 }
 

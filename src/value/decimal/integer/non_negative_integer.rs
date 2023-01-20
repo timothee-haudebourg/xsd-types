@@ -1,19 +1,28 @@
-use std::{borrow::Borrow, ops::Deref};
+use std::{borrow::Borrow, fmt, ops::Deref};
 
 use num_bigint::BigInt;
-use num_traits::Zero;
+use num_traits::{Signed, Zero};
 
 use crate::{
 	lexical,
 	value::decimal::{U16_MAX, U32_MAX, U64_MAX, U8_MAX},
-	Datatype, NonNegativeIntegerDatatype, UnsignedIntDatatype, UnsignedLongDatatype,
+	Datatype, Integer, NonNegativeIntegerDatatype, UnsignedIntDatatype, UnsignedLongDatatype,
 	UnsignedShortDatatype, XsdDatatype,
 };
 
 #[derive(Clone, PartialEq, Eq, PartialOrd, Ord, Hash, Debug)]
-pub struct NonNegativeInteger(BigInt);
+pub struct NonNegativeInteger(pub BigInt);
 
 impl NonNegativeInteger {
+	/// Create a new non negative integer from a `BigInt`.
+	///
+	/// # Safety
+	///
+	/// The input number must be non negative.
+	pub unsafe fn new_unchecked(n: BigInt) -> Self {
+		Self(n)
+	}
+
 	pub fn non_negative_integer_type(&self) -> Option<NonNegativeIntegerDatatype> {
 		if self.0 > BigInt::zero() {
 			if self.0 <= *U8_MAX {
@@ -59,6 +68,12 @@ impl From<lexical::NonNegativeIntegerBuf> for NonNegativeInteger {
 	}
 }
 
+impl fmt::Display for NonNegativeInteger {
+	fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+		self.0.fmt(f)
+	}
+}
+
 impl AsRef<BigInt> for NonNegativeInteger {
 	#[inline(always)]
 	fn as_ref(&self) -> &BigInt {
@@ -79,6 +94,22 @@ impl Deref for NonNegativeInteger {
 	#[inline(always)]
 	fn deref(&self) -> &Self::Target {
 		&self.0
+	}
+}
+
+#[derive(Debug, thiserror::Error)]
+#[error("integer {0} is negative")]
+pub struct IntegerIsNegative(Integer);
+
+impl TryFrom<Integer> for NonNegativeInteger {
+	type Error = IntegerIsNegative;
+
+	fn try_from(value: Integer) -> Result<Self, Self::Error> {
+		if value.is_negative() {
+			Err(IntegerIsNegative(value))
+		} else {
+			Ok(Self(value.into()))
+		}
 	}
 }
 
