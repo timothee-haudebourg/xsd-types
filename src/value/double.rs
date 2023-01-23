@@ -14,7 +14,7 @@ pub struct Double(OrderedFloat<f64>);
 
 impl Double {
 	pub const NEG_INFINITY: Self = Self(OrderedFloat(f64::NEG_INFINITY));
-	pub const POS_INFINITY: Self = Self(OrderedFloat(f64::INFINITY));
+	pub const INFINITY: Self = Self(OrderedFloat(f64::INFINITY));
 	pub const MIN: Self = Self(OrderedFloat(f64::MIN));
 	pub const MAX: Self = Self(OrderedFloat(f64::MAX));
 	pub const NAN: Self = Self(OrderedFloat(f64::NAN));
