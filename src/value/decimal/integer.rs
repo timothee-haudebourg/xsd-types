@@ -1,4 +1,9 @@
-use std::{borrow::Borrow, fmt, str::FromStr};
+use std::{
+	borrow::Borrow,
+	fmt,
+	ops::{Add, Div, Mul, Sub},
+	str::FromStr,
+};
 
 use num_bigint::BigInt;
 use num_traits::{Signed, Zero};
@@ -252,3 +257,77 @@ impl XsdDatatype for Byte {
 		ShortDatatype::Byte.into()
 	}
 }
+
+impl Add for Integer {
+	type Output = Self;
+
+	fn add(self, rhs: Self) -> Self::Output {
+		Self(self.0 + rhs.0)
+	}
+}
+
+impl Sub for Integer {
+	type Output = Self;
+
+	fn sub(self, rhs: Self) -> Self::Output {
+		Self(self.0 - rhs.0)
+	}
+}
+
+impl Mul for Integer {
+	type Output = Self;
+
+	fn mul(self, rhs: Self) -> Self::Output {
+		Self(self.0 * rhs.0)
+	}
+}
+
+impl Div for Integer {
+	type Output = Self;
+
+	fn div(self, rhs: Self) -> Self::Output {
+		Self(self.0 / rhs.0)
+	}
+}
+
+macro_rules! impl_arithmetic {
+	{
+		$( $ty:ty ),*
+	} => {
+		$(
+			impl Add<$ty> for Integer {
+				type Output = Self;
+
+				fn add(self, rhs: $ty) -> Self::Output {
+					Self(self.0 + rhs)
+				}
+			}
+
+			impl Sub<$ty> for Integer {
+				type Output = Self;
+
+				fn sub(self, rhs: $ty) -> Self::Output {
+					Self(self.0 - rhs)
+				}
+			}
+
+			impl Mul<$ty> for Integer {
+				type Output = Self;
+
+				fn mul(self, rhs: $ty) -> Self::Output {
+					Self(self.0 * rhs)
+				}
+			}
+
+			impl Div<$ty> for Integer {
+				type Output = Self;
+
+				fn div(self, rhs: $ty) -> Self::Output {
+					Self(self.0 / rhs)
+				}
+			}
+		)*
+	};
+}
+
+impl_arithmetic!(i8, i16, i32, i64, isize, u8, u16, u32, u64, usize);

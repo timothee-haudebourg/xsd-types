@@ -1,7 +1,12 @@
-use std::{borrow::Borrow, fmt, str::FromStr};
+use std::{
+	borrow::Borrow,
+	fmt,
+	ops::{Add, Div, Mul, Sub},
+	str::FromStr,
+};
 
 use num_bigint::BigInt;
-use num_traits::Zero;
+use num_traits::{Signed, Zero};
 
 use crate::{
 	lexical,
@@ -213,6 +218,88 @@ impl XsdDatatype for UnsignedByte {
 		UnsignedShortDatatype::UnsignedByte.into()
 	}
 }
+
+impl Add for NonNegativeInteger {
+	type Output = Self;
+
+	fn add(self, rhs: Self) -> Self::Output {
+		Self(self.0 + rhs.0)
+	}
+}
+
+impl Sub for NonNegativeInteger {
+	type Output = Self;
+
+	fn sub(self, rhs: Self) -> Self::Output {
+		Self(self.0 - rhs.0)
+	}
+}
+
+impl Mul for NonNegativeInteger {
+	type Output = Self;
+
+	fn mul(self, rhs: Self) -> Self::Output {
+		Self(self.0 * rhs.0)
+	}
+}
+
+impl Div for NonNegativeInteger {
+	type Output = Self;
+
+	fn div(self, rhs: Self) -> Self::Output {
+		Self(self.0 / rhs.0)
+	}
+}
+
+macro_rules! impl_arithmetic {
+	{
+		$( $ty:ty ),*
+	} => {
+		$(
+			impl Add<$ty> for NonNegativeInteger {
+				type Output = Self;
+
+				fn add(self, rhs: $ty) -> Self::Output {
+					let n: BigInt = self.0 + rhs;
+					assert!(!n.is_negative());
+					Self(n)
+				}
+			}
+
+			impl Sub<$ty> for NonNegativeInteger {
+				type Output = Self;
+
+				fn sub(self, rhs: $ty) -> Self::Output {
+					let n: BigInt = self.0 - rhs;
+					assert!(!n.is_negative());
+					Self(n)
+				}
+			}
+
+			impl Mul<$ty> for NonNegativeInteger {
+				type Output = Self;
+
+				fn mul(self, rhs: $ty) -> Self::Output {
+					let n: BigInt = self.0 * rhs;
+					assert!(!n.is_negative());
+					Self(n)
+				}
+			}
+
+			impl Div<$ty> for NonNegativeInteger {
+				type Output = Self;
+
+				fn div(self, rhs: $ty) -> Self::Output {
+					let n: BigInt = self.0 / rhs;
+					assert!(!n.is_negative());
+					Self(n)
+				}
+			}
+		)*
+	};
+}
+
+impl_arithmetic!(i8, i16, i32, i64, isize, u8, u16, u32, u64, usize);
 
 #[derive(Clone, PartialEq, Eq, PartialOrd, Ord, Hash, Debug)]
 pub struct PositiveInteger(BigInt);
