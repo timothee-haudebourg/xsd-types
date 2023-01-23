@@ -139,6 +139,20 @@ impl TryFrom<Integer> for NonNegativeInteger {
 	}
 }
 
+macro_rules! from {
+	{ $( $ty:ty ),* } => {
+		$(
+			impl From<$ty> for NonNegativeInteger {
+				fn from(value: $ty) -> Self {
+					Self(value.into())
+				}
+			}
+		)*
+	};
+}
+
+from!(u8, u16, u32, u64, usize);
+
 #[derive(Debug, thiserror::Error)]
 #[error("integer out of supported bounds: {0}")]
 pub struct NonNegativeIntegerOutOfTargetBounds(pub NonNegativeInteger);

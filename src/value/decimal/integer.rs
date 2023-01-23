@@ -182,6 +182,20 @@ impl Borrow<BigInt> for Integer {
 #[error("integer out of supported bounds: {0}")]
 pub struct IntegerOutOfTargetBounds(pub Integer);
 
+macro_rules! from {
+	{ $( $ty:ty ),* } => {
+		$(
+			impl From<$ty> for Integer {
+				fn from(value: $ty) -> Self {
+					Self(value.into())
+				}
+			}
+		)*
+	};
+}
+
+from!(u8, u16, u32, u64, usize, i8, i16, i32, i64, isize);
+
 macro_rules! try_into {
 	{ $( $ty:ty ),* } => {
 		$(
