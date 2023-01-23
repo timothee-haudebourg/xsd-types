@@ -5,7 +5,7 @@ use std::{
 	str::FromStr,
 };
 
-use num_bigint::BigInt;
+use num_bigint::{BigInt, TryFromBigIntError};
 use num_traits::{Signed, Zero};
 
 use crate::{
@@ -177,6 +177,26 @@ impl Borrow<BigInt> for Integer {
 		&self.0
 	}
 }
+
+#[derive(Debug, thiserror::Error)]
+#[error("integer out of supported bounds: {0}")]
+pub struct IntegerOutOfTargetBounds(pub Integer);
+
+macro_rules! try_into {
+	{ $( $ty:ty ),* } => {
+		$(
+			impl TryFrom<Integer> for $ty {
+				type Error = IntegerOutOfTargetBounds;
+
+				fn try_from(value: Integer) -> Result<Self, Self::Error> {
+					value.0.try_into().map_err(|e: TryFromBigIntError<BigInt>| IntegerOutOfTargetBounds(Integer(e.into_original())))
+				}
+			}
+		)*
+	};
+}
+
+try_into!(u8, u16, u32, u64, usize, i8, i16, i32, i64, isize);
 
 pub type Long = i64;
 
