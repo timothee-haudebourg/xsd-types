@@ -2,17 +2,23 @@ use std::{
 	borrow::Borrow,
 	fmt,
 	ops::{Add, Div, Mul, Sub},
+	str::FromStr,
 };
 
 use ordered_float::OrderedFloat;
 
-use crate::{Datatype, XsdDatatype};
+use crate::{lexical, Datatype, XsdDatatype};
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash)]
 #[repr(transparent)]
 pub struct Float(OrderedFloat<f32>);
 
 impl Float {
+	#[inline(always)]
+	pub fn new(f: f32) -> Self {
+		Self(OrderedFloat(f))
+	}
+
 	/// Returns `true` if this value is NaN.
 	#[inline(always)]
 	pub fn is_nan(&self) -> bool {
@@ -83,6 +89,27 @@ impl XsdDatatype for Float {
 	#[inline(always)]
 	fn type_(&self) -> Datatype {
 		Datatype::Float
+	}
+}
+
+impl<'a> From<&'a lexical::Float> for Float {
+	fn from(value: &'a lexical::Float) -> Self {
+		Self::new(value.into())
+	}
+}
+
+impl From<lexical::FloatBuf> for Float {
+	fn from(value: lexical::FloatBuf) -> Self {
+		Self::new(value.into())
+	}
+}
+
+impl FromStr for Float {
+	type Err = lexical::InvalidFloat;
+
+	fn from_str(s: &str) -> Result<Self, Self::Err> {
+		let l = lexical::Float::new(s)?;
+		Ok(l.into())
 	}
 }
 

@@ -1,6 +1,7 @@
 use std::fmt;
 use std::hash::Hash;
 use std::ops::Deref;
+use std::str::FromStr;
 use std::{borrow::Borrow, collections::HashSet};
 
 use lazy_static::lazy_static;
@@ -267,6 +268,16 @@ impl From<lexical::DecimalBuf> for Decimal {
 			data,
 			lexical: value.into(),
 		}
+	}
+}
+
+impl FromStr for Decimal {
+	type Err = lexical::InvalidDecimal;
+
+	#[inline(always)]
+	fn from_str(s: &str) -> Result<Self, Self::Err> {
+		let l = lexical::DecimalBuf::new(s.to_owned()).map_err(|(e, _)| e)?;
+		Ok(l.into())
 	}
 }
 

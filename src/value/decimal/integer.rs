@@ -1,4 +1,4 @@
-use std::{borrow::Borrow, fmt};
+use std::{borrow::Borrow, fmt, str::FromStr};
 
 use num_bigint::BigInt;
 use num_traits::{Signed, Zero};
@@ -119,6 +119,23 @@ impl<'a> From<&'a lexical::Integer> for Integer {
 	#[inline(always)]
 	fn from(value: &'a lexical::Integer) -> Self {
 		Self(value.as_str().parse().unwrap())
+	}
+}
+
+impl From<lexical::IntegerBuf> for Integer {
+	#[inline(always)]
+	fn from(value: lexical::IntegerBuf) -> Self {
+		value.as_integer().into()
+	}
+}
+
+impl FromStr for Integer {
+	type Err = lexical::InvalidInteger;
+
+	#[inline(always)]
+	fn from_str(s: &str) -> Result<Self, Self::Err> {
+		let l = lexical::Integer::new(s)?;
+		Ok(l.into())
 	}
 }
 

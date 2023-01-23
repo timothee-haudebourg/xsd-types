@@ -1,4 +1,4 @@
-use std::{borrow::Borrow, fmt};
+use std::{borrow::Borrow, fmt, str::FromStr};
 
 use num_bigint::BigInt;
 use num_traits::Zero;
@@ -72,6 +72,16 @@ impl From<lexical::NonPositiveIntegerBuf> for NonPositiveInteger {
 	#[inline(always)]
 	fn from(value: lexical::NonPositiveIntegerBuf) -> Self {
 		value.as_non_positive_integer().into()
+	}
+}
+
+impl FromStr for NonPositiveInteger {
+	type Err = lexical::InvalidNonPositiveInteger;
+
+	#[inline(always)]
+	fn from_str(s: &str) -> Result<Self, Self::Err> {
+		let l = lexical::NonPositiveInteger::new(s)?;
+		Ok(l.into())
 	}
 }
 

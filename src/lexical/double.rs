@@ -1,6 +1,6 @@
 use super::{
-	Decimal, DecimalBuf, Integer, NonNegativeInteger, NonNegativeIntegerBuf, NonPositiveInteger,
-	NonPositiveIntegerBuf, Overflow,
+	Decimal, DecimalBuf, Float, FloatBuf, Integer, NonNegativeInteger, NonNegativeIntegerBuf,
+	NonPositiveInteger, NonPositiveIntegerBuf, Overflow,
 };
 use std::borrow::{Borrow, ToOwned};
 use std::fmt;
@@ -176,19 +176,27 @@ impl From<f32> for DoubleBuf {
 	}
 }
 
-impl<'a> TryFrom<&'a Double> for f32 {
-	type Error = <f32 as std::str::FromStr>::Err;
-
-	fn try_from(i: &'a Double) -> Result<Self, Self::Error> {
-		i.as_str().parse()
+impl<'a> From<&'a Double> for f64 {
+	fn from(i: &'a Double) -> Self {
+		i.as_str().parse().unwrap()
 	}
 }
 
-impl TryFrom<DoubleBuf> for f32 {
-	type Error = <f32 as std::str::FromStr>::Err;
+impl From<DoubleBuf> for f64 {
+	fn from(i: DoubleBuf) -> Self {
+		i.as_str().parse().unwrap()
+	}
+}
 
-	fn try_from(i: DoubleBuf) -> Result<Self, Self::Error> {
-		i.as_str().parse()
+impl<'a> From<&'a Float> for f64 {
+	fn from(i: &'a Float) -> Self {
+		i.as_str().parse().unwrap()
+	}
+}
+
+impl From<FloatBuf> for f64 {
+	fn from(i: FloatBuf) -> Self {
+		i.as_str().parse().unwrap()
 	}
 }
 
@@ -203,22 +211,6 @@ impl From<f64> for DoubleBuf {
 		} else {
 			DoubleBuf::negative_infinity()
 		}
-	}
-}
-
-impl<'a> TryFrom<&'a Double> for f64 {
-	type Error = <f64 as std::str::FromStr>::Err;
-
-	fn try_from(i: &'a Double) -> Result<Self, Self::Error> {
-		i.as_str().parse()
-	}
-}
-
-impl TryFrom<DoubleBuf> for f64 {
-	type Error = <f64 as std::str::FromStr>::Err;
-
-	fn try_from(i: DoubleBuf) -> Result<Self, Self::Error> {
-		i.as_str().parse()
 	}
 }
 

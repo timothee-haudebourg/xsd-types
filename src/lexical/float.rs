@@ -176,19 +176,15 @@ impl From<f32> for FloatBuf {
 	}
 }
 
-impl<'a> TryFrom<&'a Float> for f32 {
-	type Error = <f32 as std::str::FromStr>::Err;
-
-	fn try_from(i: &'a Float) -> Result<Self, Self::Error> {
-		i.as_str().parse()
+impl<'a> From<&'a Float> for f32 {
+	fn from(i: &'a Float) -> Self {
+		i.as_str().parse().unwrap()
 	}
 }
 
-impl TryFrom<FloatBuf> for f32 {
-	type Error = <f32 as std::str::FromStr>::Err;
-
-	fn try_from(i: FloatBuf) -> Result<Self, Self::Error> {
-		i.as_str().parse()
+impl From<FloatBuf> for f32 {
+	fn from(i: FloatBuf) -> Self {
+		i.as_str().parse().unwrap()
 	}
 }
 
@@ -203,22 +199,6 @@ impl From<f64> for FloatBuf {
 		} else {
 			FloatBuf::negative_infinity()
 		}
-	}
-}
-
-impl<'a> TryFrom<&'a Float> for f64 {
-	type Error = <f64 as std::str::FromStr>::Err;
-
-	fn try_from(i: &'a Float) -> Result<Self, Self::Error> {
-		i.as_str().parse()
-	}
-}
-
-impl TryFrom<FloatBuf> for f64 {
-	type Error = <f64 as std::str::FromStr>::Err;
-
-	fn try_from(i: FloatBuf) -> Result<Self, Self::Error> {
-		i.as_str().parse()
 	}
 }
 

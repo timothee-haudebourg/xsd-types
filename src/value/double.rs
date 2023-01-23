@@ -2,16 +2,22 @@ use std::{
 	borrow::Borrow,
 	fmt,
 	ops::{Add, Deref, DerefMut, Div, Mul, Sub},
+	str::FromStr,
 };
 
 use ordered_float::OrderedFloat;
 
-use crate::{Datatype, XsdDatatype};
+use crate::{lexical, Datatype, XsdDatatype};
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash)]
 pub struct Double(OrderedFloat<f64>);
 
 impl Double {
+	#[inline(always)]
+	pub fn new(f: f64) -> Self {
+		Self(OrderedFloat(f))
+	}
+
 	/// Returns `true` if this value is NaN.
 	#[inline(always)]
 	pub fn is_nan(&self) -> bool {
@@ -81,6 +87,27 @@ impl fmt::Display for Double {
 impl XsdDatatype for Double {
 	fn type_(&self) -> Datatype {
 		Datatype::Double
+	}
+}
+
+impl<'a> From<&'a lexical::Double> for Double {
+	fn from(value: &'a lexical::Double) -> Self {
+		Self::new(value.into())
+	}
+}
+
+impl From<lexical::DoubleBuf> for Double {
+	fn from(value: lexical::DoubleBuf) -> Self {
+		Self::new(value.into())
+	}
+}
+
+impl FromStr for Double {
+	type Err = lexical::InvalidDouble;
+
+	fn from_str(s: &str) -> Result<Self, Self::Err> {
+		let l = lexical::Double::new(s)?;
+		Ok(l.into())
 	}
 }
 
