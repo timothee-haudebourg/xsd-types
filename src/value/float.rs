@@ -14,6 +14,12 @@ use crate::{lexical, Datatype, XsdDatatype};
 pub struct Float(OrderedFloat<f32>);
 
 impl Float {
+	pub const NEG_INFINITY: Self = Self(OrderedFloat(f32::NEG_INFINITY));
+	pub const POS_INFINITY: Self = Self(OrderedFloat(f32::INFINITY));
+	pub const MIN: Self = Self(OrderedFloat(f32::MIN));
+	pub const MAX: Self = Self(OrderedFloat(f32::MAX));
+	pub const NAN: Self = Self(OrderedFloat(f32::NAN));
+
 	#[inline(always)]
 	pub fn new(f: f32) -> Self {
 		Self(OrderedFloat(f))
