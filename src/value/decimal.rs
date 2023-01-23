@@ -12,7 +12,7 @@ use once_cell::unsync::OnceCell;
 use crate::{
 	lexical, Datatype, DecimalDatatype, IntDatatype, IntegerDatatype, LongDatatype,
 	NonNegativeIntegerDatatype, NonPositiveIntegerDatatype, ShortDatatype, UnsignedIntDatatype,
-	UnsignedLongDatatype, UnsignedShortDatatype, XsdDatatype,
+	UnsignedLongDatatype, UnsignedShortDatatype, XsdDatatype, Float, Double,
 };
 
 mod integer;
@@ -206,6 +206,7 @@ impl Decimal {
 		}
 	}
 
+	#[inline(always)]
 	pub fn lexical_representation(&self) -> &lexical::DecimalBuf {
 		self.lexical
 			.get_or_init(|| decimal_lexical_representation(&self.data).unwrap())
@@ -213,12 +214,14 @@ impl Decimal {
 }
 
 impl fmt::Display for Decimal {
+	#[inline(always)]
 	fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
 		self.lexical_representation().fmt(f)
 	}
 }
 
 impl<'a> From<&'a lexical::Decimal> for Decimal {
+	#[inline(always)]
 	fn from(value: &'a lexical::Decimal) -> Self {
 		value.to_owned().into()
 	}
@@ -315,5 +318,53 @@ impl XsdDatatype for Decimal {
 	#[inline(always)]
 	fn type_(&self) -> Datatype {
 		self.decimal_type().into()
+	}
+}
+
+#[derive(Debug, thiserror::Error)]
+pub enum NonDecimalFloat {
+	#[error("float is NaN")]
+	Nan,
+
+	#[error("float is positive infinity")]
+	PositiveInfinity,
+
+	#[error("float is negative infinity")]
+	NegativeInfinity
+}
+
+impl TryFrom<Float> for Decimal {
+	type Error = NonDecimalFloat;
+
+	fn try_from(value: Float) -> Result<Self, Self::Error> {
+		if value.is_nan() {
+			Err(NonDecimalFloat::Nan)
+		} else if value.is_infinite() {
+			if value.is_sign_positive() {
+				Err(NonDecimalFloat::PositiveInfinity)
+			} else {
+				Err(NonDecimalFloat::NegativeInfinity)
+			}
+		} else {
+			Ok(BigRational::from_float(value).unwrap().try_into().unwrap())
+		}
+	}
+}
+
+impl TryFrom<Double> for Decimal {
+	type Error = NonDecimalFloat;
+
+	fn try_from(value: Double) -> Result<Self, Self::Error> {
+		if value.is_nan() {
+			Err(NonDecimalFloat::Nan)
+		} else if value.is_infinite() {
+			if value.is_sign_positive() {
+				Err(NonDecimalFloat::PositiveInfinity)
+			} else {
+				Err(NonDecimalFloat::NegativeInfinity)
+			}
+		} else {
+			Ok(BigRational::from_float(value).unwrap().try_into().unwrap())
+		}
 	}
 }

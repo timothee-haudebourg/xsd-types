@@ -7,7 +7,7 @@ use num_traits::{Signed, Zero};
 use crate::{lexical, Datatype, Integer, NonPositiveIntegerDatatype, XsdDatatype};
 
 #[derive(Clone, PartialEq, Eq, PartialOrd, Ord, Hash, Debug)]
-pub struct NonPositiveInteger(pub BigInt);
+pub struct NonPositiveInteger(BigInt);
 
 impl NonPositiveInteger {
 	/// Create a new non positive integer from a `BigInt`.
@@ -25,6 +25,16 @@ impl NonPositiveInteger {
 			Some(NonPositiveIntegerDatatype::NegativeInteger)
 		} else {
 			None
+		}
+	}
+
+	/// Returns a lexical representation of this non positive integer.
+	#[inline(always)]
+	pub fn lexical_representation(&self) -> lexical::NonPositiveIntegerBuf {
+		unsafe {
+			// This is safe because the `Display::fmt` method matches the
+			// XSD lexical representation.
+			lexical::NonPositiveIntegerBuf::new_unchecked(format!("{}", self))
 		}
 	}
 }

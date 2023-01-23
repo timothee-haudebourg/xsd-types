@@ -11,7 +11,7 @@ use crate::{
 };
 
 #[derive(Clone, PartialEq, Eq, PartialOrd, Ord, Hash, Debug)]
-pub struct NonNegativeInteger(pub BigInt);
+pub struct NonNegativeInteger(BigInt);
 
 impl NonNegativeInteger {
 	/// Create a new non negative integer from a `BigInt`.
@@ -38,6 +38,16 @@ impl NonNegativeInteger {
 			}
 		} else {
 			Some(UnsignedShortDatatype::UnsignedByte.into())
+		}
+	}
+
+	/// Returns a lexical representation of this non negative integer.
+	#[inline(always)]
+	pub fn lexical_representation(&self) -> lexical::NonNegativeIntegerBuf {
+		unsafe {
+			// This is safe because the `Display::fmt` method matches the
+			// XSD lexical representation.
+			lexical::NonNegativeIntegerBuf::new_unchecked(format!("{}", self))
 		}
 	}
 }

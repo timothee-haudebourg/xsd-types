@@ -20,9 +20,20 @@ pub use non_positive_integer::*;
 
 /// Integer number.
 #[derive(Clone, PartialEq, Eq, PartialOrd, Ord, Hash, Debug)]
+#[repr(transparent)]
 pub struct Integer(BigInt);
 
 impl Integer {
+	/// Converts a `BigInt` reference into an `Integer` reference.
+	#[inline(always)]
+	pub fn from_bigint_ref(n: &BigInt) -> &Self {
+		unsafe {
+			// This is safe because `Integer` is a transparent wrapper around
+			// `BigInt`.
+			std::mem::transmute(n)
+		}
+	}
+
 	pub fn integer_type(&self) -> Option<IntegerDatatype> {
 		if self.0 >= BigInt::zero() {
 			if self.0 > BigInt::zero() {
@@ -50,6 +61,16 @@ impl Integer {
 			Some(IntegerDatatype::Long(None))
 		} else {
 			Some(NonPositiveIntegerDatatype::NegativeInteger.into())
+		}
+	}
+
+	/// Returns a lexical representation of this integer.
+	#[inline(always)]
+	pub fn lexical_representation(&self) -> lexical::IntegerBuf {
+		unsafe {
+			// This is safe because the `Display::fmt` method matches the
+			// XSD lexical representation.
+			lexical::IntegerBuf::new_unchecked(format!("{}", self))
 		}
 	}
 }
