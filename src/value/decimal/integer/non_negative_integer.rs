@@ -1,4 +1,4 @@
-use std::{borrow::Borrow, fmt, ops::Deref};
+use std::{borrow::Borrow, fmt};
 
 use num_bigint::BigInt;
 use num_traits::Zero;
@@ -104,15 +104,6 @@ impl AsRef<BigInt> for NonNegativeInteger {
 impl Borrow<BigInt> for NonNegativeInteger {
 	#[inline(always)]
 	fn borrow(&self) -> &BigInt {
-		&self.0
-	}
-}
-
-impl Deref for NonNegativeInteger {
-	type Target = BigInt;
-
-	#[inline(always)]
-	fn deref(&self) -> &Self::Target {
 		&self.0
 	}
 }

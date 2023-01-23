@@ -1,6 +1,10 @@
 mod decimal;
+mod double;
+mod float;
 
 pub use decimal::*;
+pub use double::*;
+pub use float::*;
 
 use crate::Datatype;
 
@@ -22,22 +26,6 @@ pub type Boolean = bool;
 impl XsdDatatype for Boolean {
 	fn type_(&self) -> Datatype {
 		Datatype::Boolean
-	}
-}
-
-pub type Float = f32;
-
-impl XsdDatatype for Float {
-	fn type_(&self) -> Datatype {
-		Datatype::Float
-	}
-}
-
-pub type Double = f64;
-
-impl XsdDatatype for Double {
-	fn type_(&self) -> Datatype {
-		Datatype::Double
 	}
 }
 

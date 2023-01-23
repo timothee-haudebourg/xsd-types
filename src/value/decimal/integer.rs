@@ -1,4 +1,3 @@
-use std::ops::Deref;
 use std::{borrow::Borrow, fmt};
 
 use num_bigint::BigInt;
@@ -153,15 +152,6 @@ impl AsRef<BigInt> for Integer {
 impl Borrow<BigInt> for Integer {
 	#[inline(always)]
 	fn borrow(&self) -> &BigInt {
-		&self.0
-	}
-}
-
-impl Deref for Integer {
-	type Target = BigInt;
-
-	#[inline(always)]
-	fn deref(&self) -> &Self::Target {
 		&self.0
 	}
 }

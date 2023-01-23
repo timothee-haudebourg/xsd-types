@@ -363,13 +363,16 @@ impl TryFrom<Float> for Decimal {
 		if value.is_nan() {
 			Err(NonDecimalFloat::Nan)
 		} else if value.is_infinite() {
-			if value.is_sign_positive() {
+			if value.is_positive() {
 				Err(NonDecimalFloat::PositiveInfinity)
 			} else {
 				Err(NonDecimalFloat::NegativeInfinity)
 			}
 		} else {
-			Ok(BigRational::from_float(value).unwrap().try_into().unwrap())
+			Ok(BigRational::from_float(value.into_f32())
+				.unwrap()
+				.try_into()
+				.unwrap())
 		}
 	}
 }
@@ -387,7 +390,7 @@ impl TryFrom<Double> for Decimal {
 				Err(NonDecimalFloat::NegativeInfinity)
 			}
 		} else {
-			Ok(BigRational::from_float(value).unwrap().try_into().unwrap())
+			Ok(BigRational::from_float(*value).unwrap().try_into().unwrap())
 		}
 	}
 }
