@@ -10,9 +10,9 @@ use num_traits::{Signed, Zero};
 use once_cell::unsync::OnceCell;
 
 use crate::{
-	lexical, Datatype, DecimalDatatype, IntDatatype, IntegerDatatype, LongDatatype,
+	lexical, Datatype, DecimalDatatype, Double, Float, IntDatatype, IntegerDatatype, LongDatatype,
 	NonNegativeIntegerDatatype, NonPositiveIntegerDatatype, ShortDatatype, UnsignedIntDatatype,
-	UnsignedLongDatatype, UnsignedShortDatatype, XsdDatatype, Float, Double,
+	UnsignedLongDatatype, UnsignedShortDatatype, XsdDatatype,
 };
 
 mod integer;
@@ -330,7 +330,7 @@ pub enum NonDecimalFloat {
 	PositiveInfinity,
 
 	#[error("float is negative infinity")]
-	NegativeInfinity
+	NegativeInfinity,
 }
 
 impl TryFrom<Float> for Decimal {
