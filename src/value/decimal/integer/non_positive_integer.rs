@@ -2,7 +2,7 @@ use std::ops::Deref;
 use std::{borrow::Borrow, fmt};
 
 use num_bigint::BigInt;
-use num_traits::{Signed, Zero};
+use num_traits::Zero;
 
 use crate::{lexical, Datatype, Integer, NonPositiveIntegerDatatype, XsdDatatype};
 
@@ -17,6 +17,16 @@ impl NonPositiveInteger {
 	/// The input number must be non positive.
 	pub unsafe fn new_unchecked(n: BigInt) -> Self {
 		Self(n)
+	}
+
+	#[inline(always)]
+	pub fn zero() -> Self {
+		Self(BigInt::zero())
+	}
+
+	#[inline(always)]
+	pub fn is_zero(&self) -> bool {
+		self.0.is_zero()
 	}
 
 	#[inline(always)]

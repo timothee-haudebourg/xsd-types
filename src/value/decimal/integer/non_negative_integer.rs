@@ -1,7 +1,7 @@
 use std::{borrow::Borrow, fmt, ops::Deref};
 
 use num_bigint::BigInt;
-use num_traits::{Signed, Zero};
+use num_traits::Zero;
 
 use crate::{
 	lexical,
@@ -21,6 +21,16 @@ impl NonNegativeInteger {
 	/// The input number must be non negative.
 	pub unsafe fn new_unchecked(n: BigInt) -> Self {
 		Self(n)
+	}
+
+	#[inline(always)]
+	pub fn zero() -> Self {
+		Self(BigInt::zero())
+	}
+
+	#[inline(always)]
+	pub fn is_zero(&self) -> bool {
+		self.0.is_zero()
 	}
 
 	pub fn non_negative_integer_type(&self) -> Option<NonNegativeIntegerDatatype> {

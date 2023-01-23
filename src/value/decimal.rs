@@ -172,6 +172,29 @@ impl Decimal {
 		}
 	}
 
+	#[inline(always)]
+	pub fn zero() -> Self {
+		Self {
+			data: BigRational::zero(),
+			lexical: OnceCell::new(),
+		}
+	}
+
+	#[inline(always)]
+	pub fn is_zero(&self) -> bool {
+		self.data.is_zero()
+	}
+
+	#[inline(always)]
+	pub fn is_positive(&self) -> bool {
+		self.data.is_positive()
+	}
+
+	#[inline(always)]
+	pub fn is_negative(&self) -> bool {
+		self.data.is_negative()
+	}
+
 	pub fn decimal_type(&self) -> Option<DecimalDatatype> {
 		if self.data.is_integer() {
 			if self.data >= BigRational::zero() {

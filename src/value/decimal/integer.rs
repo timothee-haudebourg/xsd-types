@@ -2,7 +2,7 @@ use std::ops::Deref;
 use std::{borrow::Borrow, fmt};
 
 use num_bigint::BigInt;
-use num_traits::Zero;
+use num_traits::{Signed, Zero};
 
 use crate::{
 	lexical, Datatype, IntDatatype, IntegerDatatype, LongDatatype, NonNegativeIntegerDatatype,
@@ -32,6 +32,26 @@ impl Integer {
 			// `BigInt`.
 			std::mem::transmute(n)
 		}
+	}
+
+	#[inline(always)]
+	pub fn zero() -> Self {
+		Self(BigInt::zero())
+	}
+
+	#[inline(always)]
+	pub fn is_zero(&self) -> bool {
+		self.0.is_zero()
+	}
+
+	#[inline(always)]
+	pub fn is_positive(&self) -> bool {
+		self.0.is_positive()
+	}
+
+	#[inline(always)]
+	pub fn is_negative(&self) -> bool {
+		self.0.is_negative()
 	}
 
 	pub fn integer_type(&self) -> Option<IntegerDatatype> {
