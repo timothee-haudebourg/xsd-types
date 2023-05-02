@@ -177,6 +177,15 @@ impl TryFrom<Integer> for NonPositiveInteger {
 pub struct NegativeInteger(BigInt);
 
 impl NegativeInteger {
+	/// Creates a new negative integer from the given `BigInt`.
+	/// 
+	/// # Safety
+	/// 
+	/// The input value *must* but a negative integer.
+	pub unsafe fn new_unchecked(n: BigInt) -> Self {
+		Self(n)
+	}
+
 	pub fn into_big_int(self) -> BigInt {
 		self.0
 	}

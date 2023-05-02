@@ -282,6 +282,15 @@ impl XsdDatatype for UnsignedByte {
 pub struct PositiveInteger(BigInt);
 
 impl PositiveInteger {
+	/// Creates a new positive integer from the given `BigInt`.
+	/// 
+	/// # Safety
+	/// 
+	/// The input value *must* but a positive integer.
+	pub unsafe fn new_unchecked(n: BigInt) -> Self {
+		Self(n)
+	}
+
 	pub fn into_big_int(self) -> BigInt {
 		self.0
 	}
