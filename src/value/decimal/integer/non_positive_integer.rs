@@ -149,3 +149,9 @@ impl XsdDatatype for NegativeInteger {
 		NonPositiveIntegerDatatype::NegativeInteger.into()
 	}
 }
+
+impl fmt::Display for NegativeInteger {
+	fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+		self.0.fmt(f)
+	}
+}
