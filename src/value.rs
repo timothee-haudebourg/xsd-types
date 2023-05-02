@@ -29,6 +29,7 @@ impl XsdDatatype for Boolean {
 	}
 }
 
+#[derive(Debug, Clone)]
 pub struct Duration;
 
 impl XsdDatatype for Duration {
@@ -37,6 +38,7 @@ impl XsdDatatype for Duration {
 	}
 }
 
+#[derive(Debug, Clone)]
 pub struct DateTime;
 
 impl XsdDatatype for DateTime {
@@ -45,6 +47,7 @@ impl XsdDatatype for DateTime {
 	}
 }
 
+#[derive(Debug, Clone)]
 pub struct Time;
 
 impl XsdDatatype for Time {
@@ -53,6 +56,7 @@ impl XsdDatatype for Time {
 	}
 }
 
+#[derive(Debug, Clone)]
 pub struct Date;
 
 impl XsdDatatype for Date {
@@ -61,6 +65,7 @@ impl XsdDatatype for Date {
 	}
 }
 
+#[derive(Debug, Clone)]
 pub struct GYearMonth;
 
 impl XsdDatatype for GYearMonth {
@@ -69,6 +74,7 @@ impl XsdDatatype for GYearMonth {
 	}
 }
 
+#[derive(Debug, Clone)]
 pub struct GYear;
 
 impl XsdDatatype for GYear {
@@ -77,6 +83,7 @@ impl XsdDatatype for GYear {
 	}
 }
 
+#[derive(Debug, Clone)]
 pub struct GMonthDay;
 
 impl XsdDatatype for GMonthDay {
@@ -85,6 +92,7 @@ impl XsdDatatype for GMonthDay {
 	}
 }
 
+#[derive(Debug, Clone)]
 pub struct GDay;
 
 impl XsdDatatype for GDay {
@@ -93,6 +101,7 @@ impl XsdDatatype for GDay {
 	}
 }
 
+#[derive(Debug, Clone)]
 pub struct GMonth;
 
 impl XsdDatatype for GMonth {
@@ -101,6 +110,7 @@ impl XsdDatatype for GMonth {
 	}
 }
 
+#[derive(Debug, Clone)]
 pub struct HexBinary;
 
 impl XsdDatatype for HexBinary {
@@ -109,6 +119,7 @@ impl XsdDatatype for HexBinary {
 	}
 }
 
+#[derive(Debug, Clone)]
 pub struct Base64Binary;
 
 impl XsdDatatype for Base64Binary {
@@ -117,6 +128,7 @@ impl XsdDatatype for Base64Binary {
 	}
 }
 
+#[derive(Debug, Clone)]
 pub struct AnyUri;
 
 impl XsdDatatype for AnyUri {
@@ -125,6 +137,7 @@ impl XsdDatatype for AnyUri {
 	}
 }
 
+#[derive(Debug, Clone)]
 pub struct QName;
 
 impl XsdDatatype for QName {
@@ -133,6 +146,7 @@ impl XsdDatatype for QName {
 	}
 }
 
+#[derive(Debug, Clone)]
 pub struct Notation;
 
 impl XsdDatatype for Notation {
@@ -142,6 +156,7 @@ impl XsdDatatype for Notation {
 }
 
 /// XSD datatype value.
+#[derive(Debug, Clone)]
 pub enum Value {
 	String(String),
 	Boolean(Boolean),
