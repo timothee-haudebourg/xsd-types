@@ -180,6 +180,10 @@ impl NegativeInteger {
 	pub fn into_big_int(self) -> BigInt {
 		self.0
 	}
+
+	pub fn is_minus_one(&self) -> bool {
+		matches!(i8::try_from(&self.0), Ok(-1))
+	}
 }
 
 impl XsdDatatype for NegativeInteger {

@@ -285,6 +285,10 @@ impl PositiveInteger {
 	pub fn into_big_int(self) -> BigInt {
 		self.0
 	}
+
+	pub fn is_one(&self) -> bool {
+		matches!(u8::try_from(&self.0), Ok(1))
+	}
 }
 
 impl XsdDatatype for PositiveInteger {
