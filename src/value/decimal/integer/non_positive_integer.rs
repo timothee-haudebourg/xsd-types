@@ -1,9 +1,16 @@
-use std::{borrow::Borrow, fmt, str::FromStr};
+use std::{
+	borrow::Borrow,
+	fmt,
+	ops::{Add, Div, Mul, Sub},
+	str::FromStr,
+};
 
 use num_bigint::{BigInt, TryFromBigIntError};
-use num_traits::Zero;
+use num_traits::{Signed, Zero};
 
-use crate::{lexical, Datatype, Integer, NonPositiveIntegerDatatype, XsdDatatype};
+use crate::{
+	impl_integer_arithmetic, lexical, Datatype, Integer, NonPositiveIntegerDatatype, XsdDatatype,
+};
 
 #[derive(Clone, PartialEq, Eq, PartialOrd, Ord, Hash, Debug)]
 pub struct NonPositiveInteger(BigInt);
@@ -16,6 +23,11 @@ impl NonPositiveInteger {
 	/// The input number must be non positive.
 	pub unsafe fn new_unchecked(n: BigInt) -> Self {
 		Self(n)
+	}
+
+	#[inline(always)]
+	pub fn into_big_int(self) -> BigInt {
+		self.0
 	}
 
 	#[inline(always)]
@@ -105,6 +117,26 @@ impl Borrow<BigInt> for NonPositiveInteger {
 	}
 }
 
+impl_integer_arithmetic!(
+	for NonPositiveInteger where r ( !r.is_positive() ) {
+		Integer [.0],
+		NonPositiveInteger [.0],
+		NegativeInteger [.0],
+		super::NonNegativeInteger [.into_big_int()],
+		super::PositiveInteger [.into_big_int()],
+		i8,
+		i16,
+		i32,
+		i64,
+		isize,
+		u8,
+		u16,
+		u32,
+		u64,
+		usize
+	}
+);
+
 #[derive(Debug, thiserror::Error)]
 #[error("integer out of supported bounds: {0}")]
 pub struct NonPositiveIntegerOutOfTargetBounds(pub NonPositiveInteger);
@@ -144,6 +176,12 @@ impl TryFrom<Integer> for NonPositiveInteger {
 #[derive(Clone, PartialEq, Eq, PartialOrd, Ord, Hash, Debug)]
 pub struct NegativeInteger(BigInt);
 
+impl NegativeInteger {
+	pub fn into_big_int(self) -> BigInt {
+		self.0
+	}
+}
+
 impl XsdDatatype for NegativeInteger {
 	fn type_(&self) -> Datatype {
 		NonPositiveIntegerDatatype::NegativeInteger.into()
@@ -155,3 +193,23 @@ impl fmt::Display for NegativeInteger {
 		self.0.fmt(f)
 	}
 }
+
+impl_integer_arithmetic!(
+	for NegativeInteger where r ( r.is_negative() ) {
+		Integer [.0],
+		NonPositiveInteger [.0],
+		NegativeInteger [.0],
+		super::NonNegativeInteger [.into_big_int()],
+		super::PositiveInteger [.into_big_int()],
+		i8,
+		i16,
+		i32,
+		i64,
+		isize,
+		u8,
+		u16,
+		u32,
+		u64,
+		usize
+	}
+);

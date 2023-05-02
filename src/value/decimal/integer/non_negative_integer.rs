@@ -9,7 +9,7 @@ use num_bigint::{BigInt, TryFromBigIntError};
 use num_traits::{Signed, Zero};
 
 use crate::{
-	lexical,
+	impl_integer_arithmetic, lexical,
 	value::decimal::{U16_MAX, U32_MAX, U64_MAX, U8_MAX},
 	Datatype, Integer, NonNegativeIntegerDatatype, UnsignedIntDatatype, UnsignedLongDatatype,
 	UnsignedShortDatatype, XsdDatatype,
@@ -26,6 +26,11 @@ impl NonNegativeInteger {
 	/// The input number must be non negative.
 	pub unsafe fn new_unchecked(n: BigInt) -> Self {
 		Self(n)
+	}
+
+	#[inline(always)]
+	pub fn into_big_int(self) -> BigInt {
+		self.0
 	}
 
 	#[inline(always)]
@@ -173,87 +178,25 @@ macro_rules! try_into {
 
 try_into!(u8, u16, u32, u64, usize, i8, i16, i32, i64, isize);
 
-impl Add for NonNegativeInteger {
-	type Output = Self;
-
-	fn add(self, rhs: Self) -> Self::Output {
-		Self(self.0 + rhs.0)
+impl_integer_arithmetic!(
+	for NonNegativeInteger where r ( !r.is_negative() ) {
+		Integer [.0],
+		NonNegativeInteger [.0],
+		PositiveInteger [.0],
+		super::NonPositiveInteger [.into_big_int()],
+		super::NegativeInteger [.into_big_int()],
+		i8,
+		i16,
+		i32,
+		i64,
+		isize,
+		u8,
+		u16,
+		u32,
+		u64,
+		usize
 	}
-}
-
-impl Sub for NonNegativeInteger {
-	type Output = Self;
-
-	fn sub(self, rhs: Self) -> Self::Output {
-		Self(self.0 - rhs.0)
-	}
-}
-
-impl Mul for NonNegativeInteger {
-	type Output = Self;
-
-	fn mul(self, rhs: Self) -> Self::Output {
-		Self(self.0 * rhs.0)
-	}
-}
-
-impl Div for NonNegativeInteger {
-	type Output = Self;
-
-	fn div(self, rhs: Self) -> Self::Output {
-		Self(self.0 / rhs.0)
-	}
-}
-
-macro_rules! impl_arithmetic {
-	{
-		$( $ty:ty ),*
-	} => {
-		$(
-			impl Add<$ty> for NonNegativeInteger {
-				type Output = Self;
-
-				fn add(self, rhs: $ty) -> Self::Output {
-					let n: BigInt = self.0 + rhs;
-					assert!(!n.is_negative());
-					Self(n)
-				}
-			}
-
-			impl Sub<$ty> for NonNegativeInteger {
-				type Output = Self;
-
-				fn sub(self, rhs: $ty) -> Self::Output {
-					let n: BigInt = self.0 - rhs;
-					assert!(!n.is_negative());
-					Self(n)
-				}
-			}
-
-			impl Mul<$ty> for NonNegativeInteger {
-				type Output = Self;
-
-				fn mul(self, rhs: $ty) -> Self::Output {
-					let n: BigInt = self.0 * rhs;
-					assert!(!n.is_negative());
-					Self(n)
-				}
-			}
-
-			impl Div<$ty> for NonNegativeInteger {
-				type Output = Self;
-
-				fn div(self, rhs: $ty) -> Self::Output {
-					let n: BigInt = self.0 / rhs;
-					assert!(!n.is_negative());
-					Self(n)
-				}
-			}
-		)*
-	};
-}
-
-impl_arithmetic!(i8, i16, i32, i64, isize, u8, u16, u32, u64, usize);
+);
 
 pub type UnsignedLong = u64;
 
@@ -338,6 +281,12 @@ impl XsdDatatype for UnsignedByte {
 #[derive(Clone, PartialEq, Eq, PartialOrd, Ord, Hash, Debug)]
 pub struct PositiveInteger(BigInt);
 
+impl PositiveInteger {
+	pub fn into_big_int(self) -> BigInt {
+		self.0
+	}
+}
+
 impl XsdDatatype for PositiveInteger {
 	fn type_(&self) -> Datatype {
 		NonNegativeIntegerDatatype::PositiveInteger.into()
@@ -349,3 +298,23 @@ impl fmt::Display for PositiveInteger {
 		self.0.fmt(f)
 	}
 }
+
+impl_integer_arithmetic!(
+	for PositiveInteger where r ( r.is_positive() ) {
+		Integer [.0],
+		NonNegativeInteger [.0],
+		PositiveInteger [.0],
+		super::NonPositiveInteger [.into_big_int()],
+		super::NegativeInteger [.into_big_int()],
+		i8,
+		i16,
+		i32,
+		i64,
+		isize,
+		u8,
+		u16,
+		u32,
+		u64,
+		usize
+	}
+);

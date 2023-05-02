@@ -292,76 +292,76 @@ impl XsdDatatype for Byte {
 	}
 }
 
-impl Add for Integer {
-	type Output = Self;
-
-	fn add(self, rhs: Self) -> Self::Output {
-		Self(self.0 + rhs.0)
-	}
-}
-
-impl Sub for Integer {
-	type Output = Self;
-
-	fn sub(self, rhs: Self) -> Self::Output {
-		Self(self.0 - rhs.0)
-	}
-}
-
-impl Mul for Integer {
-	type Output = Self;
-
-	fn mul(self, rhs: Self) -> Self::Output {
-		Self(self.0 * rhs.0)
-	}
-}
-
-impl Div for Integer {
-	type Output = Self;
-
-	fn div(self, rhs: Self) -> Self::Output {
-		Self(self.0 / rhs.0)
-	}
-}
-
-macro_rules! impl_arithmetic {
+macro_rules! impl_integer_arithmetic {
 	{
-		$( $ty:ty ),*
+		for $target:ty where $id:ident ( $test:expr ) {
+			$( $ty:ty $([$($accessor:tt)*])? ),*
+		}
 	} => {
 		$(
-			impl Add<$ty> for Integer {
+			impl Add<$ty> for $target {
 				type Output = Self;
 
 				fn add(self, rhs: $ty) -> Self::Output {
-					Self(self.0 + rhs)
+					let $id = self.0 + rhs $($($accessor)*)?;
+
+					if !($test) {
+						panic!("attempt to add with overflow")
+					}
+
+					Self($id)
 				}
 			}
 
-			impl Sub<$ty> for Integer {
+			impl Sub<$ty> for $target {
 				type Output = Self;
 
 				fn sub(self, rhs: $ty) -> Self::Output {
-					Self(self.0 - rhs)
+					let $id = self.0 - rhs $($($accessor)*)?;
+
+					if !($test) {
+						panic!("attempt to subtract with overflow")
+					}
+
+					Self($id)
 				}
 			}
 
-			impl Mul<$ty> for Integer {
+			impl Mul<$ty> for $target {
 				type Output = Self;
 
 				fn mul(self, rhs: $ty) -> Self::Output {
-					Self(self.0 * rhs)
+					let $id = self.0 * rhs $($($accessor)*)?;
+
+					if !($test) {
+						panic!("attempt to multiply with overflow")
+					}
+
+					Self($id)
 				}
 			}
 
-			impl Div<$ty> for Integer {
+			impl Div<$ty> for $target {
 				type Output = Self;
 
 				fn div(self, rhs: $ty) -> Self::Output {
-					Self(self.0 / rhs)
+					let $id = self.0 / rhs $($($accessor)*)?;
+
+					if !($test) {
+						panic!("attempt to divide with overflow")
+					}
+
+					Self($id)
 				}
 			}
 		)*
 	};
 }
 
-impl_arithmetic!(i8, i16, i32, i64, isize, u8, u16, u32, u64, usize);
+pub(crate) use impl_integer_arithmetic;
+
+impl_integer_arithmetic! {
+	for Integer where r (true) {
+		Integer [.0], i8, i16, i32, i64, isize, u8, u16, u32, u64, usize
+	}
+}
