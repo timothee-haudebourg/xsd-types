@@ -283,9 +283,9 @@ pub struct PositiveInteger(BigInt);
 
 impl PositiveInteger {
 	/// Creates a new positive integer from the given `BigInt`.
-	/// 
+	///
 	/// # Safety
-	/// 
+	///
 	/// The input value *must* but a positive integer.
 	pub unsafe fn new_unchecked(n: BigInt) -> Self {
 		Self(n)
@@ -309,6 +309,12 @@ impl XsdDatatype for PositiveInteger {
 impl fmt::Display for PositiveInteger {
 	fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
 		self.0.fmt(f)
+	}
+}
+
+impl From<PositiveInteger> for BigInt {
+	fn from(value: PositiveInteger) -> Self {
+		value.into_big_int()
 	}
 }
 

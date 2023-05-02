@@ -178,9 +178,9 @@ pub struct NegativeInteger(BigInt);
 
 impl NegativeInteger {
 	/// Creates a new negative integer from the given `BigInt`.
-	/// 
+	///
 	/// # Safety
-	/// 
+	///
 	/// The input value *must* but a negative integer.
 	pub unsafe fn new_unchecked(n: BigInt) -> Self {
 		Self(n)
@@ -204,6 +204,12 @@ impl XsdDatatype for NegativeInteger {
 impl fmt::Display for NegativeInteger {
 	fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
 		self.0.fmt(f)
+	}
+}
+
+impl From<NegativeInteger> for BigInt {
+	fn from(value: NegativeInteger) -> Self {
+		value.into_big_int()
 	}
 }
 
