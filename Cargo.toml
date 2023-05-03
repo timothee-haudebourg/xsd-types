@@ -1,9 +1,9 @@
 [package]
 name = "xsd-types"
-version = "0.5.10"
+version = "0.6.0"
 edition = "2021"
 authors = ["Timothée Haudebourg <author@haudebourg.net>"]
-description = "Built-in XSD data types."
+description = "XSD data types."
 categories = ["data-structures"]
 keywords = ["xsd", "w3c", "datatype"]
 repository = "https://github.com/timothee-haudebourg/xsd-types"
