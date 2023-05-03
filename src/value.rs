@@ -1,10 +1,14 @@
+mod base64_binary;
 mod decimal;
 mod double;
 mod float;
+mod hex_binary;
 
+pub use base64_binary::*;
 pub use decimal::*;
 pub use double::*;
 pub use float::*;
+pub use hex_binary::*;
 
 use crate::Datatype;
 
@@ -111,24 +115,6 @@ impl XsdDatatype for GMonth {
 }
 
 #[derive(Debug, Clone)]
-pub struct HexBinary;
-
-impl XsdDatatype for HexBinary {
-	fn type_(&self) -> Datatype {
-		Datatype::HexBinary
-	}
-}
-
-#[derive(Debug, Clone)]
-pub struct Base64Binary;
-
-impl XsdDatatype for Base64Binary {
-	fn type_(&self) -> Datatype {
-		Datatype::Base64Binary
-	}
-}
-
-#[derive(Debug, Clone)]
 pub struct AnyUri;
 
 impl XsdDatatype for AnyUri {
@@ -172,8 +158,8 @@ pub enum Value {
 	GMonthDay(GMonthDay),
 	GDay(GDay),
 	GMonth(GMonth),
-	HexBinary(HexBinary),
-	Base64Binary(Base64Binary),
+	HexBinary(HexBinaryBuf),
+	Base64Binary(Base64BinaryBuf),
 	AnyUri(AnyUri),
 	QName(QName),
 	Notation(Notation),
