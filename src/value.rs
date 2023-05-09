@@ -12,7 +12,7 @@ pub use hex_binary::*;
 
 use crate::{
 	lexical::{self, LexicalFormOf},
-	Datatype,
+	Datatype, ParseRdf,
 };
 
 pub trait XsdDatatype {
@@ -36,6 +36,10 @@ impl LexicalFormOf<String> for str {
 	}
 }
 
+impl ParseRdf for String {
+	type LexicalForm = str;
+}
+
 pub type Boolean = bool;
 
 impl XsdDatatype for Boolean {
@@ -50,6 +54,10 @@ impl LexicalFormOf<Boolean> for lexical::Boolean {
 	fn try_as_value(&self) -> Result<Boolean, Self::ValueError> {
 		Ok(self.value())
 	}
+}
+
+impl ParseRdf for Boolean {
+	type LexicalForm = lexical::Boolean;
 }
 
 #[derive(Debug, Clone)]
