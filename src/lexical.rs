@@ -1,10 +1,12 @@
 mod base64_binary;
+mod boolean;
 mod decimal;
 mod double;
 mod float;
 mod hex_binary;
 
 pub use base64_binary::*;
+pub use boolean::*;
 pub use decimal::*;
 pub use double::*;
 pub use float::*;
@@ -15,6 +17,14 @@ pub trait Lexical {
 	type Error;
 
 	fn parse(value: &str) -> Result<&Self, Self::Error>;
+}
+
+impl Lexical for str {
+	type Error = std::convert::Infallible;
+
+	fn parse(value: &str) -> Result<&Self, Self::Error> {
+		Ok(value)
+	}
 }
 
 pub trait LexicalFormOf<V>: Lexical {
