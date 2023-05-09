@@ -9,8 +9,9 @@ use num_bigint::{BigInt, TryFromBigIntError};
 use num_traits::{Signed, Zero};
 
 use crate::{
-	lexical, Datatype, IntDatatype, IntegerDatatype, LongDatatype, NonNegativeIntegerDatatype,
-	NonPositiveIntegerDatatype, ShortDatatype, UnsignedIntDatatype, UnsignedLongDatatype,
+	lexical::{self, LexicalFormOf},
+	Datatype, IntDatatype, IntegerDatatype, LongDatatype, NonNegativeIntegerDatatype,
+	NonPositiveIntegerDatatype, ParseRdf, ShortDatatype, UnsignedIntDatatype, UnsignedLongDatatype,
 	UnsignedShortDatatype, XsdDatatype,
 };
 
@@ -103,6 +104,18 @@ impl XsdDatatype for Integer {
 	#[inline(always)]
 	fn type_(&self) -> Datatype {
 		self.integer_type().into()
+	}
+}
+
+impl ParseRdf for Integer {
+	type LexicalForm = lexical::Integer;
+}
+
+impl LexicalFormOf<Integer> for lexical::Integer {
+	type ValueError = std::convert::Infallible;
+
+	fn try_as_value(&self) -> Result<Integer, Self::ValueError> {
+		Ok(self.value())
 	}
 }
 
@@ -238,6 +251,18 @@ impl XsdDatatype for Long {
 	}
 }
 
+impl ParseRdf for Long {
+	type LexicalForm = lexical::Integer;
+}
+
+impl LexicalFormOf<Long> for lexical::Integer {
+	type ValueError = IntegerOutOfTargetBounds;
+
+	fn try_as_value(&self) -> Result<Long, Self::ValueError> {
+		self.value().try_into()
+	}
+}
+
 pub type Int = i32;
 
 pub trait XsdInt {
@@ -259,6 +284,18 @@ impl XsdInt for Int {
 impl XsdDatatype for Int {
 	fn type_(&self) -> Datatype {
 		self.int_type().into()
+	}
+}
+
+impl ParseRdf for Int {
+	type LexicalForm = lexical::Integer;
+}
+
+impl LexicalFormOf<Int> for lexical::Integer {
+	type ValueError = IntegerOutOfTargetBounds;
+
+	fn try_as_value(&self) -> Result<Int, Self::ValueError> {
+		self.value().try_into()
 	}
 }
 
@@ -284,11 +321,35 @@ impl XsdDatatype for Short {
 	}
 }
 
+impl ParseRdf for Short {
+	type LexicalForm = lexical::Integer;
+}
+
+impl LexicalFormOf<Short> for lexical::Integer {
+	type ValueError = IntegerOutOfTargetBounds;
+
+	fn try_as_value(&self) -> Result<Short, Self::ValueError> {
+		self.value().try_into()
+	}
+}
+
 pub type Byte = i8;
 
 impl XsdDatatype for Byte {
 	fn type_(&self) -> Datatype {
 		ShortDatatype::Byte.into()
+	}
+}
+
+impl ParseRdf for Byte {
+	type LexicalForm = lexical::Integer;
+}
+
+impl LexicalFormOf<Byte> for lexical::Integer {
+	type ValueError = IntegerOutOfTargetBounds;
+
+	fn try_as_value(&self) -> Result<Byte, Self::ValueError> {
+		self.value().try_into()
 	}
 }
 

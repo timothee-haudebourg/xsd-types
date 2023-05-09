@@ -4,7 +4,10 @@ use std::{
 	str::FromStr,
 };
 
-use crate::{Datatype, XsdDatatype};
+use crate::{
+	lexical::{self, LexicalFormOf},
+	Datatype, ParseRdf, XsdDatatype,
+};
 
 const CHARS: [char; 64] = [
 	'A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K', 'L', 'M', 'N', 'O', 'P', 'Q', 'R', 'S',
@@ -135,6 +138,18 @@ impl DerefMut for Base64BinaryBuf {
 impl XsdDatatype for Base64BinaryBuf {
 	fn type_(&self) -> Datatype {
 		Datatype::Base64Binary
+	}
+}
+
+impl ParseRdf for Base64BinaryBuf {
+	type LexicalForm = lexical::Base64Binary;
+}
+
+impl LexicalFormOf<Base64BinaryBuf> for lexical::Base64Binary {
+	type ValueError = std::convert::Infallible;
+
+	fn try_as_value(&self) -> Result<Base64BinaryBuf, Self::ValueError> {
+		Ok(self.value())
 	}
 }
 

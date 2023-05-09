@@ -1,10 +1,8 @@
-use super::{Double, DoubleBuf, Float, FloatBuf};
+use super::lexical_form;
 use std::borrow::{Borrow, ToOwned};
 use std::cmp::Ordering;
 use std::fmt;
 use std::hash::{Hash, Hasher};
-use std::ops::Deref;
-use std::str::FromStr;
 
 /// Numeric sign.
 #[derive(Clone, Copy, PartialEq, Eq, Hash, PartialOrd, Ord, Debug)]
@@ -35,58 +33,37 @@ mod integer;
 
 pub use integer::*;
 
-#[derive(Debug)]
-pub struct InvalidDecimal;
+lexical_form! {
+	/// Decimal number.
+	///
+	/// See: <https://www.w3.org/TR/xmlschema-2/#decimal>
+	ty: Decimal,
 
-/// Decimal number.
-///
-/// See: <https://www.w3.org/TR/xmlschema-2/#decimal>
-pub struct Decimal([u8]);
+	/// Owned decimal number.
+	///
+	/// See: <https://www.w3.org/TR/xmlschema-2/#decimal>
+	buffer: DecimalBuf,
 
-impl Decimal {
-	/// Creates a new `Decimal` from a string.
+	/// Creates a new decimal from a string.
 	///
 	/// If the input string is ot a [valid XSD decimal](https://www.w3.org/TR/xmlschema-2/#decimal),
 	/// an [`InvalidDecimal`] error is returned.
-	#[inline(always)]
-	pub fn new<S: ?Sized + AsRef<[u8]>>(s: &S) -> Result<&Self, InvalidDecimal> {
-		if check(s.as_ref().iter().cloned()) {
-			Ok(unsafe { Self::new_unchecked(s) })
-		} else {
-			Err(InvalidDecimal)
-		}
-	}
+	new,
 
-	/// Creates a new `Decimal` from a string without checking it.
+	/// Creates a new decimal from a string without checking it.
 	///
 	/// # Safety
 	///
 	/// The input string must be a [valid XSD decimal](https://www.w3.org/TR/xmlschema-2/#decimal).
-	#[inline(always)]
-	pub unsafe fn new_unchecked<S: ?Sized + AsRef<[u8]>>(s: &S) -> &Self {
-		std::mem::transmute(s.as_ref())
-	}
+	new_unchecked,
 
-	#[inline(always)]
-	pub fn as_str(&self) -> &str {
-		unsafe { core::str::from_utf8_unchecked(&self.0) }
-	}
+	value: crate::Decimal,
+	error: InvalidDecimal,
+	as_ref: as_decimal,
+	parent_forms: {}
+}
 
-	#[inline(always)]
-	pub fn as_bytes(&self) -> &[u8] {
-		&self.0
-	}
-
-	#[inline(always)]
-	pub fn as_float(&self) -> &Float {
-		self.into()
-	}
-
-	#[inline(always)]
-	pub fn as_double(&self) -> &Double {
-		self.into()
-	}
-
+impl Decimal {
 	/// Returns `true` if `self` is positive
 	/// and `false` is the number is zero or negative.
 	pub fn is_positive(&self) -> bool {
@@ -186,6 +163,10 @@ impl Decimal {
 			None => unsafe { (Integer::new_unchecked(self), None) },
 		}
 	}
+
+	pub fn value(&self) -> crate::Decimal {
+		self.to_owned().into()
+	}
 }
 
 impl PartialEq for Decimal {
@@ -242,18 +223,6 @@ impl Ord for Decimal {
 impl PartialOrd for Decimal {
 	fn partial_cmp(&self, other: &Self) -> Option<Ordering> {
 		Some(self.cmp(other))
-	}
-}
-
-impl AsRef<[u8]> for Decimal {
-	fn as_ref(&self) -> &[u8] {
-		&self.0
-	}
-}
-
-impl AsRef<str> for Decimal {
-	fn as_ref(&self) -> &str {
-		self.as_str()
 	}
 }
 
@@ -345,130 +314,6 @@ impl TryFrom<DecimalBuf> for f64 {
 	}
 }
 
-impl Deref for Decimal {
-	type Target = str;
-
-	#[inline(always)]
-	fn deref(&self) -> &str {
-		self.as_str()
-	}
-}
-
-impl ToOwned for Decimal {
-	type Owned = DecimalBuf;
-
-	#[inline(always)]
-	fn to_owned(&self) -> DecimalBuf {
-		unsafe { DecimalBuf::new_unchecked(self.as_str().to_owned()) }
-	}
-}
-
-impl fmt::Display for Decimal {
-	#[inline(always)]
-	fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-		self.as_str().fmt(f)
-	}
-}
-
-impl fmt::Debug for Decimal {
-	#[inline(always)]
-	fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-		self.0.fmt(f)
-	}
-}
-
-impl AsRef<Float> for Decimal {
-	#[inline(always)]
-	fn as_ref(&self) -> &Float {
-		self.as_float()
-	}
-}
-
-impl AsRef<Double> for Decimal {
-	#[inline(always)]
-	fn as_ref(&self) -> &Double {
-		self.as_double()
-	}
-}
-
-impl<'a> From<&'a Integer> for &'a Decimal {
-	#[inline(always)]
-	fn from(d: &'a Integer) -> Self {
-		unsafe { Decimal::new_unchecked(d) }
-	}
-}
-
-impl<'a> From<&'a IntegerBuf> for &'a Decimal {
-	#[inline(always)]
-	fn from(d: &'a IntegerBuf) -> Self {
-		d.as_ref()
-	}
-}
-
-impl<'a> From<&'a NonNegativeInteger> for &'a Decimal {
-	#[inline(always)]
-	fn from(d: &'a NonNegativeInteger) -> Self {
-		unsafe { Decimal::new_unchecked(d) }
-	}
-}
-
-impl<'a> From<&'a NonNegativeIntegerBuf> for &'a Decimal {
-	#[inline(always)]
-	fn from(d: &'a NonNegativeIntegerBuf) -> Self {
-		d.as_ref()
-	}
-}
-
-impl<'a> From<&'a NonPositiveInteger> for &'a Decimal {
-	#[inline(always)]
-	fn from(d: &'a NonPositiveInteger) -> Self {
-		unsafe { Decimal::new_unchecked(d) }
-	}
-}
-
-impl<'a> From<&'a NonPositiveIntegerBuf> for &'a Decimal {
-	#[inline(always)]
-	fn from(d: &'a NonPositiveIntegerBuf) -> Self {
-		d.as_ref()
-	}
-}
-
-impl<'a> TryFrom<&'a Float> for &'a Decimal {
-	type Error = InvalidDecimal;
-
-	#[inline(always)]
-	fn try_from(i: &'a Float) -> Result<Self, Self::Error> {
-		Decimal::new(i.as_str())
-	}
-}
-
-impl<'a> TryFrom<&'a FloatBuf> for &'a Decimal {
-	type Error = InvalidDecimal;
-
-	#[inline(always)]
-	fn try_from(i: &'a FloatBuf) -> Result<Self, Self::Error> {
-		Decimal::new(i.as_str())
-	}
-}
-
-impl<'a> TryFrom<&'a Double> for &'a Decimal {
-	type Error = InvalidDecimal;
-
-	#[inline(always)]
-	fn try_from(i: &'a Double) -> Result<Self, Self::Error> {
-		Decimal::new(i.as_str())
-	}
-}
-
-impl<'a> TryFrom<&'a DoubleBuf> for &'a Decimal {
-	type Error = InvalidDecimal;
-
-	#[inline(always)]
-	fn try_from(i: &'a DoubleBuf) -> Result<Self, Self::Error> {
-		Decimal::new(i.as_str())
-	}
-}
-
 pub struct FractionalPart([u8]);
 
 impl FractionalPart {
@@ -555,140 +400,8 @@ impl AsRef<str> for FractionalPart {
 	}
 }
 
-/// Owned decimal number.
-///
-/// See: <https://www.w3.org/TR/xmlschema-2/#decimal>
-#[derive(Clone, PartialEq, Eq, Hash)]
-pub struct DecimalBuf(Vec<u8>);
-
-impl DecimalBuf {
-	/// Creates a new `DecimalBuf` from a `String`.
-	///
-	/// If the input string is ot a [valid XSD decimal](https://www.w3.org/TR/xmlschema-2/#decimal),
-	/// an [`InvalidDecimal`] error is returned along with the input string.
-	#[inline(always)]
-	pub fn new<S: AsRef<[u8]> + Into<Vec<u8>>>(s: S) -> Result<Self, (InvalidDecimal, S)> {
-		if check(s.as_ref().iter().cloned()) {
-			Ok(unsafe { Self::new_unchecked(s) })
-		} else {
-			Err((InvalidDecimal, s))
-		}
-	}
-
-	/// Creates a new `DecimalBuf` from a `String` without checking it.
-	///
-	/// # Safety
-	///
-	/// The input string must be a [valid XSD decimal](https://www.w3.org/TR/xmlschema-2/#decimal).
-	#[inline(always)]
-	pub unsafe fn new_unchecked(s: impl Into<Vec<u8>>) -> Self {
-		std::mem::transmute(s.into())
-	}
-
-	#[inline(always)]
-	pub fn as_decimal(&self) -> &Decimal {
-		unsafe { Decimal::new_unchecked(&self.0) }
-	}
-
-	#[inline(always)]
-	pub fn into_string(mut self) -> String {
-		let buf = self.0.as_mut_ptr();
-		let len = self.0.len();
-		let capacity = self.0.capacity();
-		core::mem::forget(self);
-		unsafe { String::from_raw_parts(buf, len, capacity) }
-	}
-}
-
-impl FromStr for DecimalBuf {
-	type Err = InvalidDecimal;
-
-	#[inline(always)]
-	fn from_str(s: &str) -> Result<Self, InvalidDecimal> {
-		Self::new(s.to_owned()).map_err(|(e, _)| e)
-	}
-}
-
-impl TryFrom<FloatBuf> for DecimalBuf {
-	type Error = (InvalidDecimal, FloatBuf);
-
-	#[inline(always)]
-	fn try_from(i: FloatBuf) -> Result<Self, Self::Error> {
-		match Self::new(i.into_string()) {
-			Ok(d) => Ok(d),
-			Err((e, s)) => Err((e, unsafe { FloatBuf::new_unchecked(s) })),
-		}
-	}
-}
-
-impl TryFrom<DoubleBuf> for DecimalBuf {
-	type Error = (InvalidDecimal, DoubleBuf);
-
-	#[inline(always)]
-	fn try_from(i: DoubleBuf) -> Result<Self, Self::Error> {
-		match Self::new(i.into_string()) {
-			Ok(d) => Ok(d),
-			Err((e, s)) => Err((e, unsafe { DoubleBuf::new_unchecked(s) })),
-		}
-	}
-}
-
-impl Deref for DecimalBuf {
-	type Target = Decimal;
-
-	#[inline(always)]
-	fn deref(&self) -> &Decimal {
-		unsafe { Decimal::new_unchecked(&self.0) }
-	}
-}
-
-impl AsRef<Decimal> for DecimalBuf {
-	#[inline(always)]
-	fn as_ref(&self) -> &Decimal {
-		self.as_decimal()
-	}
-}
-
-impl AsRef<Float> for DecimalBuf {
-	#[inline(always)]
-	fn as_ref(&self) -> &Float {
-		Decimal::as_ref(self)
-	}
-}
-
-impl AsRef<Double> for DecimalBuf {
-	#[inline(always)]
-	fn as_ref(&self) -> &Double {
-		Decimal::as_ref(self)
-	}
-}
-
-impl Borrow<Decimal> for DecimalBuf {
-	#[inline(always)]
-	fn borrow(&self) -> &Decimal {
-		unsafe { Decimal::new_unchecked(&self.0) }
-	}
-}
-
-impl<'a> From<&'a DecimalBuf> for &'a Decimal {
-	#[inline(always)]
-	fn from(b: &'a DecimalBuf) -> Self {
-		b.as_ref()
-	}
-}
-
-impl fmt::Display for DecimalBuf {
-	#[inline(always)]
-	fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-		self.as_str().fmt(f)
-	}
-}
-
-impl fmt::Debug for DecimalBuf {
-	#[inline(always)]
-	fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-		self.as_str().fmt(f)
-	}
+fn check_bytes(s: &[u8]) -> bool {
+	check(s.iter().copied())
 }
 
 fn check<C: Iterator<Item = u8>>(mut chars: C) -> bool {
@@ -732,65 +445,6 @@ fn check<C: Iterator<Item = u8>>(mut chars: C) -> bool {
 				None => break true,
 			},
 		}
-	}
-}
-
-macro_rules! partial_eq {
-	{ $($ty:ty),* } => {
-		$(
-			impl PartialEq<$ty> for Decimal {
-				#[inline(always)]
-				fn eq(&self, other: &$ty) -> bool {
-					self == other.as_decimal()
-				}
-			}
-
-			impl PartialEq<$ty> for DecimalBuf {
-				#[inline(always)]
-				fn eq(&self, other: &$ty) -> bool {
-					self.as_decimal() == other.as_decimal()
-				}
-			}
-
-			impl PartialEq<Decimal> for $ty {
-				#[inline(always)]
-				fn eq(&self, other: &Decimal) -> bool {
-					self.as_decimal() == other
-				}
-			}
-
-			impl PartialEq<DecimalBuf> for $ty {
-				#[inline(always)]
-				fn eq(&self, other: &DecimalBuf) -> bool {
-					self.as_decimal() == other.as_decimal()
-				}
-			}
-		)*
-	};
-}
-
-partial_eq! {
-	Integer
-}
-
-impl PartialEq<Decimal> for DecimalBuf {
-	#[inline(always)]
-	fn eq(&self, other: &Decimal) -> bool {
-		self.as_decimal() == other
-	}
-}
-
-impl<'a> PartialEq<&'a Decimal> for DecimalBuf {
-	#[inline(always)]
-	fn eq(&self, other: &&'a Decimal) -> bool {
-		self.as_decimal() == *other
-	}
-}
-
-impl PartialEq<DecimalBuf> for Decimal {
-	#[inline(always)]
-	fn eq(&self, other: &DecimalBuf) -> bool {
-		self == other.as_decimal()
 	}
 }
 

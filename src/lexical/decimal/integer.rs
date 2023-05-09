@@ -1,9 +1,10 @@
-use super::{Decimal, DecimalBuf, Double, DoubleBuf, Float, FloatBuf, Overflow, Sign};
+use crate::lexical::lexical_form;
+
+use super::{Decimal, DecimalBuf, Overflow, Sign};
 use std::borrow::{Borrow, ToOwned};
 use std::cmp::Ordering;
 use std::fmt;
 use std::hash::{Hash, Hasher};
-use std::ops::Deref;
 use std::str::FromStr;
 
 mod non_negative_integer;
@@ -12,38 +13,39 @@ mod non_positive_integer;
 pub use non_negative_integer::*;
 pub use non_positive_integer::*;
 
-#[derive(Debug)]
-pub struct InvalidInteger;
+lexical_form! {
+	/// Integer number.
+	///
+	/// See: <https://www.w3.org/TR/xmlschema-2/#integer>
+	ty: Integer,
 
-/// Integer number.
-///
-/// See: <https://www.w3.org/TR/xmlschema-2/#integer>
-pub struct Integer([u8]);
+	/// Owned integer number.
+	///
+	/// See: <https://www.w3.org/TR/xmlschema-2/#integer>
+	buffer: IntegerBuf,
 
-impl Integer {
-	/// Creates a new `Integer` from a string.
+	/// Creates a new integer from a string.
 	///
 	/// If the input string is ot a [valid XSD integer](https://www.w3.org/TR/xmlschema-2/#integer),
 	/// an [`InvalidInteger`] error is returned.
-	#[inline(always)]
-	pub fn new<S: ?Sized + AsRef<[u8]>>(s: &S) -> Result<&Self, InvalidInteger> {
-		if check(s.as_ref().iter().cloned()) {
-			Ok(unsafe { Self::new_unchecked(s) })
-		} else {
-			Err(InvalidInteger)
-		}
-	}
+	new,
 
-	/// Creates a new `Integer` from a string without checking it.
+	/// Creates a new integer from a string without checking it.
 	///
 	/// # Safety
 	///
 	/// The input string must be a [valid XSD integer](https://www.w3.org/TR/xmlschema-2/#integer).
-	#[inline(always)]
-	pub unsafe fn new_unchecked<S: ?Sized + AsRef<[u8]>>(s: &S) -> &Self {
-		std::mem::transmute(s.as_ref())
-	}
+	new_unchecked,
 
+	value: crate::Integer,
+	error: InvalidInteger,
+	as_ref: as_integer,
+	parent_forms: {
+		as_decimal: Decimal, DecimalBuf
+	}
+}
+
+impl Integer {
 	/// Returns `true` if `self` is positive
 	/// and `false` is the number is zero or negative.
 	pub fn is_positive(&self) -> bool {
@@ -127,34 +129,38 @@ impl Integer {
 		unsafe { NonNegativeInteger::new_unchecked(&self.0[last_zero..]) }
 	}
 
-	#[inline(always)]
-	pub fn as_str(&self) -> &str {
-		unsafe { core::str::from_utf8_unchecked(&self.0) }
+	/// Returns the canonical form of `self` (without leading zeros).
+	pub fn canonical(&self) -> &Self {
+		if self.is_zero() {
+			unsafe { Self::new_unchecked(&self.0[self.0.len() - 1..]) }
+		} else {
+			let mut last_zero = 0;
+			for (i, c) in self.0.iter().enumerate() {
+				match c {
+					b'+' => (),
+					b'0' => last_zero = i,
+					_ => return unsafe { Self::new_unchecked(&self.0[i..]) },
+				}
+			}
+
+			unsafe { Self::new_unchecked(&self.0[last_zero..]) }
+		}
 	}
 
-	pub fn as_bytes(&self) -> &[u8] {
-		&self.0
+	#[inline(always)]
+	fn as_canonical_str(&self) -> &str {
+		self.canonical().as_str()
 	}
 
 	#[inline(always)]
-	pub fn as_decimal(&self) -> &Decimal {
-		self.into()
-	}
-
-	#[inline(always)]
-	pub fn as_float(&self) -> &Float {
-		self.into()
-	}
-
-	#[inline(always)]
-	pub fn as_double(&self) -> &Double {
-		self.into()
+	pub fn value(&self) -> crate::Integer {
+		crate::Integer::from_str(self.as_str()).unwrap()
 	}
 }
 
 impl PartialEq for Integer {
 	fn eq(&self, other: &Self) -> bool {
-		self.sign() == other.sign() && self.abs().as_bytes() == other.abs().as_bytes()
+		self.as_canonical_str() == other.as_canonical_str()
 	}
 }
 
@@ -162,13 +168,7 @@ impl Eq for Integer {}
 
 impl Hash for Integer {
 	fn hash<H: Hasher>(&self, h: &mut H) {
-		match self.sign() {
-			Sign::Zero => 0.hash(h),
-			sign => {
-				sign.hash(h);
-				self.abs().hash(h)
-			}
-		}
+		self.as_canonical_str().hash(h)
 	}
 }
 
@@ -209,203 +209,13 @@ impl PartialOrd for Integer {
 	}
 }
 
-impl Deref for Integer {
-	type Target = str;
-
-	#[inline(always)]
-	fn deref(&self) -> &str {
-		self.as_str()
-	}
-}
-
-impl AsRef<[u8]> for Integer {
-	fn as_ref(&self) -> &[u8] {
-		&self.0
-	}
-}
-
-impl AsRef<str> for Integer {
-	fn as_ref(&self) -> &str {
-		self.as_str()
-	}
-}
-
-impl ToOwned for Integer {
-	type Owned = IntegerBuf;
-
-	#[inline(always)]
-	fn to_owned(&self) -> IntegerBuf {
-		unsafe { IntegerBuf::new_unchecked(self.as_str().to_owned()) }
-	}
-}
-
-impl fmt::Display for Integer {
-	#[inline(always)]
-	fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-		self.as_str().fmt(f)
-	}
-}
-
-impl fmt::Debug for Integer {
-	#[inline(always)]
-	fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-		self.0.fmt(f)
-	}
-}
-
-impl AsRef<Decimal> for Integer {
-	fn as_ref(&self) -> &Decimal {
-		self.into()
-	}
-}
-
-impl AsRef<Float> for Integer {
-	fn as_ref(&self) -> &Float {
-		self.into()
-	}
-}
-
-impl AsRef<Double> for Integer {
-	fn as_ref(&self) -> &Double {
-		self.into()
-	}
-}
-
-impl<'a> From<&'a NonNegativeInteger> for &'a Integer {
-	fn from(value: &'a NonNegativeInteger) -> Self {
-		unsafe { Integer::new_unchecked(value.as_bytes()) }
-	}
-}
-
-impl<'a> From<&'a NonPositiveInteger> for &'a Integer {
-	fn from(value: &'a NonPositiveInteger) -> Self {
-		unsafe { Integer::new_unchecked(value.as_bytes()) }
-	}
-}
-
-impl<'a> From<&'a NonNegativeIntegerBuf> for &'a Integer {
-	fn from(value: &'a NonNegativeIntegerBuf) -> Self {
-		value.as_integer()
-	}
-}
-
-impl<'a> From<&'a NonPositiveIntegerBuf> for &'a Integer {
-	fn from(value: &'a NonPositiveIntegerBuf) -> Self {
-		value.as_integer()
-	}
-}
-
-impl<'a> From<&'a IntegerBuf> for &'a Integer {
-	#[inline(always)]
-	fn from(b: &'a IntegerBuf) -> Self {
-		b.as_ref()
-	}
-}
-
-impl<'a> TryFrom<&'a Decimal> for &'a Integer {
-	type Error = InvalidInteger;
-
-	#[inline(always)]
-	fn try_from(i: &'a Decimal) -> Result<Self, Self::Error> {
-		Integer::new(i.as_str())
-	}
-}
-
-impl<'a> TryFrom<&'a DecimalBuf> for &'a Integer {
-	type Error = InvalidInteger;
-
-	#[inline(always)]
-	fn try_from(i: &'a DecimalBuf) -> Result<Self, Self::Error> {
-		Integer::new(i.as_str())
-	}
-}
-
-impl<'a> TryFrom<&'a Float> for &'a Integer {
-	type Error = InvalidInteger;
-
-	#[inline(always)]
-	fn try_from(i: &'a Float) -> Result<Self, Self::Error> {
-		Integer::new(i.as_str())
-	}
-}
-
-impl<'a> TryFrom<&'a FloatBuf> for &'a Integer {
-	type Error = InvalidInteger;
-
-	#[inline(always)]
-	fn try_from(i: &'a FloatBuf) -> Result<Self, Self::Error> {
-		Integer::new(i.as_str())
-	}
-}
-
-impl<'a> TryFrom<&'a Double> for &'a Integer {
-	type Error = InvalidInteger;
-
-	#[inline(always)]
-	fn try_from(i: &'a Double) -> Result<Self, Self::Error> {
-		Integer::new(i.as_str())
-	}
-}
-
-impl<'a> TryFrom<&'a DoubleBuf> for &'a Integer {
-	type Error = InvalidInteger;
-
-	#[inline(always)]
-	fn try_from(i: &'a DoubleBuf) -> Result<Self, Self::Error> {
-		Integer::new(i.as_str())
-	}
-}
-
-/// Owned integer number.
-///
-/// See: <https://www.w3.org/TR/xmlschema-2/#integer>
-#[derive(Clone)]
-pub struct IntegerBuf(Vec<u8>);
-
 impl IntegerBuf {
-	/// Creates a new `IntegerBuf` from a `String`.
-	///
-	/// If the input string is ot a [valid XSD integer](https://www.w3.org/TR/xmlschema-2/#integer),
-	/// an [`InvalidInteger`] error is returned along with the input string.
-	#[inline(always)]
-	pub fn new<S: AsRef<[u8]> + Into<Vec<u8>>>(s: S) -> Result<Self, (InvalidInteger, S)> {
-		if check(s.as_ref().iter().cloned()) {
-			Ok(unsafe { Self::new_unchecked(s) })
-		} else {
-			Err((InvalidInteger, s))
-		}
-	}
-
-	/// Creates a new `IntegerBuf` from a `String` without checking it.
-	///
-	/// # Safety
-	///
-	/// The input string must be a [valid XSD integer](https://www.w3.org/TR/xmlschema-2/#integer).
-	#[inline(always)]
-	pub unsafe fn new_unchecked(s: impl Into<Vec<u8>>) -> Self {
-		std::mem::transmute(s.into())
-	}
-
 	pub fn zero() -> Self {
 		unsafe { Self::new_unchecked("0".to_string()) }
 	}
 
 	pub fn one() -> Self {
 		unsafe { Self::new_unchecked("1".to_string()) }
-	}
-
-	#[inline(always)]
-	pub fn as_integer(&self) -> &Integer {
-		self.into()
-	}
-
-	#[inline(always)]
-	pub fn into_string(mut self) -> String {
-		let buf = self.0.as_mut_ptr();
-		let len = self.0.len();
-		let capacity = self.0.capacity();
-		core::mem::forget(self);
-		unsafe { String::from_raw_parts(buf, len, capacity) }
 	}
 }
 
@@ -414,14 +224,6 @@ impl Default for IntegerBuf {
 		Self::zero()
 	}
 }
-
-impl PartialEq for IntegerBuf {
-	fn eq(&self, other: &Self) -> bool {
-		self.as_integer().eq(other.as_integer())
-	}
-}
-
-impl Eq for IntegerBuf {}
 
 impl PartialOrd for IntegerBuf {
 	fn partial_cmp(&self, other: &Self) -> Option<Ordering> {
@@ -432,14 +234,6 @@ impl PartialOrd for IntegerBuf {
 impl Ord for IntegerBuf {
 	fn cmp(&self, other: &Self) -> Ordering {
 		self.as_integer().cmp(other.as_integer())
-	}
-}
-
-impl FromStr for IntegerBuf {
-	type Err = InvalidInteger;
-
-	fn from_str(s: &str) -> Result<Self, InvalidInteger> {
-		Self::new(s.to_owned()).map_err(|(e, _)| e)
 	}
 }
 
@@ -486,138 +280,8 @@ number_conversion! {
 	isize
 }
 
-impl From<NonNegativeIntegerBuf> for IntegerBuf {
-	fn from(value: NonNegativeIntegerBuf) -> Self {
-		unsafe { Self::new_unchecked(value.into_bytes()) }
-	}
-}
-
-impl From<NonPositiveIntegerBuf> for IntegerBuf {
-	fn from(value: NonPositiveIntegerBuf) -> Self {
-		unsafe { Self::new_unchecked(value.into_bytes()) }
-	}
-}
-
-impl TryFrom<DecimalBuf> for IntegerBuf {
-	type Error = (InvalidInteger, DecimalBuf);
-
-	#[inline(always)]
-	fn try_from(i: DecimalBuf) -> Result<Self, Self::Error> {
-		match Self::new(i.into_string()) {
-			Ok(d) => Ok(d),
-			Err((e, s)) => Err((e, unsafe { DecimalBuf::new_unchecked(s) })),
-		}
-	}
-}
-
-impl TryFrom<FloatBuf> for IntegerBuf {
-	type Error = (InvalidInteger, FloatBuf);
-
-	#[inline(always)]
-	fn try_from(i: FloatBuf) -> Result<Self, Self::Error> {
-		match Self::new(i.into_string()) {
-			Ok(d) => Ok(d),
-			Err((e, s)) => Err((e, unsafe { FloatBuf::new_unchecked(s) })),
-		}
-	}
-}
-
-impl TryFrom<DoubleBuf> for IntegerBuf {
-	type Error = (InvalidInteger, DoubleBuf);
-
-	#[inline(always)]
-	fn try_from(i: DoubleBuf) -> Result<Self, Self::Error> {
-		match Self::new(i.into_string()) {
-			Ok(d) => Ok(d),
-			Err((e, s)) => Err((e, unsafe { DoubleBuf::new_unchecked(s) })),
-		}
-	}
-}
-
-impl Deref for IntegerBuf {
-	type Target = Integer;
-
-	#[inline(always)]
-	fn deref(&self) -> &Integer {
-		unsafe { Integer::new_unchecked(&self.0) }
-	}
-}
-
-impl AsRef<Integer> for IntegerBuf {
-	#[inline(always)]
-	fn as_ref(&self) -> &Integer {
-		unsafe { Integer::new_unchecked(&self.0) }
-	}
-}
-
-impl AsRef<Decimal> for IntegerBuf {
-	#[inline(always)]
-	fn as_ref(&self) -> &Decimal {
-		Integer::as_ref(self)
-	}
-}
-
-impl AsRef<Float> for IntegerBuf {
-	#[inline(always)]
-	fn as_ref(&self) -> &Float {
-		Integer::as_ref(self)
-	}
-}
-
-impl AsRef<Double> for IntegerBuf {
-	#[inline(always)]
-	fn as_ref(&self) -> &Double {
-		Integer::as_ref(self)
-	}
-}
-
-impl AsRef<[u8]> for IntegerBuf {
-	#[inline(always)]
-	fn as_ref(&self) -> &[u8] {
-		self.as_bytes()
-	}
-}
-
-impl AsRef<str> for IntegerBuf {
-	#[inline(always)]
-	fn as_ref(&self) -> &str {
-		self.as_str()
-	}
-}
-
-impl Borrow<Integer> for IntegerBuf {
-	#[inline(always)]
-	fn borrow(&self) -> &Integer {
-		unsafe { Integer::new_unchecked(&self.0) }
-	}
-}
-
-impl fmt::Display for IntegerBuf {
-	#[inline(always)]
-	fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-		self.as_str().fmt(f)
-	}
-}
-
-impl fmt::Debug for IntegerBuf {
-	#[inline(always)]
-	fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-		self.0.fmt(f)
-	}
-}
-
-impl PartialEq<Integer> for IntegerBuf {
-	#[inline(always)]
-	fn eq(&self, other: &Integer) -> bool {
-		self == other
-	}
-}
-
-impl PartialEq<IntegerBuf> for Integer {
-	#[inline(always)]
-	fn eq(&self, other: &IntegerBuf) -> bool {
-		self == other
-	}
+fn check_bytes(s: &[u8]) -> bool {
+	check(s.iter().copied())
 }
 
 fn check<C: Iterator<Item = u8>>(mut chars: C) -> bool {

@@ -5,6 +5,7 @@
 pub mod lexical;
 pub mod value;
 
+use lexical::{Lexical, LexicalFormOf};
 pub use value::*;
 
 /// XSD primitive datatype.
@@ -90,6 +91,26 @@ impl_from!(Datatype {
 	ty: DurationDatatype => Self::Duration(ty),
 	ty: DateTimeDatatype => Self::DateTime(ty)
 });
+
+/// Parse a value directly from its RDF lexical form.
+pub trait ParseRdf: Sized {
+	type LexicalForm: LexicalFormOf<Self> + ?Sized;
+
+	fn parse_rdf(lexical_value: &str) -> ParseRdfResult<Self, Self::LexicalForm> {
+		Self::LexicalForm::parse(lexical_value)
+			.map_err(ParseRdfError::InvalidLexicalForm)?
+			.try_as_value()
+			.map_err(ParseRdfError::InvalidValue)
+	}
+}
+
+pub type ParseRdfResult<T, L> =
+	Result<T, ParseRdfError<<L as Lexical>::Error, <L as LexicalFormOf<T>>::ValueError>>;
+
+pub enum ParseRdfError<L, V> {
+	InvalidLexicalForm(L),
+	InvalidValue(V),
+}
 
 /// Datatype derived from `xsd:string`.
 pub enum StringDatatype {

@@ -1,69 +1,43 @@
-use super::{
-	Decimal, DecimalBuf, Integer, NonNegativeInteger, NonNegativeIntegerBuf, NonPositiveInteger,
-	NonPositiveIntegerBuf, Overflow,
-};
+use super::{lexical_form, Decimal, Integer, NonNegativeInteger, NonPositiveInteger, Overflow};
 use std::borrow::{Borrow, ToOwned};
 use std::fmt;
-use std::ops::Deref;
-use std::str::FromStr;
+use std::hash::Hash;
 
-#[derive(Debug)]
-pub struct InvalidFloat;
+lexical_form! {
+	/// Float number.
+	///
+	/// See: <https://www.w3.org/TR/xmlschema-2/#float>
+	ty: Float,
+
+	/// Owned float number.
+	///
+	/// See: <https://www.w3.org/TR/xmlschema-2/#float>
+	buffer: FloatBuf,
+
+	/// Creates a new float from a string.
+	///
+	/// If the input string is ot a [valid XSD float](https://www.w3.org/TR/xmlschema-2/#float),
+	/// an [`InvalidFloat`] error is returned.
+	new,
+
+	/// Creates a new float from a string without checking it.
+	///
+	/// # Safety
+	///
+	/// The input string must be a [valid XSD float](https://www.w3.org/TR/xmlschema-2/#float).
+	new_unchecked,
+
+	value: crate::Float,
+	error: InvalidFloat,
+	as_ref: as_float,
+	parent_forms: {}
+}
 
 pub const NAN: &Float = unsafe { Float::new_unchecked_from_slice(b"NaN") };
 pub const POSITIVE_INFINITY: &Float = unsafe { Float::new_unchecked_from_slice(b"INF") };
 pub const NEGATIVE_INFINITY: &Float = unsafe { Float::new_unchecked_from_slice(b"-INF") };
 
-/// Float number.
-///
-/// See: <https://www.w3.org/TR/xmlschema-2/#float>
-#[derive(PartialEq, Eq, Hash)]
-pub struct Float([u8]);
-
 impl Float {
-	/// Creates a new `Float` from a string.
-	///
-	/// If the input string is ot a [valid XSD float](https://www.w3.org/TR/xmlschema-2/#float),
-	/// an [`InvalidFloat`] error is returned.
-	#[inline(always)]
-	pub fn new<S: ?Sized + AsRef<[u8]>>(s: &S) -> Result<&Self, InvalidFloat> {
-		if check(s.as_ref()) {
-			Ok(unsafe { Self::new_unchecked(s) })
-		} else {
-			Err(InvalidFloat)
-		}
-	}
-
-	/// Creates a new `Float` from a string without checking it.
-	///
-	/// # Safety
-	///
-	/// The input string must be a [valid XSD float](https://www.w3.org/TR/xmlschema-2/#float).
-	#[inline(always)]
-	pub unsafe fn new_unchecked<S: ?Sized + AsRef<[u8]>>(s: &S) -> &Self {
-		std::mem::transmute(s.as_ref())
-	}
-
-	/// Creates a new `Float` from a byte slice without checking it.
-	///
-	/// # Safety
-	///
-	/// The input string must be a [valid XSD float](https://www.w3.org/TR/xmlschema-2/#float).
-	#[inline(always)]
-	pub const unsafe fn new_unchecked_from_slice(s: &[u8]) -> &Self {
-		std::mem::transmute(s)
-	}
-
-	#[inline(always)]
-	pub fn as_str(&self) -> &str {
-		unsafe { core::str::from_utf8_unchecked(&self.0) }
-	}
-
-	#[inline(always)]
-	pub fn as_bytes(&self) -> &[u8] {
-		&self.0
-	}
-
 	pub fn is_infinite(&self) -> bool {
 		matches!(&self.0, b"INF" | b"-INF")
 	}
@@ -105,17 +79,23 @@ impl Float {
 			None
 		}
 	}
-}
 
-impl AsRef<[u8]> for Float {
-	fn as_ref(&self) -> &[u8] {
-		&self.0
+	pub fn value(&self) -> crate::Float {
+		self.into()
 	}
 }
 
-impl AsRef<str> for Float {
-	fn as_ref(&self) -> &str {
-		self.as_str()
+impl PartialEq for Float {
+	fn eq(&self, other: &Self) -> bool {
+		self.as_bytes() == other.as_bytes()
+	}
+}
+
+impl Eq for Float {}
+
+impl Hash for Float {
+	fn hash<H: std::hash::Hasher>(&self, state: &mut H) {
+		self.as_bytes().hash(state)
 	}
 }
 
@@ -202,38 +182,6 @@ impl From<f64> for FloatBuf {
 	}
 }
 
-impl Deref for Float {
-	type Target = str;
-
-	#[inline(always)]
-	fn deref(&self) -> &str {
-		self.as_str()
-	}
-}
-
-impl ToOwned for Float {
-	type Owned = FloatBuf;
-
-	#[inline(always)]
-	fn to_owned(&self) -> FloatBuf {
-		unsafe { FloatBuf::new_unchecked(self.as_str().to_owned()) }
-	}
-}
-
-impl fmt::Display for Float {
-	#[inline(always)]
-	fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-		self.as_str().fmt(f)
-	}
-}
-
-impl fmt::Debug for Float {
-	#[inline(always)]
-	fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-		self.as_str().fmt(f)
-	}
-}
-
 impl<'a> From<&'a Integer> for &'a Float {
 	#[inline(always)]
 	fn from(d: &'a Integer) -> Self {
@@ -255,71 +203,7 @@ impl<'a> From<&'a NonPositiveInteger> for &'a Float {
 	}
 }
 
-impl<'a> From<&'a Decimal> for &'a Float {
-	#[inline(always)]
-	fn from(d: &'a Decimal) -> Self {
-		unsafe { Float::new_unchecked(d) }
-	}
-}
-
-impl<'a> From<&'a NonPositiveIntegerBuf> for &'a Float {
-	#[inline(always)]
-	fn from(d: &'a NonPositiveIntegerBuf) -> Self {
-		d.as_ref()
-	}
-}
-
-impl<'a> From<&'a NonNegativeIntegerBuf> for &'a Float {
-	#[inline(always)]
-	fn from(d: &'a NonNegativeIntegerBuf) -> Self {
-		d.as_ref()
-	}
-}
-
-impl<'a> From<&'a DecimalBuf> for &'a Float {
-	#[inline(always)]
-	fn from(d: &'a DecimalBuf) -> Self {
-		d.as_ref()
-	}
-}
-
-impl<'a> From<&'a FloatBuf> for &'a Float {
-	#[inline(always)]
-	fn from(b: &'a FloatBuf) -> Self {
-		b.as_ref()
-	}
-}
-
-/// Owned float number.
-///
-/// See: <https://www.w3.org/TR/xmlschema-2/#float>
-#[derive(Clone, PartialEq, Eq, Hash)]
-pub struct FloatBuf(Vec<u8>);
-
 impl FloatBuf {
-	/// Creates a new `FloatBuf` from a `String`.
-	///
-	/// If the input string is ot a [valid XSD float](https://www.w3.org/TR/xmlschema-2/#float),
-	/// an [`InvalidFloat`] error is returned along with the input string.
-	#[inline(always)]
-	pub fn new<S: AsRef<[u8]> + Into<Vec<u8>>>(s: S) -> Result<Self, (InvalidFloat, S)> {
-		if check(s.as_ref()) {
-			Ok(unsafe { Self::new_unchecked(s) })
-		} else {
-			Err((InvalidFloat, s))
-		}
-	}
-
-	/// Creates a new `FloatBuf` from a `String` without checking it.
-	///
-	/// # Safety
-	///
-	/// The input string must be a [valid XSD float](https://www.w3.org/TR/xmlschema-2/#float).
-	#[inline(always)]
-	pub unsafe fn new_unchecked(s: impl Into<Vec<u8>>) -> Self {
-		std::mem::transmute(s.into())
-	}
-
 	#[inline(always)]
 	pub fn nan() -> Self {
 		NAN.to_owned()
@@ -334,63 +218,9 @@ impl FloatBuf {
 	pub fn negative_infinity() -> Self {
 		NEGATIVE_INFINITY.to_owned()
 	}
-
-	#[inline(always)]
-	pub fn into_string(mut self) -> String {
-		let buf = self.0.as_mut_ptr();
-		let len = self.0.len();
-		let capacity = self.0.capacity();
-		core::mem::forget(self);
-		unsafe { String::from_raw_parts(buf, len, capacity) }
-	}
 }
 
-impl FromStr for FloatBuf {
-	type Err = InvalidFloat;
-
-	fn from_str(s: &str) -> Result<Self, InvalidFloat> {
-		Self::new(s.to_owned()).map_err(|(e, _)| e)
-	}
-}
-
-impl Deref for FloatBuf {
-	type Target = Float;
-
-	#[inline(always)]
-	fn deref(&self) -> &Float {
-		unsafe { Float::new_unchecked(&self.0) }
-	}
-}
-
-impl AsRef<Float> for FloatBuf {
-	#[inline(always)]
-	fn as_ref(&self) -> &Float {
-		unsafe { Float::new_unchecked(&self.0) }
-	}
-}
-
-impl Borrow<Float> for FloatBuf {
-	#[inline(always)]
-	fn borrow(&self) -> &Float {
-		unsafe { Float::new_unchecked(&self.0) }
-	}
-}
-
-impl fmt::Display for FloatBuf {
-	#[inline(always)]
-	fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-		self.as_str().fmt(f)
-	}
-}
-
-impl fmt::Debug for FloatBuf {
-	#[inline(always)]
-	fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-		self.as_str().fmt(f)
-	}
-}
-
-fn check(s: &[u8]) -> bool {
+fn check_bytes(s: &[u8]) -> bool {
 	s == b"INF" || s == b"-INF" || s == b"NaN" || check_normal(s.iter().cloned())
 }
 
@@ -454,27 +284,6 @@ fn check_normal<C: Iterator<Item = u8>>(mut chars: C) -> bool {
 				None => break true,
 			},
 		}
-	}
-}
-
-impl PartialEq<Float> for FloatBuf {
-	#[inline(always)]
-	fn eq(&self, other: &Float) -> bool {
-		self.as_ref() == other
-	}
-}
-
-impl<'a> PartialEq<&'a Float> for FloatBuf {
-	#[inline(always)]
-	fn eq(&self, other: &&'a Float) -> bool {
-		self.as_ref() == *other
-	}
-}
-
-impl PartialEq<FloatBuf> for Float {
-	#[inline(always)]
-	fn eq(&self, other: &FloatBuf) -> bool {
-		self == other.as_ref()
 	}
 }
 

@@ -10,10 +10,11 @@ use num_rational::BigRational;
 use num_traits::{Signed, Zero};
 use once_cell::unsync::OnceCell;
 
+use crate::lexical::LexicalFormOf;
 use crate::{
 	lexical, Datatype, DecimalDatatype, Double, Float, IntDatatype, IntegerDatatype, LongDatatype,
-	NonNegativeIntegerDatatype, NonPositiveIntegerDatatype, ShortDatatype, UnsignedIntDatatype,
-	UnsignedLongDatatype, UnsignedShortDatatype, XsdDatatype,
+	NonNegativeIntegerDatatype, NonPositiveIntegerDatatype, ParseRdf, ShortDatatype,
+	UnsignedIntDatatype, UnsignedLongDatatype, UnsignedShortDatatype, XsdDatatype,
 };
 
 mod integer;
@@ -352,6 +353,18 @@ impl XsdDatatype for Decimal {
 	#[inline(always)]
 	fn type_(&self) -> Datatype {
 		self.decimal_type().into()
+	}
+}
+
+impl ParseRdf for Decimal {
+	type LexicalForm = lexical::Decimal;
+}
+
+impl LexicalFormOf<Decimal> for lexical::Decimal {
+	type ValueError = std::convert::Infallible;
+
+	fn try_as_value(&self) -> Result<Decimal, Self::ValueError> {
+		Ok(self.value())
 	}
 }
 

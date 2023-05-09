@@ -7,7 +7,10 @@ use std::{
 
 use ordered_float::OrderedFloat;
 
-use crate::{lexical, Datatype, XsdDatatype};
+use crate::{
+	lexical::{self, LexicalFormOf},
+	Datatype, ParseRdf, XsdDatatype,
+};
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash)]
 #[repr(transparent)]
@@ -95,6 +98,18 @@ impl XsdDatatype for Float {
 	#[inline(always)]
 	fn type_(&self) -> Datatype {
 		Datatype::Float
+	}
+}
+
+impl ParseRdf for Float {
+	type LexicalForm = lexical::Float;
+}
+
+impl LexicalFormOf<Float> for lexical::Float {
+	type ValueError = std::convert::Infallible;
+
+	fn try_as_value(&self) -> Result<Float, Self::ValueError> {
+		Ok(self.value())
 	}
 }
 

@@ -9,10 +9,11 @@ use num_bigint::{BigInt, TryFromBigIntError};
 use num_traits::{Signed, Zero};
 
 use crate::{
-	impl_integer_arithmetic, lexical,
+	impl_integer_arithmetic,
+	lexical::{self, LexicalFormOf},
 	value::decimal::{U16_MAX, U32_MAX, U64_MAX, U8_MAX},
-	Datatype, Integer, NonNegativeIntegerDatatype, UnsignedIntDatatype, UnsignedLongDatatype,
-	UnsignedShortDatatype, XsdDatatype,
+	Datatype, Integer, NonNegativeIntegerDatatype, ParseRdf, UnsignedIntDatatype,
+	UnsignedLongDatatype, UnsignedShortDatatype, XsdDatatype,
 };
 
 #[derive(Clone, PartialEq, Eq, PartialOrd, Ord, Hash, Debug)]
@@ -75,6 +76,18 @@ impl NonNegativeInteger {
 impl XsdDatatype for NonNegativeInteger {
 	fn type_(&self) -> Datatype {
 		self.non_negative_integer_type().into()
+	}
+}
+
+impl ParseRdf for NonNegativeInteger {
+	type LexicalForm = lexical::NonNegativeInteger;
+}
+
+impl LexicalFormOf<NonNegativeInteger> for lexical::NonNegativeInteger {
+	type ValueError = std::convert::Infallible;
+
+	fn try_as_value(&self) -> Result<NonNegativeInteger, Self::ValueError> {
+		Ok(self.value())
 	}
 }
 
@@ -224,6 +237,18 @@ impl XsdDatatype for UnsignedLong {
 	}
 }
 
+impl ParseRdf for UnsignedLong {
+	type LexicalForm = lexical::NonNegativeInteger;
+}
+
+impl LexicalFormOf<UnsignedLong> for lexical::NonNegativeInteger {
+	type ValueError = NonNegativeIntegerOutOfTargetBounds;
+
+	fn try_as_value(&self) -> Result<UnsignedLong, Self::ValueError> {
+		self.value().try_into()
+	}
+}
+
 pub type UnsignedInt = u32;
 
 pub trait XsdUnsignedInt {
@@ -245,6 +270,18 @@ impl XsdUnsignedInt for UnsignedInt {
 impl XsdDatatype for UnsignedInt {
 	fn type_(&self) -> Datatype {
 		self.unsigned_int_type().into()
+	}
+}
+
+impl ParseRdf for UnsignedInt {
+	type LexicalForm = lexical::NonNegativeInteger;
+}
+
+impl LexicalFormOf<UnsignedInt> for lexical::NonNegativeInteger {
+	type ValueError = NonNegativeIntegerOutOfTargetBounds;
+
+	fn try_as_value(&self) -> Result<UnsignedInt, Self::ValueError> {
+		self.value().try_into()
 	}
 }
 
@@ -270,11 +307,35 @@ impl XsdDatatype for UnsignedShort {
 	}
 }
 
+impl ParseRdf for UnsignedShort {
+	type LexicalForm = lexical::NonNegativeInteger;
+}
+
+impl LexicalFormOf<UnsignedShort> for lexical::NonNegativeInteger {
+	type ValueError = NonNegativeIntegerOutOfTargetBounds;
+
+	fn try_as_value(&self) -> Result<UnsignedShort, Self::ValueError> {
+		self.value().try_into()
+	}
+}
+
 pub type UnsignedByte = u8;
 
 impl XsdDatatype for UnsignedByte {
 	fn type_(&self) -> Datatype {
 		UnsignedShortDatatype::UnsignedByte.into()
+	}
+}
+
+impl ParseRdf for UnsignedByte {
+	type LexicalForm = lexical::NonNegativeInteger;
+}
+
+impl LexicalFormOf<UnsignedByte> for lexical::NonNegativeInteger {
+	type ValueError = NonNegativeIntegerOutOfTargetBounds;
+
+	fn try_as_value(&self) -> Result<UnsignedByte, Self::ValueError> {
+		self.value().try_into()
 	}
 }
 
@@ -303,6 +364,18 @@ impl PositiveInteger {
 impl XsdDatatype for PositiveInteger {
 	fn type_(&self) -> Datatype {
 		NonNegativeIntegerDatatype::PositiveInteger.into()
+	}
+}
+
+impl ParseRdf for PositiveInteger {
+	type LexicalForm = lexical::PositiveInteger;
+}
+
+impl LexicalFormOf<PositiveInteger> for lexical::PositiveInteger {
+	type ValueError = std::convert::Infallible;
+
+	fn try_as_value(&self) -> Result<PositiveInteger, Self::ValueError> {
+		Ok(self.value())
 	}
 }
 

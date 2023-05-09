@@ -4,7 +4,10 @@ use std::{
 	str::FromStr,
 };
 
-use crate::{Datatype, XsdDatatype};
+use crate::{
+	lexical::{self, LexicalFormOf},
+	Datatype, ParseRdf, XsdDatatype,
+};
 
 const CHARS: [char; 16] = [
 	'0', '1', '2', '3', '4', '5', '6', '7', '8', '9', 'A', 'B', 'C', 'D', 'E', 'F',
@@ -115,6 +118,18 @@ impl DerefMut for HexBinaryBuf {
 impl XsdDatatype for HexBinaryBuf {
 	fn type_(&self) -> Datatype {
 		Datatype::HexBinary
+	}
+}
+
+impl ParseRdf for HexBinaryBuf {
+	type LexicalForm = lexical::HexBinary;
+}
+
+impl LexicalFormOf<HexBinaryBuf> for lexical::HexBinary {
+	type ValueError = std::convert::Infallible;
+
+	fn try_as_value(&self) -> Result<HexBinaryBuf, Self::ValueError> {
+		Ok(self.value())
 	}
 }
 

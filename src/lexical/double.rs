@@ -1,69 +1,43 @@
-use super::{
-	Decimal, DecimalBuf, Float, FloatBuf, Integer, NonNegativeInteger, NonNegativeIntegerBuf,
-	NonPositiveInteger, NonPositiveIntegerBuf, Overflow,
-};
+use super::{lexical_form, Decimal, Float, FloatBuf, Integer, Overflow};
 use std::borrow::{Borrow, ToOwned};
 use std::fmt;
-use std::ops::Deref;
-use std::str::FromStr;
+use std::hash::Hash;
 
-#[derive(Debug)]
-pub struct InvalidDouble;
+lexical_form! {
+	/// Double number.
+	///
+	/// See: <https://www.w3.org/TR/xmlschema-2/#double>
+	ty: Double,
+
+	/// Owned double number.
+	///
+	/// See: <https://www.w3.org/TR/xmlschema-2/#double>
+	buffer: DoubleBuf,
+
+	/// Creates a new double from a string.
+	///
+	/// If the input string is ot a [valid XSD double](https://www.w3.org/TR/xmlschema-2/#double),
+	/// an [`InvalidDouble`] error is returned.
+	new,
+
+	/// Creates a new double from a string without checking it.
+	///
+	/// # Safety
+	///
+	/// The input string must be a [valid XSD double](https://www.w3.org/TR/xmlschema-2/#double).
+	new_unchecked,
+
+	value: crate::Double,
+	error: InvalidDouble,
+	as_ref: as_double,
+	parent_forms: {}
+}
 
 pub const NAN: &Double = unsafe { Double::new_unchecked_from_slice(b"NaN") };
 pub const POSITIVE_INFINITY: &Double = unsafe { Double::new_unchecked_from_slice(b"INF") };
 pub const NEGATIVE_INFINITY: &Double = unsafe { Double::new_unchecked_from_slice(b"-INF") };
 
-/// Double number.
-///
-/// See: <https://www.w3.org/TR/xmlschema-2/#double>
-#[derive(PartialEq, Eq, Hash)]
-pub struct Double([u8]);
-
 impl Double {
-	/// Creates a new `Double` from a string.
-	///
-	/// If the input string is ot a [valid XSD double](https://www.w3.org/TR/xmlschema-2/#double),
-	/// an [`InvalidDouble`] error is returned.
-	#[inline(always)]
-	pub fn new<S: ?Sized + AsRef<[u8]>>(s: &S) -> Result<&Self, InvalidDouble> {
-		if check(s.as_ref()) {
-			Ok(unsafe { Self::new_unchecked(s) })
-		} else {
-			Err(InvalidDouble)
-		}
-	}
-
-	/// Creates a new `Double` from a string without checking it.
-	///
-	/// # Safety
-	///
-	/// The input string must be a [valid XSD double](https://www.w3.org/TR/xmlschema-2/#double).
-	#[inline(always)]
-	pub unsafe fn new_unchecked<S: ?Sized + AsRef<[u8]>>(s: &S) -> &Self {
-		std::mem::transmute(s.as_ref())
-	}
-
-	/// Creates a new `Double` from a byte slice without checking it.
-	///
-	/// # Safety
-	///
-	/// The input string must be a [valid XSD double](https://www.w3.org/TR/xmlschema-2/#double).
-	#[inline(always)]
-	pub const unsafe fn new_unchecked_from_slice(s: &[u8]) -> &Self {
-		std::mem::transmute(s)
-	}
-
-	#[inline(always)]
-	pub fn as_str(&self) -> &str {
-		unsafe { core::str::from_utf8_unchecked(&self.0) }
-	}
-
-	#[inline(always)]
-	pub fn as_bytes(&self) -> &[u8] {
-		&self.0
-	}
-
 	pub fn is_infinite(&self) -> bool {
 		matches!(&self.0, b"INF" | b"-INF")
 	}
@@ -105,17 +79,23 @@ impl Double {
 			None
 		}
 	}
-}
 
-impl AsRef<[u8]> for Double {
-	fn as_ref(&self) -> &[u8] {
-		&self.0
+	pub fn value(&self) -> crate::Double {
+		self.into()
 	}
 }
 
-impl AsRef<str> for Double {
-	fn as_ref(&self) -> &str {
-		self.as_str()
+impl PartialEq for Double {
+	fn eq(&self, other: &Self) -> bool {
+		self.as_bytes() == other.as_bytes()
+	}
+}
+
+impl Eq for Double {}
+
+impl Hash for Double {
+	fn hash<H: std::hash::Hasher>(&self, state: &mut H) {
+		self.as_bytes().hash(state)
 	}
 }
 
@@ -214,59 +194,6 @@ impl From<f64> for DoubleBuf {
 	}
 }
 
-impl Deref for Double {
-	type Target = str;
-
-	#[inline(always)]
-	fn deref(&self) -> &str {
-		self.as_str()
-	}
-}
-
-impl ToOwned for Double {
-	type Owned = DoubleBuf;
-
-	#[inline(always)]
-	fn to_owned(&self) -> DoubleBuf {
-		unsafe { DoubleBuf::new_unchecked(self.as_str().to_owned()) }
-	}
-}
-
-impl fmt::Display for Double {
-	#[inline(always)]
-	fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-		self.as_str().fmt(f)
-	}
-}
-
-impl fmt::Debug for Double {
-	#[inline(always)]
-	fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-		self.as_str().fmt(f)
-	}
-}
-
-impl<'a> From<&'a Integer> for &'a Double {
-	#[inline(always)]
-	fn from(d: &'a Integer) -> Self {
-		unsafe { Double::new_unchecked(d) }
-	}
-}
-
-impl<'a> From<&'a NonNegativeInteger> for &'a Double {
-	#[inline(always)]
-	fn from(d: &'a NonNegativeInteger) -> Self {
-		unsafe { Double::new_unchecked(d) }
-	}
-}
-
-impl<'a> From<&'a NonPositiveInteger> for &'a Double {
-	#[inline(always)]
-	fn from(d: &'a NonPositiveInteger) -> Self {
-		unsafe { Double::new_unchecked(d) }
-	}
-}
-
 impl<'a> From<&'a Decimal> for &'a Double {
 	#[inline(always)]
 	fn from(d: &'a Decimal) -> Self {
@@ -274,64 +201,7 @@ impl<'a> From<&'a Decimal> for &'a Double {
 	}
 }
 
-impl<'a> From<&'a NonPositiveIntegerBuf> for &'a Double {
-	#[inline(always)]
-	fn from(d: &'a NonPositiveIntegerBuf) -> Self {
-		d.as_ref()
-	}
-}
-
-impl<'a> From<&'a NonNegativeIntegerBuf> for &'a Double {
-	#[inline(always)]
-	fn from(d: &'a NonNegativeIntegerBuf) -> Self {
-		d.as_ref()
-	}
-}
-
-impl<'a> From<&'a DecimalBuf> for &'a Double {
-	#[inline(always)]
-	fn from(d: &'a DecimalBuf) -> Self {
-		d.as_ref()
-	}
-}
-
-impl<'a> From<&'a DoubleBuf> for &'a Double {
-	#[inline(always)]
-	fn from(b: &'a DoubleBuf) -> Self {
-		b.as_ref()
-	}
-}
-
-/// Owned double number.
-///
-/// See: <https://www.w3.org/TR/xmlschema-2/#double>
-#[derive(Clone, PartialEq, Eq, Hash)]
-pub struct DoubleBuf(Vec<u8>);
-
 impl DoubleBuf {
-	/// Creates a new `DoubleBuf` from a `String`.
-	///
-	/// If the input string is ot a [valid XSD double](https://www.w3.org/TR/xmlschema-2/#double),
-	/// an [`InvalidDouble`] error is returned along with the input string.
-	#[inline(always)]
-	pub fn new<S: AsRef<[u8]> + Into<Vec<u8>>>(s: S) -> Result<Self, (InvalidDouble, S)> {
-		if check(s.as_ref()) {
-			Ok(unsafe { Self::new_unchecked(s) })
-		} else {
-			Err((InvalidDouble, s))
-		}
-	}
-
-	/// Creates a new `DoubleBuf` from a `String` without checking it.
-	///
-	/// # Safety
-	///
-	/// The input string must be a [valid XSD double](https://www.w3.org/TR/xmlschema-2/#double).
-	#[inline(always)]
-	pub unsafe fn new_unchecked(s: impl Into<Vec<u8>>) -> Self {
-		std::mem::transmute(s.into())
-	}
-
 	#[inline(always)]
 	pub fn nan() -> Self {
 		NAN.to_owned()
@@ -346,63 +216,9 @@ impl DoubleBuf {
 	pub fn negative_infinity() -> Self {
 		NEGATIVE_INFINITY.to_owned()
 	}
-
-	#[inline(always)]
-	pub fn into_string(mut self) -> String {
-		let buf = self.0.as_mut_ptr();
-		let len = self.0.len();
-		let capacity = self.0.capacity();
-		core::mem::forget(self);
-		unsafe { String::from_raw_parts(buf, len, capacity) }
-	}
 }
 
-impl FromStr for DoubleBuf {
-	type Err = InvalidDouble;
-
-	fn from_str(s: &str) -> Result<Self, InvalidDouble> {
-		Self::new(s.to_owned()).map_err(|(e, _)| e)
-	}
-}
-
-impl Deref for DoubleBuf {
-	type Target = Double;
-
-	#[inline(always)]
-	fn deref(&self) -> &Double {
-		unsafe { Double::new_unchecked(&self.0) }
-	}
-}
-
-impl AsRef<Double> for DoubleBuf {
-	#[inline(always)]
-	fn as_ref(&self) -> &Double {
-		unsafe { Double::new_unchecked(&self.0) }
-	}
-}
-
-impl Borrow<Double> for DoubleBuf {
-	#[inline(always)]
-	fn borrow(&self) -> &Double {
-		unsafe { Double::new_unchecked(&self.0) }
-	}
-}
-
-impl fmt::Display for DoubleBuf {
-	#[inline(always)]
-	fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-		self.as_str().fmt(f)
-	}
-}
-
-impl fmt::Debug for DoubleBuf {
-	#[inline(always)]
-	fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-		self.as_str().fmt(f)
-	}
-}
-
-fn check(s: &[u8]) -> bool {
+fn check_bytes(s: &[u8]) -> bool {
 	s == b"INF" || s == b"-INF" || s == b"NaN" || check_normal(s.iter().cloned())
 }
 
@@ -466,27 +282,6 @@ fn check_normal<C: Iterator<Item = u8>>(mut chars: C) -> bool {
 				None => break true,
 			},
 		}
-	}
-}
-
-impl PartialEq<Double> for DoubleBuf {
-	#[inline(always)]
-	fn eq(&self, other: &Double) -> bool {
-		self.as_ref() == other
-	}
-}
-
-impl<'a> PartialEq<&'a Double> for DoubleBuf {
-	#[inline(always)]
-	fn eq(&self, other: &&'a Double) -> bool {
-		self.as_ref() == *other
-	}
-}
-
-impl PartialEq<DoubleBuf> for Double {
-	#[inline(always)]
-	fn eq(&self, other: &DoubleBuf) -> bool {
-		self == other.as_ref()
 	}
 }
 

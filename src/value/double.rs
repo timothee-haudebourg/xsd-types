@@ -7,7 +7,10 @@ use std::{
 
 use ordered_float::OrderedFloat;
 
-use crate::{lexical, Datatype, XsdDatatype};
+use crate::{
+	lexical::{self, LexicalFormOf},
+	Datatype, ParseRdf, XsdDatatype,
+};
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash)]
 pub struct Double(OrderedFloat<f64>);
@@ -93,6 +96,18 @@ impl fmt::Display for Double {
 impl XsdDatatype for Double {
 	fn type_(&self) -> Datatype {
 		Datatype::Double
+	}
+}
+
+impl ParseRdf for Double {
+	type LexicalForm = lexical::Double;
+}
+
+impl LexicalFormOf<Double> for lexical::Double {
+	type ValueError = std::convert::Infallible;
+
+	fn try_as_value(&self) -> Result<Double, Self::ValueError> {
+		Ok(self.value())
 	}
 }
 

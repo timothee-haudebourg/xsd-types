@@ -9,7 +9,9 @@ use num_bigint::{BigInt, TryFromBigIntError};
 use num_traits::{Signed, Zero};
 
 use crate::{
-	impl_integer_arithmetic, lexical, Datatype, Integer, NonPositiveIntegerDatatype, XsdDatatype,
+	impl_integer_arithmetic,
+	lexical::{self, LexicalFormOf},
+	Datatype, Integer, NonPositiveIntegerDatatype, ParseRdf, XsdDatatype,
 };
 
 #[derive(Clone, PartialEq, Eq, PartialOrd, Ord, Hash, Debug)]
@@ -64,6 +66,18 @@ impl XsdDatatype for NonPositiveInteger {
 	#[inline(always)]
 	fn type_(&self) -> Datatype {
 		self.non_positive_integer_type().into()
+	}
+}
+
+impl ParseRdf for NonPositiveInteger {
+	type LexicalForm = lexical::NonPositiveInteger;
+}
+
+impl LexicalFormOf<NonPositiveInteger> for lexical::NonPositiveInteger {
+	type ValueError = std::convert::Infallible;
+
+	fn try_as_value(&self) -> Result<NonPositiveInteger, Self::ValueError> {
+		Ok(self.value())
 	}
 }
 
@@ -198,6 +212,18 @@ impl NegativeInteger {
 impl XsdDatatype for NegativeInteger {
 	fn type_(&self) -> Datatype {
 		NonPositiveIntegerDatatype::NegativeInteger.into()
+	}
+}
+
+impl ParseRdf for NegativeInteger {
+	type LexicalForm = lexical::NegativeInteger;
+}
+
+impl LexicalFormOf<NegativeInteger> for lexical::NegativeInteger {
+	type ValueError = std::convert::Infallible;
+
+	fn try_as_value(&self) -> Result<NegativeInteger, Self::ValueError> {
+		Ok(self.value())
 	}
 }
 

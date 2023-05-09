@@ -1,46 +1,50 @@
-use super::{
-	Decimal, DecimalBuf, Double, DoubleBuf, Float, FloatBuf, Integer, NonNegativeInteger, Overflow,
-	Sign,
-};
+use crate::lexical::lexical_form;
+
+use super::{Decimal, DecimalBuf, Integer, IntegerBuf, NonNegativeInteger, Overflow, Sign};
 use std::borrow::{Borrow, ToOwned};
 use std::cmp::Ordering;
 use std::fmt;
 use std::hash::{Hash, Hasher};
-use std::ops::Deref;
 use std::str::FromStr;
 
-#[derive(Debug)]
-pub struct InvalidNonPositiveInteger;
+mod negative_integer;
 
-/// NonPositiveInteger number.
-///
-/// See: <https://www.w3.org/TR/xmlschema-2/#integer>
-pub struct NonPositiveInteger([u8]);
+pub use negative_integer::*;
 
-impl NonPositiveInteger {
-	/// Creates a new `NonPositiveInteger` from a string.
+lexical_form! {
+	/// Non positive integer number.
+	///
+	/// See: <https://www.w3.org/TR/xmlschema-2/#nonPositiveInteger>
+	ty: NonPositiveInteger,
+
+	/// Owned non positive integer number.
+	///
+	/// See: <https://www.w3.org/TR/xmlschema-2/#nonPositiveInteger>
+	buffer: NonPositiveIntegerBuf,
+
+	/// Creates a new non positive integer from a string.
 	///
 	/// If the input string is ot a [valid XSD non positive integer](https://www.w3.org/TR/xmlschema-2/#nonPositiveInteger),
 	/// an [`InvalidNonPositiveInteger`] error is returned.
-	#[inline(always)]
-	pub fn new<S: ?Sized + AsRef<[u8]>>(s: &S) -> Result<&Self, InvalidNonPositiveInteger> {
-		if check(s.as_ref().iter().cloned()) {
-			Ok(unsafe { Self::new_unchecked(s) })
-		} else {
-			Err(InvalidNonPositiveInteger)
-		}
-	}
+	new,
 
-	/// Creates a new `NonPositiveInteger` from a string without checking it.
+	/// Creates a new non positive integer from a string without checking it.
 	///
 	/// # Safety
 	///
 	/// The input string must be a [valid XSD non positive integer](https://www.w3.org/TR/xmlschema-2/#nonPositiveInteger).
-	#[inline(always)]
-	pub unsafe fn new_unchecked<S: ?Sized + AsRef<[u8]>>(s: &S) -> &Self {
-		std::mem::transmute(s.as_ref())
-	}
+	new_unchecked,
 
+	value: crate::NonPositiveInteger,
+	error: InvalidNonPositiveInteger,
+	as_ref: as_non_positive_integer,
+	parent_forms: {
+		as_integer: Integer, IntegerBuf,
+		as_decimal: Decimal, DecimalBuf
+	}
+}
+
+impl NonPositiveInteger {
 	/// Returns `true` if `self` is negative
 	/// and `false` is the number is zero.
 	pub fn is_negative(&self) -> bool {
@@ -94,27 +98,11 @@ impl NonPositiveInteger {
 	}
 
 	#[inline(always)]
-	pub fn as_str(&self) -> &str {
-		unsafe { core::str::from_utf8_unchecked(&self.0) }
-	}
-
-	pub fn as_bytes(&self) -> &[u8] {
-		&self.0
-	}
-
-	#[inline(always)]
-	pub fn as_decimal(&self) -> &Decimal {
-		self.into()
-	}
-
-	#[inline(always)]
-	pub fn as_float(&self) -> &Float {
-		self.into()
-	}
-
-	#[inline(always)]
-	pub fn as_double(&self) -> &Double {
-		self.into()
+	pub fn value(&self) -> crate::NonPositiveInteger {
+		use num_bigint::BigInt;
+		unsafe {
+			crate::NonPositiveInteger::new_unchecked(BigInt::from_str(self.as_str()).unwrap())
+		}
 	}
 }
 
@@ -175,191 +163,13 @@ impl PartialOrd for NonPositiveInteger {
 	}
 }
 
-impl Deref for NonPositiveInteger {
-	type Target = str;
-
-	#[inline(always)]
-	fn deref(&self) -> &str {
-		self.as_str()
-	}
-}
-
-impl AsRef<[u8]> for NonPositiveInteger {
-	fn as_ref(&self) -> &[u8] {
-		&self.0
-	}
-}
-
-impl AsRef<str> for NonPositiveInteger {
-	fn as_ref(&self) -> &str {
-		self.as_str()
-	}
-}
-
-impl ToOwned for NonPositiveInteger {
-	type Owned = NonPositiveIntegerBuf;
-
-	#[inline(always)]
-	fn to_owned(&self) -> NonPositiveIntegerBuf {
-		unsafe { NonPositiveIntegerBuf::new_unchecked(self.as_str().to_owned()) }
-	}
-}
-
-impl fmt::Display for NonPositiveInteger {
-	#[inline(always)]
-	fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-		self.as_str().fmt(f)
-	}
-}
-
-impl fmt::Debug for NonPositiveInteger {
-	#[inline(always)]
-	fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-		self.0.fmt(f)
-	}
-}
-
-impl AsRef<Decimal> for NonPositiveInteger {
-	fn as_ref(&self) -> &Decimal {
-		self.into()
-	}
-}
-
-impl AsRef<Float> for NonPositiveInteger {
-	fn as_ref(&self) -> &Float {
-		self.into()
-	}
-}
-
-impl AsRef<Double> for NonPositiveInteger {
-	fn as_ref(&self) -> &Double {
-		self.into()
-	}
-}
-
-impl<'a> From<&'a NonPositiveIntegerBuf> for &'a NonPositiveInteger {
-	#[inline(always)]
-	fn from(b: &'a NonPositiveIntegerBuf) -> Self {
-		b.as_ref()
-	}
-}
-
-impl<'a> TryFrom<&'a Decimal> for &'a NonPositiveInteger {
-	type Error = InvalidNonPositiveInteger;
-
-	#[inline(always)]
-	fn try_from(i: &'a Decimal) -> Result<Self, Self::Error> {
-		NonPositiveInteger::new(i.as_str())
-	}
-}
-
-impl<'a> TryFrom<&'a DecimalBuf> for &'a NonPositiveInteger {
-	type Error = InvalidNonPositiveInteger;
-
-	#[inline(always)]
-	fn try_from(i: &'a DecimalBuf) -> Result<Self, Self::Error> {
-		NonPositiveInteger::new(i.as_str())
-	}
-}
-
-impl<'a> TryFrom<&'a Float> for &'a NonPositiveInteger {
-	type Error = InvalidNonPositiveInteger;
-
-	#[inline(always)]
-	fn try_from(i: &'a Float) -> Result<Self, Self::Error> {
-		NonPositiveInteger::new(i.as_str())
-	}
-}
-
-impl<'a> TryFrom<&'a FloatBuf> for &'a NonPositiveInteger {
-	type Error = InvalidNonPositiveInteger;
-
-	#[inline(always)]
-	fn try_from(i: &'a FloatBuf) -> Result<Self, Self::Error> {
-		NonPositiveInteger::new(i.as_str())
-	}
-}
-
-impl<'a> TryFrom<&'a Double> for &'a NonPositiveInteger {
-	type Error = InvalidNonPositiveInteger;
-
-	#[inline(always)]
-	fn try_from(i: &'a Double) -> Result<Self, Self::Error> {
-		NonPositiveInteger::new(i.as_str())
-	}
-}
-
-impl<'a> TryFrom<&'a DoubleBuf> for &'a NonPositiveInteger {
-	type Error = InvalidNonPositiveInteger;
-
-	#[inline(always)]
-	fn try_from(i: &'a DoubleBuf) -> Result<Self, Self::Error> {
-		NonPositiveInteger::new(i.as_str())
-	}
-}
-
-/// Owned integer number.
-///
-/// See: <https://www.w3.org/TR/xmlschema-2/#integer>
-#[derive(Clone)]
-pub struct NonPositiveIntegerBuf(Vec<u8>);
-
 impl NonPositiveIntegerBuf {
-	/// Creates a new `IntegerBuf` from a `String`.
-	///
-	/// If the input string is ot a [valid XSD non positive integer](https://www.w3.org/TR/xmlschema-2/#nonPositiveInteger),
-	/// an [`InvalidNonPositiveInteger`] error is returned along with the input string.
-	#[inline(always)]
-	pub fn new<S: AsRef<[u8]> + Into<Vec<u8>>>(
-		s: S,
-	) -> Result<Self, (InvalidNonPositiveInteger, S)> {
-		if check(s.as_ref().iter().cloned()) {
-			Ok(unsafe { Self::new_unchecked(s) })
-		} else {
-			Err((InvalidNonPositiveInteger, s))
-		}
-	}
-
-	/// Creates a new `IntegerBuf` from a `String` without checking it.
-	///
-	/// # Safety
-	///
-	/// The input string must be a [valid XSD non positive integer](https://www.w3.org/TR/xmlschema-2/#nonPositiveInteger).
-	#[inline(always)]
-	pub unsafe fn new_unchecked(s: impl Into<Vec<u8>>) -> Self {
-		std::mem::transmute(s.into())
-	}
-
 	pub fn zero() -> Self {
 		unsafe { Self::new_unchecked("0".to_string()) }
 	}
 
-	pub fn one() -> Self {
-		unsafe { Self::new_unchecked("1".to_string()) }
-	}
-
-	#[inline(always)]
-	pub fn as_non_positive_integer(&self) -> &NonPositiveInteger {
-		self.into()
-	}
-
-	#[inline(always)]
-	pub fn as_integer(&self) -> &Integer {
-		self.into()
-	}
-
-	#[inline(always)]
-	pub fn into_bytes(self) -> Vec<u8> {
-		self.0
-	}
-
-	#[inline(always)]
-	pub fn into_string(mut self) -> String {
-		let buf = self.0.as_mut_ptr();
-		let len = self.0.len();
-		let capacity = self.0.capacity();
-		core::mem::forget(self);
-		unsafe { String::from_raw_parts(buf, len, capacity) }
+	pub fn minus_one() -> Self {
+		unsafe { Self::new_unchecked("-1".to_string()) }
 	}
 }
 
@@ -368,14 +178,6 @@ impl Default for NonPositiveIntegerBuf {
 		Self::zero()
 	}
 }
-
-impl PartialEq for NonPositiveIntegerBuf {
-	fn eq(&self, other: &Self) -> bool {
-		self.as_integer().eq(other.as_integer())
-	}
-}
-
-impl Eq for NonPositiveIntegerBuf {}
 
 impl PartialOrd for NonPositiveIntegerBuf {
 	fn partial_cmp(&self, other: &Self) -> Option<Ordering> {
@@ -386,104 +188,6 @@ impl PartialOrd for NonPositiveIntegerBuf {
 impl Ord for NonPositiveIntegerBuf {
 	fn cmp(&self, other: &Self) -> Ordering {
 		self.as_integer().cmp(other.as_integer())
-	}
-}
-
-// impl std::ops::Add for IntegerBuf {
-// 	type Output = Self;
-
-// 	fn add(mut self, rhs: Self) -> Self {
-// 		IntegerBuf::add(&mut self, rhs.as_integer());
-// 		self
-// 	}
-// }
-
-// impl<'a> std::ops::Add<&'a IntegerBuf> for IntegerBuf {
-// 	type Output = Self;
-
-// 	fn add(mut self, rhs: &'a IntegerBuf) -> Self {
-// 		IntegerBuf::add(&mut self, rhs.as_integer());
-// 		self
-// 	}
-// }
-
-// impl<'a> std::ops::Add<&'a NonPositiveInteger> for IntegerBuf {
-// 	type Output = Self;
-
-// 	fn add(mut self, rhs: &'a NonPositiveInteger) -> Self {
-// 		IntegerBuf::add(&mut self, rhs);
-// 		self
-// 	}
-// }
-
-// impl std::ops::AddAssign for IntegerBuf {
-// 	fn add_assign(&mut self, rhs: Self) {
-// 		self.add(rhs.as_integer())
-// 	}
-// }
-
-// impl<'a> std::ops::AddAssign<&'a IntegerBuf> for IntegerBuf {
-// 	fn add_assign(&mut self, rhs: &'a IntegerBuf) {
-// 		self.add(rhs.as_integer())
-// 	}
-// }
-
-// impl<'a> std::ops::AddAssign<&'a NonPositiveInteger> for IntegerBuf {
-// 	fn add_assign(&mut self, rhs: &'a NonPositiveInteger) {
-// 		self.add(rhs)
-// 	}
-// }
-
-// impl std::ops::Sub for IntegerBuf {
-// 	type Output = Self;
-
-// 	fn sub(mut self, rhs: Self) -> Self {
-// 		IntegerBuf::sub(&mut self, rhs.as_integer());
-// 		self
-// 	}
-// }
-
-// impl<'a> std::ops::Sub<&'a IntegerBuf> for IntegerBuf {
-// 	type Output = Self;
-
-// 	fn sub(mut self, rhs: &'a IntegerBuf) -> Self {
-// 		IntegerBuf::sub(&mut self, rhs.as_integer());
-// 		self
-// 	}
-// }
-
-// impl<'a> std::ops::Sub<&'a NonPositiveInteger> for IntegerBuf {
-// 	type Output = Self;
-
-// 	fn sub(mut self, rhs: &'a NonPositiveInteger) -> Self {
-// 		IntegerBuf::sub(&mut self, rhs);
-// 		self
-// 	}
-// }
-
-// impl std::ops::SubAssign for IntegerBuf {
-// 	fn sub_assign(&mut self, rhs: Self) {
-// 		self.sub(rhs.as_integer())
-// 	}
-// }
-
-// impl<'a> std::ops::SubAssign<&'a IntegerBuf> for IntegerBuf {
-// 	fn sub_assign(&mut self, rhs: &'a IntegerBuf) {
-// 		self.sub(rhs.as_integer())
-// 	}
-// }
-
-// impl<'a> std::ops::SubAssign<&'a NonPositiveInteger> for IntegerBuf {
-// 	fn sub_assign(&mut self, rhs: &'a NonPositiveInteger) {
-// 		self.sub(rhs)
-// 	}
-// }
-
-impl FromStr for NonPositiveIntegerBuf {
-	type Err = InvalidNonPositiveInteger;
-
-	fn from_str(s: &str) -> Result<Self, InvalidNonPositiveInteger> {
-		Self::new(s.to_owned()).map_err(|(e, _)| e)
 	}
 }
 
@@ -530,126 +234,8 @@ number_conversion! {
 	isize
 }
 
-impl TryFrom<DecimalBuf> for NonPositiveIntegerBuf {
-	type Error = (InvalidNonPositiveInteger, DecimalBuf);
-
-	#[inline(always)]
-	fn try_from(i: DecimalBuf) -> Result<Self, Self::Error> {
-		match Self::new(i.into_string()) {
-			Ok(d) => Ok(d),
-			Err((e, s)) => Err((e, unsafe { DecimalBuf::new_unchecked(s) })),
-		}
-	}
-}
-
-impl TryFrom<FloatBuf> for NonPositiveIntegerBuf {
-	type Error = (InvalidNonPositiveInteger, FloatBuf);
-
-	#[inline(always)]
-	fn try_from(i: FloatBuf) -> Result<Self, Self::Error> {
-		match Self::new(i.into_string()) {
-			Ok(d) => Ok(d),
-			Err((e, s)) => Err((e, unsafe { FloatBuf::new_unchecked(s) })),
-		}
-	}
-}
-
-impl TryFrom<DoubleBuf> for NonPositiveIntegerBuf {
-	type Error = (InvalidNonPositiveInteger, DoubleBuf);
-
-	#[inline(always)]
-	fn try_from(i: DoubleBuf) -> Result<Self, Self::Error> {
-		match Self::new(i.into_string()) {
-			Ok(d) => Ok(d),
-			Err((e, s)) => Err((e, unsafe { DoubleBuf::new_unchecked(s) })),
-		}
-	}
-}
-
-impl Deref for NonPositiveIntegerBuf {
-	type Target = NonPositiveInteger;
-
-	#[inline(always)]
-	fn deref(&self) -> &NonPositiveInteger {
-		unsafe { NonPositiveInteger::new_unchecked(&self.0) }
-	}
-}
-
-impl AsRef<NonPositiveInteger> for NonPositiveIntegerBuf {
-	#[inline(always)]
-	fn as_ref(&self) -> &NonPositiveInteger {
-		unsafe { NonPositiveInteger::new_unchecked(&self.0) }
-	}
-}
-
-impl AsRef<Decimal> for NonPositiveIntegerBuf {
-	#[inline(always)]
-	fn as_ref(&self) -> &Decimal {
-		NonPositiveInteger::as_ref(self)
-	}
-}
-
-impl AsRef<Float> for NonPositiveIntegerBuf {
-	#[inline(always)]
-	fn as_ref(&self) -> &Float {
-		NonPositiveInteger::as_ref(self)
-	}
-}
-
-impl AsRef<Double> for NonPositiveIntegerBuf {
-	#[inline(always)]
-	fn as_ref(&self) -> &Double {
-		NonPositiveInteger::as_ref(self)
-	}
-}
-
-impl AsRef<[u8]> for NonPositiveIntegerBuf {
-	#[inline(always)]
-	fn as_ref(&self) -> &[u8] {
-		self.as_bytes()
-	}
-}
-
-impl AsRef<str> for NonPositiveIntegerBuf {
-	#[inline(always)]
-	fn as_ref(&self) -> &str {
-		self.as_str()
-	}
-}
-
-impl Borrow<NonPositiveInteger> for NonPositiveIntegerBuf {
-	#[inline(always)]
-	fn borrow(&self) -> &NonPositiveInteger {
-		unsafe { NonPositiveInteger::new_unchecked(&self.0) }
-	}
-}
-
-impl fmt::Display for NonPositiveIntegerBuf {
-	#[inline(always)]
-	fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-		self.as_str().fmt(f)
-	}
-}
-
-impl fmt::Debug for NonPositiveIntegerBuf {
-	#[inline(always)]
-	fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-		self.0.fmt(f)
-	}
-}
-
-impl PartialEq<NonPositiveInteger> for NonPositiveIntegerBuf {
-	#[inline(always)]
-	fn eq(&self, other: &NonPositiveInteger) -> bool {
-		self == other
-	}
-}
-
-impl PartialEq<NonPositiveIntegerBuf> for NonPositiveInteger {
-	#[inline(always)]
-	fn eq(&self, other: &NonPositiveIntegerBuf) -> bool {
-		self == other
-	}
+fn check_bytes(s: &[u8]) -> bool {
+	check(s.iter().copied())
 }
 
 fn check<C: Iterator<Item = u8>>(mut chars: C) -> bool {
@@ -657,6 +243,7 @@ fn check<C: Iterator<Item = u8>>(mut chars: C) -> bool {
 		Initial,
 		NonEmptyInteger,
 		Integer,
+		Zero,
 	}
 
 	let mut state = State::Initial;
@@ -665,6 +252,7 @@ fn check<C: Iterator<Item = u8>>(mut chars: C) -> bool {
 		state = match state {
 			State::Initial => match chars.next() {
 				Some(b'-') => State::NonEmptyInteger,
+				Some(b'+' | b'0') => State::Zero,
 				_ => break false,
 			},
 			State::NonEmptyInteger => match chars.next() {
@@ -675,6 +263,10 @@ fn check<C: Iterator<Item = u8>>(mut chars: C) -> bool {
 				Some(b'0'..=b'9') => State::Integer,
 				Some(_) => break false,
 				None => break true,
+			},
+			State::Zero => match chars.next() {
+				Some(b'0') => State::Zero,
+				_ => break false,
 			},
 		}
 	}
