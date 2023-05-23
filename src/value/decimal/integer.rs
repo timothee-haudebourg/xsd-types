@@ -15,7 +15,7 @@ use crate::{
 	UnsignedShortDatatype, XsdDatatype,
 };
 
-use super::{I16_MIN, I32_MIN, I64_MIN, I8_MIN, U16_MAX, U32_MAX, U64_MAX, U8_MAX};
+use super::{Sign, I16_MIN, I32_MIN, I64_MIN, I8_MIN, U16_MAX, U32_MAX, U64_MAX, U8_MAX};
 
 mod non_negative_integer;
 mod non_positive_integer;
@@ -37,6 +37,22 @@ impl Integer {
 			// `BigInt`.
 			std::mem::transmute(n)
 		}
+	}
+
+	pub fn from_bytes_be(sign: Sign, bytes: &[u8]) -> Self {
+		Self(BigInt::from_bytes_be(sign, bytes))
+	}
+
+	pub fn from_bytes_le(sign: Sign, bytes: &[u8]) -> Self {
+		Self(BigInt::from_bytes_le(sign, bytes))
+	}
+
+	pub fn from_signed_bytes_be(bytes: &[u8]) -> Self {
+		Self(BigInt::from_signed_bytes_be(bytes))
+	}
+
+	pub fn from_signed_bytes_le(bytes: &[u8]) -> Self {
+		Self(BigInt::from_signed_bytes_le(bytes))
 	}
 
 	#[inline(always)]
@@ -97,6 +113,22 @@ impl Integer {
 			// XSD lexical representation.
 			lexical::IntegerBuf::new_unchecked(format!("{}", self))
 		}
+	}
+
+	pub fn to_bytes_be(self) -> (Sign, Vec<u8>) {
+		self.0.to_bytes_be()
+	}
+
+	pub fn to_bytes_le(self) -> (Sign, Vec<u8>) {
+		self.0.to_bytes_le()
+	}
+
+	pub fn to_signed_bytes_be(self) -> Vec<u8> {
+		self.0.to_signed_bytes_be()
+	}
+
+	pub fn to_signed_bytes_le(self) -> Vec<u8> {
+		self.0.to_signed_bytes_le()
 	}
 }
 

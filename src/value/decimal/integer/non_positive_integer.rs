@@ -14,6 +14,8 @@ use crate::{
 	Datatype, Integer, NonPositiveIntegerDatatype, ParseRdf, XsdDatatype,
 };
 
+use super::Sign;
+
 #[derive(Clone, PartialEq, Eq, PartialOrd, Ord, Hash, Debug)]
 pub struct NonPositiveInteger(BigInt);
 
@@ -25,6 +27,46 @@ impl NonPositiveInteger {
 	/// The input number must be non positive.
 	pub unsafe fn new_unchecked(n: BigInt) -> Self {
 		Self(n)
+	}
+
+	/// Creates a non positive integer from its unsigned big endian bytes
+	/// representation.
+	pub fn from_bytes_be(bytes: &[u8]) -> Self {
+		Self(BigInt::from_bytes_be(Sign::Minus, bytes))
+	}
+
+	/// Creates a non positive integer from its unsigned little endian bytes
+	/// representation.
+	pub fn from_bytes_le(bytes: &[u8]) -> Self {
+		Self(BigInt::from_bytes_le(Sign::Minus, bytes))
+	}
+
+	/// Creates a non positive integer from its signed big endian bytes
+	/// representation.
+	///
+	/// # Safety
+	///
+	/// The represented number must be non positive.
+	pub unsafe fn from_signed_bytes_be_unchecked(bytes: &[u8]) -> Self {
+		Self(BigInt::from_signed_bytes_be(bytes))
+	}
+
+	/// Creates a non positive integer from its signed little endian bytes
+	/// representation.
+	///
+	/// # Safety
+	///
+	/// The represented number must be non positive.
+	pub unsafe fn from_signed_bytes_le_unchecked(bytes: &[u8]) -> Self {
+		Self(BigInt::from_signed_bytes_le(bytes))
+	}
+
+	pub fn from_signed_bytes_be(bytes: &[u8]) -> Result<Self, IntegerIsPositive> {
+		Integer::from_signed_bytes_be(bytes).try_into()
+	}
+
+	pub fn from_signed_bytes_le(bytes: &[u8]) -> Result<Self, IntegerIsPositive> {
+		Integer::from_signed_bytes_le(bytes).try_into()
 	}
 
 	#[inline(always)]
@@ -59,6 +101,22 @@ impl NonPositiveInteger {
 			// XSD lexical representation.
 			lexical::NonPositiveIntegerBuf::new_unchecked(format!("{}", self))
 		}
+	}
+
+	pub fn to_bytes_be(self) -> (Sign, Vec<u8>) {
+		self.0.to_bytes_be()
+	}
+
+	pub fn to_bytes_le(self) -> (Sign, Vec<u8>) {
+		self.0.to_bytes_le()
+	}
+
+	pub fn to_signed_bytes_be(self) -> Vec<u8> {
+		self.0.to_signed_bytes_be()
+	}
+
+	pub fn to_signed_bytes_le(self) -> Vec<u8> {
+		self.0.to_signed_bytes_le()
 	}
 }
 
@@ -200,12 +258,68 @@ impl NegativeInteger {
 		Self(n)
 	}
 
+	/// Creates a negative integer from its unsigned big endian bytes
+	/// representation.
+	///
+	/// # Safety
+	///
+	/// The represented number must be negative.
+	pub unsafe fn from_bytes_be_unchecked(bytes: &[u8]) -> Self {
+		Self(BigInt::from_bytes_be(Sign::Minus, bytes))
+	}
+
+	/// Creates a negative integer from its unsigned little endian bytes
+	/// representation.
+	///
+	/// # Safety
+	///
+	/// The represented number must be negative.
+	pub unsafe fn from_bytes_le_unchecked(bytes: &[u8]) -> Self {
+		Self(BigInt::from_bytes_le(Sign::Minus, bytes))
+	}
+
+	/// Creates a negative integer from its signed big endian bytes
+	/// representation.
+	///
+	/// # Safety
+	///
+	/// The represented number must be negative.
+	pub unsafe fn from_signed_bytes_be_unchecked(bytes: &[u8]) -> Self {
+		Self(BigInt::from_signed_bytes_be(bytes))
+	}
+
+	/// Creates a negative integer from its signed little endian bytes
+	/// representation.
+	///
+	/// # Safety
+	///
+	/// The represented number must be negative.
+	pub unsafe fn from_signed_bytes_le_unchecked(bytes: &[u8]) -> Self {
+		Self(BigInt::from_signed_bytes_le(bytes))
+	}
+
 	pub fn into_big_int(self) -> BigInt {
 		self.0
 	}
 
 	pub fn is_minus_one(&self) -> bool {
 		matches!(i8::try_from(&self.0), Ok(-1))
+	}
+
+	pub fn to_bytes_be(self) -> (Sign, Vec<u8>) {
+		self.0.to_bytes_be()
+	}
+
+	pub fn to_bytes_le(self) -> (Sign, Vec<u8>) {
+		self.0.to_bytes_le()
+	}
+
+	pub fn to_signed_bytes_be(self) -> Vec<u8> {
+		self.0.to_signed_bytes_be()
+	}
+
+	pub fn to_signed_bytes_le(self) -> Vec<u8> {
+		self.0.to_signed_bytes_le()
 	}
 }
 

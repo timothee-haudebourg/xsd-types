@@ -17,6 +17,8 @@ use crate::{
 	UnsignedIntDatatype, UnsignedLongDatatype, UnsignedShortDatatype, XsdDatatype,
 };
 
+pub use num_bigint::Sign;
+
 mod integer;
 
 pub use integer::*;
