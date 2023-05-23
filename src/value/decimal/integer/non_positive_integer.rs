@@ -103,19 +103,19 @@ impl NonPositiveInteger {
 		}
 	}
 
-	pub fn to_bytes_be(self) -> (Sign, Vec<u8>) {
+	pub fn to_bytes_be(&self) -> (Sign, Vec<u8>) {
 		self.0.to_bytes_be()
 	}
 
-	pub fn to_bytes_le(self) -> (Sign, Vec<u8>) {
+	pub fn to_bytes_le(&self) -> (Sign, Vec<u8>) {
 		self.0.to_bytes_le()
 	}
 
-	pub fn to_signed_bytes_be(self) -> Vec<u8> {
+	pub fn to_signed_bytes_be(&self) -> Vec<u8> {
 		self.0.to_signed_bytes_be()
 	}
 
-	pub fn to_signed_bytes_le(self) -> Vec<u8> {
+	pub fn to_signed_bytes_le(&self) -> Vec<u8> {
 		self.0.to_signed_bytes_le()
 	}
 }
@@ -306,19 +306,19 @@ impl NegativeInteger {
 		matches!(i8::try_from(&self.0), Ok(-1))
 	}
 
-	pub fn to_bytes_be(self) -> (Sign, Vec<u8>) {
+	pub fn to_bytes_be(&self) -> (Sign, Vec<u8>) {
 		self.0.to_bytes_be()
 	}
 
-	pub fn to_bytes_le(self) -> (Sign, Vec<u8>) {
+	pub fn to_bytes_le(&self) -> (Sign, Vec<u8>) {
 		self.0.to_bytes_le()
 	}
 
-	pub fn to_signed_bytes_be(self) -> Vec<u8> {
+	pub fn to_signed_bytes_be(&self) -> Vec<u8> {
 		self.0.to_signed_bytes_be()
 	}
 
-	pub fn to_signed_bytes_le(self) -> Vec<u8> {
+	pub fn to_signed_bytes_le(&self) -> Vec<u8> {
 		self.0.to_signed_bytes_le()
 	}
 }
