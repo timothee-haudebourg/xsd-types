@@ -75,6 +75,12 @@ pub fn decode_char(c: u8) -> Result<u8, InvalidHex> {
 	}
 }
 
+impl fmt::Display for HexBinaryBuf {
+	fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+		self.as_hex_binary().fmt(f)
+	}
+}
+
 impl From<Vec<u8>> for HexBinaryBuf {
 	fn from(value: Vec<u8>) -> Self {
 		HexBinaryBuf::from_bytes(value)
@@ -144,6 +150,13 @@ impl HexBinary {
 	pub fn new_mut(bytes: &mut [u8]) -> &mut Self {
 		unsafe { std::mem::transmute(bytes) }
 	}
+
+	pub fn chars(&self) -> Chars {
+		Chars {
+			pending: None,
+			bytes: self.0.iter(),
+		}
+	}
 }
 
 impl<'a> From<&'a [u8]> for &'a HexBinary {
@@ -166,12 +179,8 @@ impl<'a> From<&'a mut [u8]> for &'a mut HexBinary {
 
 impl fmt::Display for HexBinary {
 	fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-		for c in &self.0 {
-			let a = c >> 4;
-			let b = c & 0x0f;
-
-			CHARS[a as usize].fmt(f)?;
-			CHARS[b as usize].fmt(f)?
+		for c in self.chars() {
+			c.fmt(f)?
 		}
 
 		Ok(())
@@ -181,6 +190,27 @@ impl fmt::Display for HexBinary {
 impl XsdDatatype for HexBinary {
 	fn type_(&self) -> Datatype {
 		Datatype::HexBinary
+	}
+}
+
+pub struct Chars<'a> {
+	pending: Option<char>,
+	bytes: std::slice::Iter<'a, u8>,
+}
+
+impl<'a> Iterator for Chars<'a> {
+	type Item = char;
+
+	fn next(&mut self) -> Option<Self::Item> {
+		self.pending.take().or_else(|| {
+			self.bytes.next().map(|v| {
+				let a = v >> 4;
+				let b = v & 0x0f;
+
+				self.pending = Some(CHARS[b as usize]);
+				CHARS[a as usize]
+			})
+		})
 	}
 }
 

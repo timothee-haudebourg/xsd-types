@@ -95,6 +95,12 @@ pub fn decode_char(c: u8) -> Result<u8, InvalidBase64> {
 	}
 }
 
+impl fmt::Display for Base64BinaryBuf {
+	fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+		self.as_base64_binary().fmt(f)
+	}
+}
+
 impl From<Vec<u8>> for Base64BinaryBuf {
 	fn from(value: Vec<u8>) -> Self {
 		Base64BinaryBuf::from_bytes(value)
@@ -164,6 +170,15 @@ impl Base64Binary {
 	pub fn new_mut(bytes: &mut [u8]) -> &mut Self {
 		unsafe { std::mem::transmute(bytes) }
 	}
+
+	pub fn chars(&self) -> Chars {
+		Chars {
+			offset: 0,
+			rest: 0,
+			padding: false,
+			bytes: self.0.iter(),
+		}
+	}
 }
 
 impl<'a> From<&'a [u8]> for &'a Base64Binary {
@@ -186,35 +201,57 @@ impl<'a> From<&'a mut [u8]> for &'a mut Base64Binary {
 
 impl fmt::Display for Base64Binary {
 	fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-		let mut offset = 0u8;
-		let mut rest = 0u8;
-
-		for b in &self.0 {
-			if offset == 6 {
-				let sextet = rest;
-				CHARS[sextet as usize].fmt(f)?;
-				rest = 0;
-				offset = 0;
-			}
-
-			let sextet = rest | (b >> 2 >> offset & 0b111111);
-			offset += 2;
-			rest = b << (6 - offset) & 0b111111;
-			CHARS[sextet as usize].fmt(f)?
-		}
-
-		if offset > 0 {
-			let sextet = rest;
-			CHARS[sextet as usize].fmt(f)?;
-
-			offset += 2;
-			while offset <= 6 {
-				offset += 2;
-				PADDING.fmt(f)?
-			}
+		for c in self.chars() {
+			c.fmt(f)?;
 		}
 
 		Ok(())
+	}
+}
+
+pub struct Chars<'a> {
+	offset: u8,
+	rest: u8,
+	padding: bool,
+	bytes: std::slice::Iter<'a, u8>,
+}
+
+impl<'a> Iterator for Chars<'a> {
+	type Item = char;
+
+	fn next(&mut self) -> Option<Self::Item> {
+		if self.padding {
+			if self.offset <= 6 {
+				self.offset += 2;
+				Some(PADDING)
+			} else {
+				None
+			}
+		} else if self.offset == 6 {
+			let sextet = self.rest;
+			self.rest = 0;
+			self.offset = 0;
+			Some(CHARS[sextet as usize])
+		} else {
+			match self.bytes.next() {
+				Some(b) => {
+					let sextet = self.rest | (b >> 2 >> self.offset & 0b111111);
+					self.offset += 2;
+					self.rest = b << (6 - self.offset) & 0b111111;
+					Some(CHARS[sextet as usize])
+				}
+				None => {
+					if self.offset > 0 {
+						let sextet = self.rest;
+						self.offset += 2;
+						self.padding = true;
+						Some(CHARS[sextet as usize])
+					} else {
+						None
+					}
+				}
+			}
+		}
 	}
 }
 
