@@ -177,6 +177,11 @@ impl Decimal {
 	}
 
 	#[inline(always)]
+	pub fn as_big_rational(&self) -> &BigRational {
+		&self.data
+	}
+
+	#[inline(always)]
 	pub fn zero() -> Self {
 		Self {
 			data: BigRational::zero(),
