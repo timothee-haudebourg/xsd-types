@@ -84,7 +84,7 @@ impl Base64BinaryBuf {
 	}
 }
 
-pub fn decode_char(c: u8) -> Result<u8, InvalidBase64> {
+fn decode_char(c: u8) -> Result<u8, InvalidBase64> {
 	match c {
 		b'A'..=b'Z' => Ok(c - b'A'),
 		b'a'..=b'z' => Ok(c - b'a' + 26),

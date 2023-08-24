@@ -66,7 +66,7 @@ impl HexBinaryBuf {
 	}
 }
 
-pub fn decode_char(c: u8) -> Result<u8, InvalidHex> {
+fn decode_char(c: u8) -> Result<u8, InvalidHex> {
 	match c {
 		b'0'..=b'9' => Ok(c - b'0'),
 		b'A'..=b'F' => Ok(0xa + (c - b'A')),
