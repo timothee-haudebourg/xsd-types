@@ -58,3 +58,19 @@ jobs:
         with:
           command: clippy
           args: -- -D warnings
+  msrv:
+    name: msrv
+    runs-on: ubuntu-latest
+    continue-on-error: true
+    steps:
+      - uses: actions/checkout@v3
+      - name: install_rust
+        uses: dtolnay/rust-toolchain@stable
+      - name: install_cargo_msrv
+        run: cargo install cargo-msrv --all-features
+      - name: version_of_cargo_msrv
+        run: cargo msrv --version
+      - name: run_cargo_msrv
+        run: cargo msrv --output-format json verify -- cargo check
+      - if: ${{ failure() }}
+        run: cargo msrv --output-format json -- cargo check
