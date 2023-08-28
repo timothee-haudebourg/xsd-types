@@ -1,17 +1,11 @@
-use crate::{Datatype, XsdDatatype};
-use core::fmt;
+use chrono::FixedOffset;
 
-#[derive(Debug, Clone)]
-pub struct DateTime(());
+use crate::{Datatype, XsdDatatype};
+
+pub type DateTime = chrono::DateTime<FixedOffset>;
 
 impl XsdDatatype for DateTime {
 	fn type_(&self) -> Datatype {
 		Datatype::DateTime
-	}
-}
-
-impl fmt::Display for DateTime {
-	fn fmt(&self, _f: &mut fmt::Formatter<'_>) -> fmt::Result {
-		unimplemented!()
 	}
 }
