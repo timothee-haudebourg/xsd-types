@@ -1,7 +1,7 @@
 use crate::{Datatype, XsdDatatype};
 use core::fmt;
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Copy)]
 pub struct GDay(());
 
 impl XsdDatatype for GDay {

@@ -3,7 +3,7 @@ use chrono::{FixedOffset, NaiveTime};
 use crate::{Datatype, XsdDatatype};
 use core::fmt;
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Copy)]
 pub struct Time {
 	pub time: NaiveTime,
 	pub time_zone: FixedOffset,

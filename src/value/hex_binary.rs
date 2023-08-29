@@ -1,4 +1,5 @@
 use std::{
+	borrow::Borrow,
 	fmt,
 	ops::{Deref, DerefMut},
 	str::FromStr,
@@ -107,6 +108,12 @@ impl AsRef<HexBinary> for HexBinaryBuf {
 	}
 }
 
+impl Borrow<HexBinary> for HexBinaryBuf {
+	fn borrow(&self) -> &HexBinary {
+		self.as_hex_binary()
+	}
+}
+
 impl Deref for HexBinaryBuf {
 	type Target = HexBinary;
 
@@ -157,6 +164,10 @@ impl HexBinary {
 			bytes: self.0.iter(),
 		}
 	}
+
+	pub fn as_bytes(&self) -> &[u8] {
+		&self.0
+	}
 }
 
 impl<'a> From<&'a [u8]> for &'a HexBinary {
@@ -184,6 +195,14 @@ impl fmt::Display for HexBinary {
 		}
 
 		Ok(())
+	}
+}
+
+impl ToOwned for HexBinary {
+	type Owned = HexBinaryBuf;
+
+	fn to_owned(&self) -> Self::Owned {
+		HexBinaryBuf::from_bytes(self.as_bytes().to_vec())
 	}
 }
 

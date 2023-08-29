@@ -1,4 +1,5 @@
 use std::{
+	borrow::Borrow,
 	fmt,
 	ops::{Deref, DerefMut},
 	str::FromStr,
@@ -127,6 +128,12 @@ impl AsRef<Base64Binary> for Base64BinaryBuf {
 	}
 }
 
+impl Borrow<Base64Binary> for Base64BinaryBuf {
+	fn borrow(&self) -> &Base64Binary {
+		self.as_base64_binary()
+	}
+}
+
 impl Deref for Base64BinaryBuf {
 	type Target = Base64Binary;
 
@@ -179,6 +186,10 @@ impl Base64Binary {
 			bytes: self.0.iter(),
 		}
 	}
+
+	pub fn as_bytes(&self) -> &[u8] {
+		&self.0
+	}
 }
 
 impl<'a> From<&'a [u8]> for &'a Base64Binary {
@@ -206,6 +217,14 @@ impl fmt::Display for Base64Binary {
 		}
 
 		Ok(())
+	}
+}
+
+impl ToOwned for Base64Binary {
+	type Owned = Base64BinaryBuf;
+
+	fn to_owned(&self) -> Self::Owned {
+		Base64BinaryBuf::from_bytes(self.as_bytes().to_vec())
 	}
 }
 
