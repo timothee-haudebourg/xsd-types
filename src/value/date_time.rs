@@ -55,3 +55,40 @@ impl From<DateTime> for chrono::DateTime<Utc> {
 		value.0.into()
 	}
 }
+
+#[cfg(feature = "serde")]
+impl serde::Serialize for DateTime {
+	fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
+	where
+		S: serde::Serializer,
+	{
+		self.into_string().serialize(serializer)
+	}
+}
+
+#[cfg(feature = "serde")]
+impl<'de> serde::Deserialize<'de> for DateTime {
+	fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
+	where
+		D: serde::Deserializer<'de>,
+	{
+		struct Visitor;
+
+		impl<'de> serde::de::Visitor<'de> for Visitor {
+			type Value = DateTime;
+
+			fn expecting(&self, formatter: &mut fmt::Formatter) -> fmt::Result {
+				formatter.write_str("a http://www.w3.org/2001/XMLSchema#dateTime")
+			}
+
+			fn visit_str<E>(self, v: &str) -> Result<Self::Value, E>
+			where
+				E: serde::de::Error,
+			{
+				v.parse().map_err(|e| E::custom(e))
+			}
+		}
+
+		deserializer.deserialize_str(Visitor)
+	}
+}
