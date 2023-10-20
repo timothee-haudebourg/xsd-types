@@ -126,6 +126,176 @@ pub enum Datatype {
 }
 
 impl Datatype {
+	#[allow(clippy::if_same_then_else)] // until TODOs are resolved.
+	pub fn from_iri(iri: &'static Iri) -> Option<Self> {
+		// TODO built-in types derived by list (NMTOKENS, IDREFS, ENTITIES).
+		if iri == XSD_DURATION {
+			Some(Self::Duration)
+		} else if iri == XSD_DATE_TIME {
+			Some(Self::DateTime)
+		} else if iri == XSD_TIME {
+			Some(Self::Time)
+		} else if iri == XSD_DATE {
+			Some(Self::Date)
+		} else if iri == XSD_G_YEAR_MONTH {
+			Some(Self::GYearMonth)
+		} else if iri == XSD_G_YEAR {
+			Some(Self::GYear)
+		} else if iri == XSD_G_MONTH_DAY {
+			Some(Self::GMonthDay)
+		} else if iri == XSD_G_DAY {
+			Some(Self::GDay)
+		} else if iri == XSD_G_MONTH {
+			Some(Self::GMonth)
+		} else if iri == XSD_STRING {
+			Some(Self::String(None))
+		} else if iri == XSD_BOOLEAN {
+			Some(Self::Boolean)
+		} else if iri == XSD_BASE64_BINARY {
+			Some(Self::Base64Binary)
+		} else if iri == XSD_HEX_BINARY {
+			Some(Self::HexBinary)
+		} else if iri == XSD_FLOAT {
+			Some(Self::Float)
+		} else if iri == XSD_DECIMAL {
+			Some(Self::Decimal(None))
+		} else if iri == XSD_DOUBLE {
+			Some(Self::Double)
+		} else if iri == XSD_ANY_URI {
+			Some(Self::AnyUri)
+		} else if iri == XSD_Q_NAME {
+			Some(Self::QName)
+		} else if iri == XSD_NOTATION {
+			Some(Self::Notation)
+		} else if iri == XSD_NORMALIZED_STRING {
+			Some(Self::String(Some(StringDatatype::NormalizedString(None))))
+		} else if iri == XSD_TOKEN {
+			Some(Self::String(Some(StringDatatype::NormalizedString(Some(
+				NormalizedStringDatatype::Token(None),
+			)))))
+		} else if iri == XSD_LANGUAGE {
+			Some(Self::String(Some(StringDatatype::NormalizedString(Some(
+				NormalizedStringDatatype::Token(Some(TokenDatatype::Language)),
+			)))))
+		} else if iri == XSD_NAME {
+			Some(Self::String(Some(StringDatatype::NormalizedString(Some(
+				NormalizedStringDatatype::Token(Some(TokenDatatype::Name(None))),
+			)))))
+		} else if iri == XSD_NMTOKEN {
+			Some(Self::String(Some(StringDatatype::NormalizedString(Some(
+				NormalizedStringDatatype::Token(Some(TokenDatatype::NMToken)),
+			)))))
+		} else if iri == XSD_NMTOKENS {
+			None // TODO
+		} else if iri == XSD_NC_NAME {
+			Some(Self::String(Some(StringDatatype::NormalizedString(Some(
+				NormalizedStringDatatype::Token(Some(TokenDatatype::Name(Some(
+					NameDatatype::NCName(None),
+				)))),
+			)))))
+		} else if iri == XSD_ID {
+			Some(Self::String(Some(StringDatatype::NormalizedString(Some(
+				NormalizedStringDatatype::Token(Some(TokenDatatype::Name(Some(
+					NameDatatype::NCName(Some(NCNameDatatype::Id)),
+				)))),
+			)))))
+		} else if iri == XSD_IDREF {
+			Some(Self::String(Some(StringDatatype::NormalizedString(Some(
+				NormalizedStringDatatype::Token(Some(TokenDatatype::Name(Some(
+					NameDatatype::NCName(Some(NCNameDatatype::IdRef)),
+				)))),
+			)))))
+		} else if iri == XSD_ENTITY {
+			Some(Self::String(Some(StringDatatype::NormalizedString(Some(
+				NormalizedStringDatatype::Token(Some(TokenDatatype::Name(Some(
+					NameDatatype::NCName(Some(NCNameDatatype::Entity)),
+				)))),
+			)))))
+		} else if iri == XSD_IDREFS {
+			None // TODO
+		} else if iri == XSD_ENTITIES {
+			None // TODO
+		} else if iri == XSD_INTEGER {
+			Some(Self::Decimal(Some(DecimalDatatype::Integer(None))))
+		} else if iri == XSD_NON_POSITIVE_INTEGER {
+			Some(Self::Decimal(Some(DecimalDatatype::Integer(Some(
+				IntegerDatatype::NonPositiveInteger(None),
+			)))))
+		} else if iri == XSD_NEGATIVE_INTEGER {
+			Some(Self::Decimal(Some(DecimalDatatype::Integer(Some(
+				IntegerDatatype::NonPositiveInteger(Some(
+					NonPositiveIntegerDatatype::NegativeInteger,
+				)),
+			)))))
+		} else if iri == XSD_LONG {
+			Some(Self::Decimal(Some(DecimalDatatype::Integer(Some(
+				IntegerDatatype::Long(None),
+			)))))
+		} else if iri == XSD_INT {
+			Some(Self::Decimal(Some(DecimalDatatype::Integer(Some(
+				IntegerDatatype::Long(Some(LongDatatype::Int(None))),
+			)))))
+		} else if iri == XSD_SHORT {
+			Some(Self::Decimal(Some(DecimalDatatype::Integer(Some(
+				IntegerDatatype::Long(Some(LongDatatype::Int(Some(IntDatatype::Short(None))))),
+			)))))
+		} else if iri == XSD_BYTE {
+			Some(Self::Decimal(Some(DecimalDatatype::Integer(Some(
+				IntegerDatatype::Long(Some(LongDatatype::Int(Some(IntDatatype::Short(Some(
+					ShortDatatype::Byte,
+				)))))),
+			)))))
+		} else if iri == XSD_NON_NEGATIVE_INTEGER {
+			Some(Self::Decimal(Some(DecimalDatatype::Integer(Some(
+				IntegerDatatype::NonNegativeInteger(None),
+			)))))
+		} else if iri == XSD_UNSIGNED_LONG {
+			Some(Self::Decimal(Some(DecimalDatatype::Integer(Some(
+				IntegerDatatype::NonNegativeInteger(Some(
+					NonNegativeIntegerDatatype::UnsignedLong(None),
+				)),
+			)))))
+		} else if iri == XSD_UNSIGNED_INT {
+			Some(Self::Decimal(Some(DecimalDatatype::Integer(Some(
+				IntegerDatatype::NonNegativeInteger(Some(
+					NonNegativeIntegerDatatype::UnsignedLong(Some(
+						UnsignedLongDatatype::UnsignedInt(None),
+					)),
+				)),
+			)))))
+		} else if iri == XSD_UNSIGNED_SHORT {
+			Some(Self::Decimal(Some(DecimalDatatype::Integer(Some(
+				IntegerDatatype::NonNegativeInteger(Some(
+					NonNegativeIntegerDatatype::UnsignedLong(Some(
+						UnsignedLongDatatype::UnsignedInt(Some(
+							UnsignedIntDatatype::UnsignedShort(None),
+						)),
+					)),
+				)),
+			)))))
+		} else if iri == XSD_UNSIGNED_BYTE {
+			Some(Self::Decimal(Some(DecimalDatatype::Integer(Some(
+				IntegerDatatype::NonNegativeInteger(Some(
+					NonNegativeIntegerDatatype::UnsignedLong(Some(
+						UnsignedLongDatatype::UnsignedInt(Some(
+							UnsignedIntDatatype::UnsignedShort(Some(
+								UnsignedShortDatatype::UnsignedByte,
+							)),
+						)),
+					)),
+				)),
+			)))))
+		} else if iri == XSD_POSITIVE_INTEGER {
+			Some(Self::Decimal(Some(DecimalDatatype::Integer(Some(
+				IntegerDatatype::NonNegativeInteger(Some(
+					NonNegativeIntegerDatatype::PositiveInteger,
+				)),
+			)))))
+		} else {
+			None
+		}
+	}
+
 	pub fn iri(&self) -> &'static Iri {
 		match self {
 			Self::String(None) => XSD_STRING,

@@ -63,7 +63,7 @@ impl Eq for Decimal {}
 
 impl PartialOrd for Decimal {
 	fn partial_cmp(&self, other: &Self) -> Option<std::cmp::Ordering> {
-		self.data.partial_cmp(&other.data)
+		Some(self.data.cmp(other))
 	}
 }
 
