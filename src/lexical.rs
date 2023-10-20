@@ -1,5 +1,7 @@
+mod any_uri;
 mod base64_binary;
 mod boolean;
+mod date_time;
 mod decimal;
 pub mod double;
 pub mod float;
@@ -7,6 +9,7 @@ mod hex_binary;
 
 pub use base64_binary::*;
 pub use boolean::*;
+pub use date_time::*;
 pub use decimal::*;
 pub use double::{Double, DoubleBuf, InvalidDouble};
 pub use float::{Float, FloatBuf, InvalidFloat};

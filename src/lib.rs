@@ -304,7 +304,7 @@ impl Datatype {
 			Self::Decimal(None) => XSD_DECIMAL,
 			Self::Decimal(Some(t)) => t.iri(),
 			Self::Float => XSD_FLOAT,
-			Self::Double => XSD_FLOAT,
+			Self::Double => XSD_DOUBLE,
 			Self::Duration => XSD_DURATION,
 			Self::DateTime => XSD_DATE_TIME,
 			Self::Time => XSD_TIME,
@@ -321,7 +321,51 @@ impl Datatype {
 			Self::Notation => XSD_NOTATION,
 		}
 	}
+
+	pub fn parse(&self, value: &str) -> Result<Value, ParseError> {
+		match self {
+			Self::String(None) => Ok(Value::String(value.to_owned())),
+			Self::String(Some(_t)) => todo!(),
+			Self::Boolean => ParseRdf::parse_rdf(value)
+				.map(Value::Boolean)
+				.map_err(|_| ParseError),
+			Self::Decimal(None) => ParseRdf::parse_rdf(value)
+				.map(Value::Decimal)
+				.map_err(|_| ParseError),
+			Self::Decimal(Some(t)) => t.parse(value),
+			Self::Float => ParseRdf::parse_rdf(value)
+				.map(Value::Float)
+				.map_err(|_| ParseError),
+			Self::Double => ParseRdf::parse_rdf(value)
+				.map(Value::Double)
+				.map_err(|_| ParseError),
+			Self::Duration => todo!(),
+			Self::DateTime => ParseRdf::parse_rdf(value)
+				.map(Value::DateTime)
+				.map_err(|_| ParseError),
+			Self::Time => todo!(),
+			Self::Date => todo!(),
+			Self::GYearMonth => todo!(),
+			Self::GYear => todo!(),
+			Self::GMonthDay => todo!(),
+			Self::GDay => todo!(),
+			Self::GMonth => todo!(),
+			Self::HexBinary => ParseRdf::parse_rdf(value)
+				.map(Value::HexBinary)
+				.map_err(|_| ParseError),
+			Self::Base64Binary => ParseRdf::parse_rdf(value)
+				.map(Value::Base64Binary)
+				.map_err(|_| ParseError),
+			Self::AnyUri => ParseRdf::parse_rdf(value)
+				.map(Value::AnyUri)
+				.map_err(|_| ParseError),
+			Self::QName => todo!(),
+			Self::Notation => todo!(),
+		}
+	}
 }
+
+pub struct ParseError;
 
 impl AsRef<Iri> for Datatype {
 	fn as_ref(&self) -> &Iri {
@@ -448,6 +492,15 @@ impl DecimalDatatype {
 			Self::Integer(Some(t)) => t.iri(),
 		}
 	}
+
+	pub fn parse(&self, value: &str) -> Result<Value, ParseError> {
+		match self {
+			Self::Integer(None) => ParseRdf::parse_rdf(value)
+				.map(Value::Integer)
+				.map_err(|_| ParseError),
+			Self::Integer(Some(t)) => t.parse(value),
+		}
+	}
 }
 
 impl_from!(DecimalDatatype {
@@ -479,6 +532,23 @@ impl IntegerDatatype {
 			Self::NonNegativeInteger(Some(t)) => t.iri(),
 		}
 	}
+
+	pub fn parse(&self, value: &str) -> Result<Value, ParseError> {
+		match self {
+			Self::NonPositiveInteger(None) => ParseRdf::parse_rdf(value)
+				.map(Value::NonPositiveInteger)
+				.map_err(|_| ParseError),
+			Self::NonPositiveInteger(Some(t)) => t.parse(value),
+			Self::Long(None) => ParseRdf::parse_rdf(value)
+				.map(Value::Long)
+				.map_err(|_| ParseError),
+			Self::Long(Some(t)) => t.parse(value),
+			Self::NonNegativeInteger(None) => ParseRdf::parse_rdf(value)
+				.map(Value::NonNegativeInteger)
+				.map_err(|_| ParseError),
+			Self::NonNegativeInteger(Some(t)) => t.parse(value),
+		}
+	}
 }
 
 impl_from!(IntegerDatatype {
@@ -502,6 +572,14 @@ impl NonPositiveIntegerDatatype {
 			Self::NegativeInteger => XSD_NEGATIVE_INTEGER,
 		}
 	}
+
+	pub fn parse(&self, value: &str) -> Result<Value, ParseError> {
+		match self {
+			Self::NegativeInteger => ParseRdf::parse_rdf(value)
+				.map(Value::NegativeInteger)
+				.map_err(|_| ParseError),
+		}
+	}
 }
 
 pub enum LongDatatype {
@@ -513,6 +591,15 @@ impl LongDatatype {
 		match self {
 			Self::Int(None) => XSD_INT,
 			Self::Int(Some(t)) => t.iri(),
+		}
+	}
+
+	pub fn parse(&self, value: &str) -> Result<Value, ParseError> {
+		match self {
+			Self::Int(None) => ParseRdf::parse_rdf(value)
+				.map(Value::Int)
+				.map_err(|_| ParseError),
+			Self::Int(Some(t)) => t.parse(value),
 		}
 	}
 }
@@ -533,6 +620,15 @@ impl IntDatatype {
 			Self::Short(Some(t)) => t.iri(),
 		}
 	}
+
+	pub fn parse(&self, value: &str) -> Result<Value, ParseError> {
+		match self {
+			Self::Short(None) => ParseRdf::parse_rdf(value)
+				.map(Value::Short)
+				.map_err(|_| ParseError),
+			Self::Short(Some(t)) => t.parse(value),
+		}
+	}
 }
 
 impl_from!(IntDatatype {
@@ -549,6 +645,14 @@ impl ShortDatatype {
 			Self::Byte => XSD_BYTE,
 		}
 	}
+
+	pub fn parse(&self, value: &str) -> Result<Value, ParseError> {
+		match self {
+			Self::Byte => ParseRdf::parse_rdf(value)
+				.map(Value::Byte)
+				.map_err(|_| ParseError),
+		}
+	}
 }
 
 pub enum NonNegativeIntegerDatatype {
@@ -562,6 +666,18 @@ impl NonNegativeIntegerDatatype {
 			Self::UnsignedLong(None) => XSD_UNSIGNED_LONG,
 			Self::UnsignedLong(Some(t)) => t.iri(),
 			Self::PositiveInteger => XSD_POSITIVE_INTEGER,
+		}
+	}
+
+	pub fn parse(&self, value: &str) -> Result<Value, ParseError> {
+		match self {
+			Self::UnsignedLong(None) => ParseRdf::parse_rdf(value)
+				.map(Value::UnsignedLong)
+				.map_err(|_| ParseError),
+			Self::UnsignedLong(Some(t)) => t.parse(value),
+			Self::PositiveInteger => ParseRdf::parse_rdf(value)
+				.map(Value::PositiveInteger)
+				.map_err(|_| ParseError),
 		}
 	}
 }
@@ -583,6 +699,15 @@ impl UnsignedLongDatatype {
 			Self::UnsignedInt(Some(t)) => t.iri(),
 		}
 	}
+
+	pub fn parse(&self, value: &str) -> Result<Value, ParseError> {
+		match self {
+			Self::UnsignedInt(None) => ParseRdf::parse_rdf(value)
+				.map(Value::UnsignedInt)
+				.map_err(|_| ParseError),
+			Self::UnsignedInt(Some(t)) => t.parse(value),
+		}
+	}
 }
 
 impl_from!(UnsignedLongDatatype {
@@ -601,6 +726,15 @@ impl UnsignedIntDatatype {
 			Self::UnsignedShort(Some(t)) => t.iri(),
 		}
 	}
+
+	pub fn parse(&self, value: &str) -> Result<Value, ParseError> {
+		match self {
+			Self::UnsignedShort(None) => ParseRdf::parse_rdf(value)
+				.map(Value::UnsignedShort)
+				.map_err(|_| ParseError),
+			Self::UnsignedShort(Some(t)) => t.parse(value),
+		}
+	}
 }
 
 impl_from!(UnsignedIntDatatype {
@@ -615,6 +749,14 @@ impl UnsignedShortDatatype {
 	pub fn iri(&self) -> &'static Iri {
 		match self {
 			Self::UnsignedByte => XSD_UNSIGNED_BYTE,
+		}
+	}
+
+	pub fn parse(&self, value: &str) -> Result<Value, ParseError> {
+		match self {
+			Self::UnsignedByte => ParseRdf::parse_rdf(value)
+				.map(Value::UnsignedByte)
+				.map_err(|_| ParseError),
 		}
 	}
 }

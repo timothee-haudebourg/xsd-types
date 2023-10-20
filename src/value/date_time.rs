@@ -1,7 +1,7 @@
 use chrono::{FixedOffset, Utc};
 use std::{fmt, str::FromStr};
 
-use crate::{Datatype, XsdDatatype};
+use crate::{Datatype, ParseRdf, XsdDatatype};
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash)]
 pub struct DateTime(chrono::DateTime<FixedOffset>);
@@ -16,6 +16,10 @@ impl XsdDatatype for DateTime {
 	fn type_(&self) -> Datatype {
 		Datatype::DateTime
 	}
+}
+
+impl ParseRdf for DateTime {
+	type LexicalForm = crate::lexical::DateTime;
 }
 
 impl fmt::Display for DateTime {
