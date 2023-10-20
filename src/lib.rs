@@ -127,7 +127,7 @@ pub enum Datatype {
 
 impl Datatype {
 	#[allow(clippy::if_same_then_else)] // until TODOs are resolved.
-	pub fn from_iri(iri: &'static Iri) -> Option<Self> {
+	pub fn from_iri(iri: &Iri) -> Option<Self> {
 		// TODO built-in types derived by list (NMTOKENS, IDREFS, ENTITIES).
 		if iri == XSD_DURATION {
 			Some(Self::Duration)
