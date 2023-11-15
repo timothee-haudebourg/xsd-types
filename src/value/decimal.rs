@@ -182,6 +182,11 @@ impl Decimal {
 	}
 
 	#[inline(always)]
+	pub fn into_big_rational(self) -> BigRational {
+		self.data
+	}
+
+	#[inline(always)]
 	pub fn zero() -> Self {
 		Self {
 			data: BigRational::zero(),
@@ -262,14 +267,18 @@ impl<'a> From<&'a lexical::Decimal> for Decimal {
 impl From<lexical::DecimalBuf> for Decimal {
 	#[inline(always)]
 	fn from(value: lexical::DecimalBuf) -> Self {
-		let numer: BigInt = value.integer_part().as_str().parse().unwrap();
+		let integer_part: BigInt = value.integer_part().as_str().parse().unwrap();
 		let data = match value.fractional_part() {
 			Some(fract) => {
-				let f = BigRational::new(1.into(), fract.as_str().len().into());
-				let fract: BigRational = fract.as_str().parse().unwrap();
-				BigRational::from(numer) + fract * f
+				let numer = fract.as_str().parse().unwrap();
+				let mut denom = BigInt::new(Sign::Plus, vec![1u32]);
+				for _ in 0..fract.as_str().len() {
+					denom *= 10
+				}
+
+				BigRational::from(integer_part) + BigRational::new(numer, denom)
 			}
-			None => numer.into(),
+			None => integer_part.into(),
 		};
 
 		Self {
