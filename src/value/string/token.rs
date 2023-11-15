@@ -21,9 +21,35 @@ impl Token {
 	}
 
 	fn validate(value: &str) -> bool {
-		todo!()
+		let mut leading = true;
+		let mut space = false;
+
+		for c in value.chars() {
+			if c == ' ' {
+				if space {
+					return false;
+				}
+
+				space = true
+			} else {
+				space = false
+			}
+
+			if matches!(c, '\t' | '\n' | '\r') || (space && leading) {
+				return false;
+			}
+
+			leading = false;
+		}
+
+		!space
 	}
 
+	/// Creates a new token string from the input `value` without validation.
+	///
+	/// # Safety
+	///
+	/// The input `value` must be an XSD token string.
 	pub unsafe fn new_unchecked(value: &str) -> &Self {
 		std::mem::transmute(value)
 	}
@@ -59,6 +85,11 @@ impl TokenBuf {
 		}
 	}
 
+	/// Creates a new token string from the input `value` without validation.
+	///
+	/// # Safety
+	///
+	/// The input `value` must be an XSD token string.
 	pub unsafe fn new_unchecked(value: String) -> Self {
 		Self(value)
 	}

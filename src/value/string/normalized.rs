@@ -21,9 +21,15 @@ impl NormalizedStr {
 	}
 
 	fn validate(value: &str) -> bool {
-		todo!()
+		value.chars().all(|c| !matches!(c, '\t' | '\n' | '\r'))
 	}
 
+	/// Creates a new normalized string from the input `value` without
+	/// validation.
+	///
+	/// # Safety
+	///
+	/// The input `value` must be an XSD normalized string.
 	pub unsafe fn new_unchecked(value: &str) -> &Self {
 		std::mem::transmute(value)
 	}
@@ -59,6 +65,12 @@ impl NormalizedString {
 		}
 	}
 
+	/// Creates a new normalized string from the input `value` without
+	/// validation.
+	///
+	/// # Safety
+	///
+	/// The input `value` must be an XSD normalized string.
 	pub unsafe fn new_unchecked(value: String) -> Self {
 		Self(value)
 	}
