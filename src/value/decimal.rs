@@ -12,9 +12,9 @@ use once_cell::unsync::OnceCell;
 
 use crate::lexical::LexicalFormOf;
 use crate::{
-	lexical, Datatype, DecimalDatatype, Double, Float, IntDatatype, IntegerDatatype, LongDatatype,
+	lexical, Datatype, DecimalDatatype, Double, Float, IntDatatype, LongDatatype,
 	NonNegativeIntegerDatatype, NonPositiveIntegerDatatype, ParseRdf, ShortDatatype,
-	UnsignedIntDatatype, UnsignedLongDatatype, UnsignedShortDatatype, XsdDatatype,
+	UnsignedIntDatatype, UnsignedLongDatatype, UnsignedShortDatatype, XsdValue,
 };
 
 pub use num_bigint::Sign;
@@ -204,37 +204,37 @@ impl Decimal {
 		self.data.is_negative()
 	}
 
-	pub fn decimal_type(&self) -> Option<DecimalDatatype> {
+	pub fn decimal_type(&self) -> DecimalDatatype {
 		if self.data.is_integer() {
 			if self.data >= BigRational::zero() {
 				if self.data > BigRational::zero() {
 					if self.data <= *U8_MAX_RATIO {
-						Some(UnsignedShortDatatype::UnsignedByte.into())
+						UnsignedShortDatatype::UnsignedByte.into()
 					} else if self.data <= *U16_MAX_RATIO {
-						Some(UnsignedIntDatatype::UnsignedShort(None).into())
+						UnsignedShortDatatype::UnsignedShort.into()
 					} else if self.data <= *U32_MAX_RATIO {
-						Some(UnsignedLongDatatype::UnsignedInt(None).into())
+						UnsignedIntDatatype::UnsignedInt.into()
 					} else if self.data <= *U64_MAX_RATIO {
-						Some(NonNegativeIntegerDatatype::UnsignedLong(None).into())
+						UnsignedLongDatatype::UnsignedLong.into()
 					} else {
-						Some(NonNegativeIntegerDatatype::PositiveInteger.into())
+						NonNegativeIntegerDatatype::PositiveInteger.into()
 					}
 				} else {
-					Some(UnsignedShortDatatype::UnsignedByte.into())
+					UnsignedShortDatatype::UnsignedByte.into()
 				}
 			} else if self.data >= *I8_MIN_RATIO {
-				Some(ShortDatatype::Byte.into())
+				ShortDatatype::Byte.into()
 			} else if self.data >= *I16_MIN_RATIO {
-				Some(IntDatatype::Short(None).into())
+				ShortDatatype::Short.into()
 			} else if self.data >= *I32_MIN_RATIO {
-				Some(LongDatatype::Int(None).into())
+				IntDatatype::Int.into()
 			} else if self.data >= *I64_MIN_RATIO {
-				Some(IntegerDatatype::Long(None).into())
+				LongDatatype::Long.into()
 			} else {
-				Some(NonPositiveIntegerDatatype::NegativeInteger.into())
+				NonPositiveIntegerDatatype::NegativeInteger.into()
 			}
 		} else {
-			None
+			DecimalDatatype::Decimal
 		}
 	}
 
@@ -356,9 +356,9 @@ impl From<Decimal> for BigRational {
 	}
 }
 
-impl XsdDatatype for Decimal {
+impl XsdValue for Decimal {
 	#[inline(always)]
-	fn type_(&self) -> Datatype {
+	fn datatype(&self) -> Datatype {
 		self.decimal_type().into()
 	}
 }

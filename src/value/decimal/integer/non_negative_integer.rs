@@ -13,7 +13,7 @@ use crate::{
 	lexical::{self, LexicalFormOf},
 	value::decimal::{U16_MAX, U32_MAX, U64_MAX, U8_MAX},
 	Datatype, Integer, NonNegativeIntegerDatatype, ParseRdf, UnsignedIntDatatype,
-	UnsignedLongDatatype, UnsignedShortDatatype, XsdDatatype,
+	UnsignedLongDatatype, UnsignedShortDatatype, XsdValue,
 };
 
 use super::Sign;
@@ -86,21 +86,21 @@ impl NonNegativeInteger {
 		self.0.is_zero()
 	}
 
-	pub fn non_negative_integer_type(&self) -> Option<NonNegativeIntegerDatatype> {
+	pub fn non_negative_integer_type(&self) -> NonNegativeIntegerDatatype {
 		if self.0 > BigInt::zero() {
 			if self.0 <= *U8_MAX {
-				Some(UnsignedShortDatatype::UnsignedByte.into())
+				UnsignedShortDatatype::UnsignedByte.into()
 			} else if self.0 <= *U16_MAX {
-				Some(UnsignedIntDatatype::UnsignedShort(None).into())
+				UnsignedShortDatatype::UnsignedShort.into()
 			} else if self.0 <= *U32_MAX {
-				Some(UnsignedLongDatatype::UnsignedInt(None).into())
+				UnsignedIntDatatype::UnsignedInt.into()
 			} else if self.0 <= *U64_MAX {
-				Some(NonNegativeIntegerDatatype::UnsignedLong(None))
+				UnsignedLongDatatype::UnsignedLong.into()
 			} else {
-				Some(NonNegativeIntegerDatatype::PositiveInteger)
+				NonNegativeIntegerDatatype::PositiveInteger
 			}
 		} else {
-			Some(UnsignedShortDatatype::UnsignedByte.into())
+			NonNegativeIntegerDatatype::NonNegativeInteger
 		}
 	}
 
@@ -131,8 +131,8 @@ impl NonNegativeInteger {
 	}
 }
 
-impl XsdDatatype for NonNegativeInteger {
-	fn type_(&self) -> Datatype {
+impl XsdValue for NonNegativeInteger {
+	fn datatype(&self) -> Datatype {
 		self.non_negative_integer_type().into()
 	}
 }
@@ -272,25 +272,25 @@ impl_integer_arithmetic!(
 pub type UnsignedLong = u64;
 
 pub trait XsdUnsignedLong {
-	fn unsigned_long_type(&self) -> Option<UnsignedLongDatatype>;
+	fn unsigned_long_type(&self) -> UnsignedLongDatatype;
 }
 
 impl XsdUnsignedLong for UnsignedLong {
-	fn unsigned_long_type(&self) -> Option<UnsignedLongDatatype> {
+	fn unsigned_long_type(&self) -> UnsignedLongDatatype {
 		if *self <= u8::MAX as u64 {
-			Some(UnsignedShortDatatype::UnsignedByte.into())
+			UnsignedShortDatatype::UnsignedByte.into()
 		} else if *self <= u16::MAX as u64 {
-			Some(UnsignedIntDatatype::UnsignedShort(None).into())
+			UnsignedShortDatatype::UnsignedShort.into()
 		} else if *self <= u32::MAX as u64 {
-			Some(UnsignedLongDatatype::UnsignedInt(None))
+			UnsignedIntDatatype::UnsignedInt.into()
 		} else {
-			None
+			UnsignedLongDatatype::UnsignedLong
 		}
 	}
 }
 
-impl XsdDatatype for UnsignedLong {
-	fn type_(&self) -> Datatype {
+impl XsdValue for UnsignedLong {
+	fn datatype(&self) -> Datatype {
 		self.unsigned_long_type().into()
 	}
 }
@@ -310,23 +310,23 @@ impl LexicalFormOf<UnsignedLong> for lexical::NonNegativeInteger {
 pub type UnsignedInt = u32;
 
 pub trait XsdUnsignedInt {
-	fn unsigned_int_type(&self) -> Option<UnsignedIntDatatype>;
+	fn unsigned_int_type(&self) -> UnsignedIntDatatype;
 }
 
 impl XsdUnsignedInt for UnsignedInt {
-	fn unsigned_int_type(&self) -> Option<UnsignedIntDatatype> {
+	fn unsigned_int_type(&self) -> UnsignedIntDatatype {
 		if *self <= u8::MAX as u32 {
-			Some(UnsignedShortDatatype::UnsignedByte.into())
+			UnsignedShortDatatype::UnsignedByte.into()
 		} else if *self <= u16::MAX as u32 {
-			Some(UnsignedIntDatatype::UnsignedShort(None))
+			UnsignedShortDatatype::UnsignedShort.into()
 		} else {
-			None
+			UnsignedIntDatatype::UnsignedInt
 		}
 	}
 }
 
-impl XsdDatatype for UnsignedInt {
-	fn type_(&self) -> Datatype {
+impl XsdValue for UnsignedInt {
+	fn datatype(&self) -> Datatype {
 		self.unsigned_int_type().into()
 	}
 }
@@ -346,21 +346,21 @@ impl LexicalFormOf<UnsignedInt> for lexical::NonNegativeInteger {
 pub type UnsignedShort = u16;
 
 pub trait XsdUnsignedShort {
-	fn unsigned_short_type(&self) -> Option<UnsignedShortDatatype>;
+	fn unsigned_short_type(&self) -> UnsignedShortDatatype;
 }
 
 impl XsdUnsignedShort for UnsignedShort {
-	fn unsigned_short_type(&self) -> Option<UnsignedShortDatatype> {
+	fn unsigned_short_type(&self) -> UnsignedShortDatatype {
 		if *self <= u8::MAX as u16 {
-			Some(UnsignedShortDatatype::UnsignedByte)
+			UnsignedShortDatatype::UnsignedByte
 		} else {
-			None
+			UnsignedShortDatatype::UnsignedShort
 		}
 	}
 }
 
-impl XsdDatatype for UnsignedShort {
-	fn type_(&self) -> Datatype {
+impl XsdValue for UnsignedShort {
+	fn datatype(&self) -> Datatype {
 		self.unsigned_short_type().into()
 	}
 }
@@ -379,8 +379,8 @@ impl LexicalFormOf<UnsignedShort> for lexical::NonNegativeInteger {
 
 pub type UnsignedByte = u8;
 
-impl XsdDatatype for UnsignedByte {
-	fn type_(&self) -> Datatype {
+impl XsdValue for UnsignedByte {
+	fn datatype(&self) -> Datatype {
 		UnsignedShortDatatype::UnsignedByte.into()
 	}
 }
@@ -467,8 +467,8 @@ impl PositiveInteger {
 	}
 }
 
-impl XsdDatatype for PositiveInteger {
-	fn type_(&self) -> Datatype {
+impl XsdValue for PositiveInteger {
+	fn datatype(&self) -> Datatype {
 		NonNegativeIntegerDatatype::PositiveInteger.into()
 	}
 }

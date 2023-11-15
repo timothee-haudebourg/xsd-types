@@ -35,8 +35,8 @@ lexical_form! {
 }
 
 impl Boolean {
-	pub fn value(&self) -> bool {
-		matches!(&self.0, b"true" | b"1")
+	pub fn value(&self) -> crate::Boolean {
+		crate::Boolean(matches!(&self.0, b"true" | b"1"))
 	}
 }
 
@@ -76,15 +76,27 @@ impl From<bool> for BooleanBuf {
 	}
 }
 
+impl<'a> From<&'a Boolean> for crate::Boolean {
+	fn from(b: &'a Boolean) -> crate::Boolean {
+		b.value()
+	}
+}
+
+impl From<BooleanBuf> for crate::Boolean {
+	fn from(b: BooleanBuf) -> crate::Boolean {
+		b.value()
+	}
+}
+
 impl<'a> From<&'a Boolean> for bool {
 	fn from(b: &'a Boolean) -> bool {
-		b.value()
+		b.value().into()
 	}
 }
 
 impl From<BooleanBuf> for bool {
 	fn from(b: BooleanBuf) -> bool {
-		b.value()
+		b.value().into()
 	}
 }
 

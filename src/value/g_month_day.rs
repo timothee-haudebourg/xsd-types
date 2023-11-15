@@ -1,11 +1,11 @@
-use crate::{Datatype, XsdDatatype};
+use crate::{Datatype, XsdValue};
 use core::fmt;
 
 #[derive(Debug, Clone, Copy)]
 pub struct GMonthDay(());
 
-impl XsdDatatype for GMonthDay {
-	fn type_(&self) -> Datatype {
+impl XsdValue for GMonthDay {
+	fn datatype(&self) -> Datatype {
 		Datatype::GMonthDay
 	}
 }

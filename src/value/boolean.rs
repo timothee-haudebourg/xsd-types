@@ -1,12 +1,27 @@
+use core::fmt;
+
 use crate::{
 	lexical::{self, LexicalFormOf},
-	Datatype, ParseRdf, XsdDatatype,
+	Datatype, ParseRdf, XsdValue,
 };
 
-pub type Boolean = bool;
+#[derive(Debug, Default, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash)]
+pub struct Boolean(pub bool);
 
-impl XsdDatatype for Boolean {
-	fn type_(&self) -> Datatype {
+impl From<bool> for Boolean {
+	fn from(value: bool) -> Self {
+		Self(value)
+	}
+}
+
+impl From<Boolean> for bool {
+	fn from(value: Boolean) -> Self {
+		value.0
+	}
+}
+
+impl XsdValue for Boolean {
+	fn datatype(&self) -> Datatype {
 		Datatype::Boolean
 	}
 }
@@ -21,4 +36,14 @@ impl LexicalFormOf<Boolean> for lexical::Boolean {
 
 impl ParseRdf for Boolean {
 	type LexicalForm = lexical::Boolean;
+}
+
+impl fmt::Display for Boolean {
+	fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+		if self.0 {
+			write!(f, "true")
+		} else {
+			write!(f, "false")
+		}
+	}
 }

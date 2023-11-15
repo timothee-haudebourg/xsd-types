@@ -9,7 +9,7 @@ use ordered_float::OrderedFloat;
 
 use crate::{
 	lexical::{self, LexicalFormOf},
-	Datatype, ParseRdf, XsdDatatype,
+	Datatype, ParseRdf, XsdValue,
 };
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash)]
@@ -94,9 +94,9 @@ impl fmt::Display for Float {
 	}
 }
 
-impl XsdDatatype for Float {
+impl XsdValue for Float {
 	#[inline(always)]
-	fn type_(&self) -> Datatype {
+	fn datatype(&self) -> Datatype {
 		Datatype::Float
 	}
 }

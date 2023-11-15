@@ -1,17 +1,17 @@
-use crate::{Datatype, ParseRdf, XsdDatatype};
+use crate::{Datatype, ParseRdf, XsdValue};
 
 pub type AnyUri = iref::Uri;
 
-impl XsdDatatype for AnyUri {
-	fn type_(&self) -> Datatype {
+impl XsdValue for AnyUri {
+	fn datatype(&self) -> Datatype {
 		Datatype::AnyUri
 	}
 }
 
 pub type AnyUriBuf = iref::UriBuf;
 
-impl XsdDatatype for AnyUriBuf {
-	fn type_(&self) -> Datatype {
+impl XsdValue for AnyUriBuf {
+	fn datatype(&self) -> Datatype {
 		Datatype::AnyUri
 	}
 }

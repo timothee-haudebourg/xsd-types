@@ -1,5 +1,3 @@
-use crate::{Datatype, ParseRdf, XsdValue};
-
 mod id;
 mod idref;
 mod language;
@@ -18,14 +16,12 @@ pub use nmtoken::*;
 pub use normalized::*;
 pub use token::*;
 
-pub type String = std::string::String;
+use super::LexicalFormOf;
 
-impl XsdValue for String {
-	fn datatype(&self) -> Datatype {
-		Datatype::String(crate::StringDatatype::String)
+impl LexicalFormOf<String> for str {
+	type ValueError = std::convert::Infallible;
+
+	fn try_as_value(&self) -> Result<String, Self::ValueError> {
+		Ok(self.to_string())
 	}
-}
-
-impl ParseRdf for String {
-	type LexicalForm = str;
 }

@@ -1,11 +1,11 @@
-use crate::{Datatype, XsdDatatype};
+use crate::{Datatype, XsdValue};
 use core::fmt;
 
 #[derive(Debug, Clone, Copy)]
 pub struct Duration(());
 
-impl XsdDatatype for Duration {
-	fn type_(&self) -> Datatype {
+impl XsdValue for Duration {
+	fn datatype(&self) -> Datatype {
 		Datatype::Duration
 	}
 }

@@ -1,11 +1,11 @@
-use crate::{Datatype, XsdDatatype};
+use crate::{Datatype, XsdValue};
 use core::fmt;
 
 #[derive(Debug, Clone)]
 pub struct Notation(());
 
-impl XsdDatatype for Notation {
-	fn type_(&self) -> Datatype {
+impl XsdValue for Notation {
+	fn datatype(&self) -> Datatype {
 		Datatype::Notation
 	}
 }

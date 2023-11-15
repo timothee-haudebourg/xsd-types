@@ -6,6 +6,7 @@ mod decimal;
 pub mod double;
 pub mod float;
 mod hex_binary;
+mod string;
 
 pub use base64_binary::*;
 pub use boolean::*;
@@ -14,6 +15,7 @@ pub use decimal::*;
 pub use double::{Double, DoubleBuf, InvalidDouble};
 pub use float::{Float, FloatBuf, InvalidFloat};
 pub use hex_binary::*;
+pub use string::*;
 
 /// Lexical type.
 pub trait Lexical {

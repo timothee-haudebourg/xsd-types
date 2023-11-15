@@ -7,7 +7,7 @@ use std::{
 
 use crate::{
 	lexical::{self, LexicalFormOf},
-	Datatype, ParseRdf, XsdDatatype,
+	Datatype, ParseRdf, XsdValue,
 };
 
 const CHARS: [char; 64] = [
@@ -148,8 +148,8 @@ impl DerefMut for Base64BinaryBuf {
 	}
 }
 
-impl XsdDatatype for Base64BinaryBuf {
-	fn type_(&self) -> Datatype {
+impl XsdValue for Base64BinaryBuf {
+	fn datatype(&self) -> Datatype {
 		Datatype::Base64Binary
 	}
 }
@@ -274,8 +274,8 @@ impl<'a> Iterator for Chars<'a> {
 	}
 }
 
-impl XsdDatatype for Base64Binary {
-	fn type_(&self) -> Datatype {
+impl XsdValue for Base64Binary {
+	fn datatype(&self) -> Datatype {
 		Datatype::Base64Binary
 	}
 }

@@ -7,7 +7,7 @@ use std::{
 
 use crate::{
 	lexical::{self, LexicalFormOf},
-	Datatype, ParseRdf, XsdDatatype,
+	Datatype, ParseRdf, XsdValue,
 };
 
 const CHARS: [char; 16] = [
@@ -128,8 +128,8 @@ impl DerefMut for HexBinaryBuf {
 	}
 }
 
-impl XsdDatatype for HexBinaryBuf {
-	fn type_(&self) -> Datatype {
+impl XsdValue for HexBinaryBuf {
+	fn datatype(&self) -> Datatype {
 		Datatype::HexBinary
 	}
 }
@@ -206,8 +206,8 @@ impl ToOwned for HexBinary {
 	}
 }
 
-impl XsdDatatype for HexBinary {
-	fn type_(&self) -> Datatype {
+impl XsdValue for HexBinary {
+	fn datatype(&self) -> Datatype {
 		Datatype::HexBinary
 	}
 }

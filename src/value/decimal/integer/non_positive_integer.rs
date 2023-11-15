@@ -11,7 +11,7 @@ use num_traits::{Signed, Zero};
 use crate::{
 	impl_integer_arithmetic,
 	lexical::{self, LexicalFormOf},
-	Datatype, Integer, NonPositiveIntegerDatatype, ParseRdf, XsdDatatype,
+	Datatype, Integer, NonPositiveIntegerDatatype, ParseRdf, XsdValue,
 };
 
 use super::Sign;
@@ -85,11 +85,11 @@ impl NonPositiveInteger {
 	}
 
 	#[inline(always)]
-	fn non_positive_integer_type(&self) -> Option<NonPositiveIntegerDatatype> {
+	fn non_positive_integer_type(&self) -> NonPositiveIntegerDatatype {
 		if self.0 > BigInt::zero() {
-			Some(NonPositiveIntegerDatatype::NegativeInteger)
+			NonPositiveIntegerDatatype::NegativeInteger
 		} else {
-			None
+			NonPositiveIntegerDatatype::NonPositiveInteger
 		}
 	}
 
@@ -120,9 +120,9 @@ impl NonPositiveInteger {
 	}
 }
 
-impl XsdDatatype for NonPositiveInteger {
+impl XsdValue for NonPositiveInteger {
 	#[inline(always)]
-	fn type_(&self) -> Datatype {
+	fn datatype(&self) -> Datatype {
 		self.non_positive_integer_type().into()
 	}
 }
@@ -323,8 +323,8 @@ impl NegativeInteger {
 	}
 }
 
-impl XsdDatatype for NegativeInteger {
-	fn type_(&self) -> Datatype {
+impl XsdValue for NegativeInteger {
+	fn datatype(&self) -> Datatype {
 		NonPositiveIntegerDatatype::NegativeInteger.into()
 	}
 }

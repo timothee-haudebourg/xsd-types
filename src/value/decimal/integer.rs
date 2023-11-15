@@ -12,7 +12,7 @@ use crate::{
 	lexical::{self, LexicalFormOf},
 	Datatype, IntDatatype, IntegerDatatype, LongDatatype, NonNegativeIntegerDatatype,
 	NonPositiveIntegerDatatype, ParseRdf, ShortDatatype, UnsignedIntDatatype, UnsignedLongDatatype,
-	UnsignedShortDatatype, XsdDatatype,
+	UnsignedShortDatatype, XsdValue,
 };
 
 use super::{Sign, I16_MIN, I32_MIN, I64_MIN, I8_MIN, U16_MAX, U32_MAX, U64_MAX, U8_MAX};
@@ -75,33 +75,33 @@ impl Integer {
 		self.0.is_negative()
 	}
 
-	pub fn integer_type(&self) -> Option<IntegerDatatype> {
+	pub fn integer_type(&self) -> IntegerDatatype {
 		if self.0 >= BigInt::zero() {
 			if self.0 > BigInt::zero() {
 				if self.0 <= *U8_MAX {
-					Some(UnsignedShortDatatype::UnsignedByte.into())
+					UnsignedShortDatatype::UnsignedByte.into()
 				} else if self.0 <= *U16_MAX {
-					Some(UnsignedIntDatatype::UnsignedShort(None).into())
+					UnsignedShortDatatype::UnsignedShort.into()
 				} else if self.0 <= *U32_MAX {
-					Some(UnsignedLongDatatype::UnsignedInt(None).into())
+					UnsignedIntDatatype::UnsignedInt.into()
 				} else if self.0 <= *U64_MAX {
-					Some(NonNegativeIntegerDatatype::UnsignedLong(None).into())
+					UnsignedLongDatatype::UnsignedLong.into()
 				} else {
-					Some(NonNegativeIntegerDatatype::PositiveInteger.into())
+					NonNegativeIntegerDatatype::PositiveInteger.into()
 				}
 			} else {
-				Some(UnsignedShortDatatype::UnsignedByte.into())
+				UnsignedShortDatatype::UnsignedByte.into()
 			}
 		} else if self.0 >= *I8_MIN {
-			Some(ShortDatatype::Byte.into())
+			ShortDatatype::Byte.into()
 		} else if self.0 >= *I16_MIN {
-			Some(IntDatatype::Short(None).into())
+			ShortDatatype::Short.into()
 		} else if self.0 >= *I32_MIN {
-			Some(LongDatatype::Int(None).into())
+			IntDatatype::Int.into()
 		} else if self.0 >= *I64_MIN {
-			Some(IntegerDatatype::Long(None))
+			LongDatatype::Long.into()
 		} else {
-			Some(NonPositiveIntegerDatatype::NegativeInteger.into())
+			NonPositiveIntegerDatatype::NegativeInteger.into()
 		}
 	}
 
@@ -132,9 +132,9 @@ impl Integer {
 	}
 }
 
-impl XsdDatatype for Integer {
+impl XsdValue for Integer {
 	#[inline(always)]
-	fn type_(&self) -> Datatype {
+	fn datatype(&self) -> Datatype {
 		self.integer_type().into()
 	}
 }
@@ -260,25 +260,25 @@ try_into!(u8, u16, u32, u64, usize, i8, i16, i32, i64, isize);
 pub type Long = i64;
 
 pub trait XsdLong {
-	fn long_type(&self) -> Option<LongDatatype>;
+	fn long_type(&self) -> LongDatatype;
 }
 
 impl XsdLong for Long {
-	fn long_type(&self) -> Option<LongDatatype> {
+	fn long_type(&self) -> LongDatatype {
 		if (i8::MIN as i64..=i8::MAX as i64).contains(self) {
-			Some(ShortDatatype::Byte.into())
+			ShortDatatype::Byte.into()
 		} else if (i16::MIN as i64..=i16::MAX as i64).contains(self) {
-			Some(IntDatatype::Short(None).into())
+			ShortDatatype::Short.into()
 		} else if (i32::MIN as i64..=i32::MAX as i64).contains(self) {
-			Some(LongDatatype::Int(None))
+			IntDatatype::Int.into()
 		} else {
-			None
+			LongDatatype::Long
 		}
 	}
 }
 
-impl XsdDatatype for Long {
-	fn type_(&self) -> Datatype {
+impl XsdValue for Long {
+	fn datatype(&self) -> Datatype {
 		self.long_type().into()
 	}
 }
@@ -298,23 +298,23 @@ impl LexicalFormOf<Long> for lexical::Integer {
 pub type Int = i32;
 
 pub trait XsdInt {
-	fn int_type(&self) -> Option<IntDatatype>;
+	fn int_type(&self) -> IntDatatype;
 }
 
 impl XsdInt for Int {
-	fn int_type(&self) -> Option<IntDatatype> {
+	fn int_type(&self) -> IntDatatype {
 		if (i8::MIN as i32..=i8::MAX as i32).contains(self) {
-			Some(ShortDatatype::Byte.into())
+			ShortDatatype::Byte.into()
 		} else if (i16::MIN as i32..=i16::MAX as i32).contains(self) {
-			Some(IntDatatype::Short(None))
+			ShortDatatype::Short.into()
 		} else {
-			None
+			IntDatatype::Int
 		}
 	}
 }
 
-impl XsdDatatype for Int {
-	fn type_(&self) -> Datatype {
+impl XsdValue for Int {
+	fn datatype(&self) -> Datatype {
 		self.int_type().into()
 	}
 }
@@ -334,21 +334,21 @@ impl LexicalFormOf<Int> for lexical::Integer {
 pub type Short = i16;
 
 pub trait XsdShort {
-	fn short_type(&self) -> Option<ShortDatatype>;
+	fn short_type(&self) -> ShortDatatype;
 }
 
 impl XsdShort for Short {
-	fn short_type(&self) -> Option<ShortDatatype> {
+	fn short_type(&self) -> ShortDatatype {
 		if (i8::MIN as i16..=i8::MAX as i16).contains(self) {
-			Some(ShortDatatype::Byte)
+			ShortDatatype::Byte
 		} else {
-			None
+			ShortDatatype::Short
 		}
 	}
 }
 
-impl XsdDatatype for Short {
-	fn type_(&self) -> Datatype {
+impl XsdValue for Short {
+	fn datatype(&self) -> Datatype {
 		self.short_type().into()
 	}
 }
@@ -367,8 +367,8 @@ impl LexicalFormOf<Short> for lexical::Integer {
 
 pub type Byte = i8;
 
-impl XsdDatatype for Byte {
-	fn type_(&self) -> Datatype {
+impl XsdValue for Byte {
+	fn datatype(&self) -> Datatype {
 		ShortDatatype::Byte.into()
 	}
 }

@@ -1,11 +1,11 @@
-use crate::{Datatype, XsdDatatype};
+use crate::{Datatype, XsdValue};
 use core::fmt;
 
 #[derive(Debug, Clone, Copy)]
 pub struct GYear(());
 
-impl XsdDatatype for GYear {
-	fn type_(&self) -> Datatype {
+impl XsdValue for GYear {
+	fn datatype(&self) -> Datatype {
 		Datatype::GYear
 	}
 }

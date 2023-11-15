@@ -1,11 +1,11 @@
-use crate::{Datatype, XsdDatatype};
+use crate::{Datatype, XsdValue};
 use core::fmt;
 
 #[derive(Debug, Clone)]
 pub struct QName(());
 
-impl XsdDatatype for QName {
-	fn type_(&self) -> Datatype {
+impl XsdValue for QName {
+	fn datatype(&self) -> Datatype {
 		Datatype::QName
 	}
 }

@@ -1,6 +1,6 @@
 use chrono::{FixedOffset, NaiveTime};
 
-use crate::{Datatype, XsdDatatype};
+use crate::{Datatype, XsdValue};
 use core::fmt;
 
 #[derive(Debug, Clone, Copy)]
@@ -15,8 +15,8 @@ impl Time {
 	}
 }
 
-impl XsdDatatype for Time {
-	fn type_(&self) -> Datatype {
+impl XsdValue for Time {
+	fn datatype(&self) -> Datatype {
 		Datatype::Time
 	}
 }

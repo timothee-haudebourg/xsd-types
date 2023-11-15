@@ -9,7 +9,7 @@ use ordered_float::OrderedFloat;
 
 use crate::{
 	lexical::{self, LexicalFormOf},
-	Datatype, ParseRdf, XsdDatatype,
+	Datatype, ParseRdf, XsdValue,
 };
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash)]
@@ -93,8 +93,8 @@ impl fmt::Display for Double {
 	}
 }
 
-impl XsdDatatype for Double {
-	fn type_(&self) -> Datatype {
+impl XsdValue for Double {
+	fn datatype(&self) -> Datatype {
 		Datatype::Double
 	}
 }

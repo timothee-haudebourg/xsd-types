@@ -1,6 +1,6 @@
 use chrono::{FixedOffset, NaiveDate};
 
-use crate::{Datatype, XsdDatatype};
+use crate::{Datatype, XsdValue};
 use core::fmt;
 
 #[derive(Debug, Clone, Copy)]
@@ -15,8 +15,8 @@ impl Date {
 	}
 }
 
-impl XsdDatatype for Date {
-	fn type_(&self) -> Datatype {
+impl XsdValue for Date {
+	fn datatype(&self) -> Datatype {
 		Datatype::Date
 	}
 }
