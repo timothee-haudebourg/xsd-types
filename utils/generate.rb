@@ -466,6 +466,17 @@ def generate_datatype_enum(classes)
 	end
 	puts "\t\t}"
 	puts "\t}"
+	puts "\tpub fn parse(&self, value: &str) -> Result<Value, ParseError> {"
+	puts "\t\tmatch self {"
+	classes.each do |c|
+		if c.subclasses.empty? then
+			puts "\t\t\tSelf::#{c.name} => ParseRdf::parse_rdf(value).map(Value::#{c.name}).map_err(|_| ParseError),"
+		else
+			puts "\t\t\tSelf::#{c.name}(t) => t.parse(value).map(Into::into),"
+		end
+	end
+	puts "\t\t}"
+	puts "\t}"
 	puts "}"
 
 	classes.each do |c|

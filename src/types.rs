@@ -124,6 +124,44 @@ impl Datatype {
 			Self::Notation => XSD_NOTATION,
 		}
 	}
+	pub fn parse(&self, value: &str) -> Result<Value, ParseError> {
+		match self {
+			Self::Boolean => ParseRdf::parse_rdf(value)
+				.map(Value::Boolean)
+				.map_err(|_| ParseError),
+			Self::Float => ParseRdf::parse_rdf(value)
+				.map(Value::Float)
+				.map_err(|_| ParseError),
+			Self::Double => ParseRdf::parse_rdf(value)
+				.map(Value::Double)
+				.map_err(|_| ParseError),
+			Self::Decimal(t) => t.parse(value).map(Into::into),
+			Self::String(t) => t.parse(value).map(Into::into),
+			// Self::Duration => ParseRdf::parse_rdf(value).map(Value::Duration).map_err(|_| ParseError),
+			Self::DateTime => ParseRdf::parse_rdf(value)
+				.map(Value::DateTime)
+				.map_err(|_| ParseError),
+			// Self::Time => ParseRdf::parse_rdf(value).map(Value::Time).map_err(|_| ParseError),
+			// Self::Date => ParseRdf::parse_rdf(value).map(Value::Date).map_err(|_| ParseError),
+			// Self::GYearMonth => ParseRdf::parse_rdf(value).map(Value::GYearMonth).map_err(|_| ParseError),
+			// Self::GYear => ParseRdf::parse_rdf(value).map(Value::GYear).map_err(|_| ParseError),
+			// Self::GMonthDay => ParseRdf::parse_rdf(value).map(Value::GMonthDay).map_err(|_| ParseError),
+			// Self::GDay => ParseRdf::parse_rdf(value).map(Value::GDay).map_err(|_| ParseError),
+			// Self::GMonth => ParseRdf::parse_rdf(value).map(Value::GMonth).map_err(|_| ParseError),
+			Self::Base64Binary => ParseRdf::parse_rdf(value)
+				.map(Value::Base64Binary)
+				.map_err(|_| ParseError),
+			Self::HexBinary => ParseRdf::parse_rdf(value)
+				.map(Value::HexBinary)
+				.map_err(|_| ParseError),
+			Self::AnyUri => ParseRdf::parse_rdf(value)
+				.map(Value::AnyUri)
+				.map_err(|_| ParseError),
+			// Self::QName => ParseRdf::parse_rdf(value).map(Value::QName).map_err(|_| ParseError),
+			// Self::Notation => ParseRdf::parse_rdf(value).map(Value::Notation).map_err(|_| ParseError),
+			_ => Err(ParseError), // TODO
+		}
+	}
 }
 #[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash)]
 pub enum DecimalDatatype {
