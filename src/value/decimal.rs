@@ -298,6 +298,23 @@ impl FromStr for Decimal {
 	}
 }
 
+macro_rules! from_native {
+	($($ty:ident),*) => {
+		$(
+			impl From<$ty> for Decimal {
+				fn from(value: $ty) -> Self {
+					Self {
+						data: BigInt::from(value).into(),
+						lexical: OnceCell::new()
+					}
+				}
+			}
+		)*
+	};
+}
+
+from_native!(u8, u16, u32, u64, i8, i16, i32, i64, usize, isize);
+
 impl From<BigInt> for Decimal {
 	#[inline(always)]
 	fn from(value: BigInt) -> Self {
