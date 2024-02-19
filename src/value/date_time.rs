@@ -7,6 +7,11 @@ use crate::{Datatype, ParseRdf, XsdValue};
 pub struct DateTime(chrono::DateTime<FixedOffset>);
 
 impl DateTime {
+	/// Returns a `DateTime` which corresponds to the current time and date.
+	pub fn now() -> Self {
+		Self(Utc::now().into())
+	}
+
 	pub fn into_string(self) -> String {
 		self.0.to_rfc3339_opts(chrono::SecondsFormat::AutoSi, true)
 	}
