@@ -1,4 +1,4 @@
-use chrono::{FixedOffset, Utc};
+use chrono::{FixedOffset, Timelike, Utc};
 use std::{fmt, str::FromStr};
 
 use crate::{Datatype, ParseRdf, XsdValue};
@@ -10,6 +10,15 @@ impl DateTime {
 	/// Returns a `DateTime` which corresponds to the current time and date.
 	pub fn now() -> Self {
 		Self(Utc::now().into())
+	}
+
+	/// Returns a `DateTime` which corresponds to the current time and date,
+	/// with millisecond precision (at most).
+	pub fn now_ms() -> Self {
+		let now = Utc::now();
+		let ms = now.timestamp_subsec_millis();
+		let ns = ms * 1_000_000;
+		Self(now.with_nanosecond(ns).unwrap_or(now).into())
 	}
 
 	pub fn into_string(self) -> String {
