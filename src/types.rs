@@ -3,7 +3,7 @@ use super::{
 	Double, Duration, Float, GDay, GMonth, GMonthDay, GYear, GYearMonth, HexBinary, HexBinaryBuf,
 	Id, IdBuf, IdRef, IdRefBuf, Int, Integer, Language, LanguageBuf, Long, NCName, NCNameBuf,
 	NMToken, NMTokenBuf, Name, NameBuf, NegativeInteger, NonNegativeInteger, NonPositiveInteger,
-	NormalizedStr, NormalizedString, Notation, PositiveInteger, QName, Short, Time, Token,
+	NormalizedStr, NormalizedString, PositiveInteger, QName, QNameBuf, Short, Time, Token,
 	TokenBuf, UnsignedByte, UnsignedInt, UnsignedLong, UnsignedShort,
 };
 use crate::{
@@ -11,7 +11,7 @@ use crate::{
 	XSD_DATE_TIME, XSD_DECIMAL, XSD_DOUBLE, XSD_DURATION, XSD_FLOAT, XSD_G_DAY, XSD_G_MONTH,
 	XSD_G_MONTH_DAY, XSD_G_YEAR, XSD_G_YEAR_MONTH, XSD_HEX_BINARY, XSD_ID, XSD_IDREF, XSD_INT,
 	XSD_INTEGER, XSD_LANGUAGE, XSD_LONG, XSD_NAME, XSD_NC_NAME, XSD_NEGATIVE_INTEGER, XSD_NMTOKEN,
-	XSD_NON_NEGATIVE_INTEGER, XSD_NON_POSITIVE_INTEGER, XSD_NORMALIZED_STRING, XSD_NOTATION,
+	XSD_NON_NEGATIVE_INTEGER, XSD_NON_POSITIVE_INTEGER, XSD_NORMALIZED_STRING,
 	XSD_POSITIVE_INTEGER, XSD_Q_NAME, XSD_SHORT, XSD_STRING, XSD_TIME, XSD_TOKEN,
 	XSD_UNSIGNED_BYTE, XSD_UNSIGNED_INT, XSD_UNSIGNED_LONG, XSD_UNSIGNED_SHORT,
 };
@@ -38,7 +38,6 @@ pub enum Datatype {
 	HexBinary,
 	AnyUri,
 	QName,
-	Notation,
 }
 impl Datatype {
 	pub fn from_iri(iri: &Iri) -> Option<Self> {
@@ -96,9 +95,6 @@ impl Datatype {
 		if iri == XSD_Q_NAME {
 			return Some(Self::QName);
 		}
-		if iri == XSD_NOTATION {
-			return Some(Self::Notation);
-		}
 		None
 	}
 	pub fn iri(&self) -> &'static Iri {
@@ -121,7 +117,6 @@ impl Datatype {
 			Self::HexBinary => XSD_HEX_BINARY,
 			Self::AnyUri => XSD_ANY_URI,
 			Self::QName => XSD_Q_NAME,
-			Self::Notation => XSD_NOTATION,
 		}
 	}
 	pub fn parse(&self, value: &str) -> Result<Value, ParseError> {
@@ -137,17 +132,33 @@ impl Datatype {
 				.map_err(|_| ParseError),
 			Self::Decimal(t) => t.parse(value).map(Into::into),
 			Self::String(t) => t.parse(value).map(Into::into),
-			// Self::Duration => ParseRdf::parse_rdf(value).map(Value::Duration).map_err(|_| ParseError),
+			Self::Duration => ParseRdf::parse_rdf(value)
+				.map(Value::Duration)
+				.map_err(|_| ParseError),
 			Self::DateTime => ParseRdf::parse_rdf(value)
 				.map(Value::DateTime)
 				.map_err(|_| ParseError),
-			// Self::Time => ParseRdf::parse_rdf(value).map(Value::Time).map_err(|_| ParseError),
-			// Self::Date => ParseRdf::parse_rdf(value).map(Value::Date).map_err(|_| ParseError),
-			// Self::GYearMonth => ParseRdf::parse_rdf(value).map(Value::GYearMonth).map_err(|_| ParseError),
-			// Self::GYear => ParseRdf::parse_rdf(value).map(Value::GYear).map_err(|_| ParseError),
-			// Self::GMonthDay => ParseRdf::parse_rdf(value).map(Value::GMonthDay).map_err(|_| ParseError),
-			// Self::GDay => ParseRdf::parse_rdf(value).map(Value::GDay).map_err(|_| ParseError),
-			// Self::GMonth => ParseRdf::parse_rdf(value).map(Value::GMonth).map_err(|_| ParseError),
+			Self::Time => ParseRdf::parse_rdf(value)
+				.map(Value::Time)
+				.map_err(|_| ParseError),
+			Self::Date => ParseRdf::parse_rdf(value)
+				.map(Value::Date)
+				.map_err(|_| ParseError),
+			Self::GYearMonth => ParseRdf::parse_rdf(value)
+				.map(Value::GYearMonth)
+				.map_err(|_| ParseError),
+			Self::GYear => ParseRdf::parse_rdf(value)
+				.map(Value::GYear)
+				.map_err(|_| ParseError),
+			Self::GMonthDay => ParseRdf::parse_rdf(value)
+				.map(Value::GMonthDay)
+				.map_err(|_| ParseError),
+			Self::GDay => ParseRdf::parse_rdf(value)
+				.map(Value::GDay)
+				.map_err(|_| ParseError),
+			Self::GMonth => ParseRdf::parse_rdf(value)
+				.map(Value::GMonth)
+				.map_err(|_| ParseError),
 			Self::Base64Binary => ParseRdf::parse_rdf(value)
 				.map(Value::Base64Binary)
 				.map_err(|_| ParseError),
@@ -157,9 +168,9 @@ impl Datatype {
 			Self::AnyUri => ParseRdf::parse_rdf(value)
 				.map(Value::AnyUri)
 				.map_err(|_| ParseError),
-			// Self::QName => ParseRdf::parse_rdf(value).map(Value::QName).map_err(|_| ParseError),
-			// Self::Notation => ParseRdf::parse_rdf(value).map(Value::Notation).map_err(|_| ParseError),
-			_ => Err(ParseError), // TODO
+			Self::QName => ParseRdf::parse_rdf(value)
+				.map(Value::QName)
+				.map_err(|_| ParseError),
 		}
 	}
 }
@@ -471,8 +482,7 @@ pub enum Value {
 	Base64Binary(Base64BinaryBuf),
 	HexBinary(HexBinaryBuf),
 	AnyUri(AnyUriBuf),
-	QName(QName),
-	Notation(Notation),
+	QName(QNameBuf),
 }
 impl Value {
 	pub fn datatype(&self) -> Datatype {
@@ -576,7 +586,6 @@ impl Value {
 			Self::HexBinary(_) => Datatype::HexBinary,
 			Self::AnyUri(_) => Datatype::AnyUri,
 			Self::QName(_) => Datatype::QName,
-			Self::Notation(_) => Datatype::Notation,
 		}
 	}
 }
@@ -627,7 +636,6 @@ impl fmt::Display for Value {
 			Self::HexBinary(v) => v.fmt(f),
 			Self::AnyUri(v) => v.fmt(f),
 			Self::QName(v) => v.fmt(f),
-			Self::Notation(v) => v.fmt(f),
 		}
 	}
 }
@@ -672,7 +680,6 @@ pub enum ValueRef<'a> {
 	HexBinary(&'a HexBinary),
 	AnyUri(&'a AnyUri),
 	QName(&'a QName),
-	Notation(&'a Notation),
 }
 impl<'a> fmt::Display for ValueRef<'a> {
 	fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
@@ -716,7 +723,6 @@ impl<'a> fmt::Display for ValueRef<'a> {
 			Self::HexBinary(v) => v.fmt(f),
 			Self::AnyUri(v) => v.fmt(f),
 			Self::QName(v) => v.fmt(f),
-			Self::Notation(v) => v.fmt(f),
 		}
 	}
 }
@@ -762,7 +768,6 @@ impl Value {
 			Self::HexBinary(value) => ValueRef::HexBinary(value),
 			Self::AnyUri(value) => ValueRef::AnyUri(value),
 			Self::QName(value) => ValueRef::QName(value),
-			Self::Notation(value) => ValueRef::Notation(value),
 		}
 	}
 }
@@ -868,7 +873,6 @@ impl<'a> ValueRef<'a> {
 			Self::HexBinary(_) => Datatype::HexBinary,
 			Self::AnyUri(_) => Datatype::AnyUri,
 			Self::QName(_) => Datatype::QName,
-			Self::Notation(_) => Datatype::Notation,
 		}
 	}
 	pub fn into_owned(self) -> Value {
@@ -912,7 +916,6 @@ impl<'a> ValueRef<'a> {
 			Self::HexBinary(value) => Value::HexBinary(value.to_owned()),
 			Self::AnyUri(value) => Value::AnyUri(value.to_owned()),
 			Self::QName(value) => Value::QName(value.to_owned()),
-			Self::Notation(value) => Value::Notation(value.to_owned()),
 		}
 	}
 	pub fn cloned(&self) -> Value {

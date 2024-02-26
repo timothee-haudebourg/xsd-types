@@ -1,8 +1,23 @@
-use crate::{Datatype, XsdValue};
+use chrono::FixedOffset;
+
+use crate::{format_timezone, Datatype, ParseRdf, XsdValue};
 use core::fmt;
 
 #[derive(Debug, Clone, Copy)]
-pub struct GDay(());
+pub struct GDay {
+	day: u8,
+	offset: Option<FixedOffset>,
+}
+
+impl GDay {
+	pub fn new(day: u8, offset: Option<FixedOffset>) -> Option<Self> {
+		if (1..=31).contains(&day) {
+			Some(Self { day, offset })
+		} else {
+			None
+		}
+	}
+}
 
 impl XsdValue for GDay {
 	fn datatype(&self) -> Datatype {
@@ -10,8 +25,14 @@ impl XsdValue for GDay {
 	}
 }
 
+impl ParseRdf for GDay {
+	type LexicalForm = crate::lexical::GDay;
+}
+
 impl fmt::Display for GDay {
-	fn fmt(&self, _f: &mut fmt::Formatter<'_>) -> fmt::Result {
-		unimplemented!()
+	fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+		write!(f, "---{:02}", self.day)?;
+
+		format_timezone(self.offset, f)
 	}
 }

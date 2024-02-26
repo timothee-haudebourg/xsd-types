@@ -1,21 +1,40 @@
 mod any_uri;
 mod base64_binary;
 mod boolean;
-mod date_time;
+pub mod date;
+pub mod date_time;
 mod decimal;
 pub mod double;
+mod duration;
 pub mod float;
+pub mod g_day;
+pub mod g_month;
+pub mod g_month_day;
+pub mod g_year;
+pub mod g_year_month;
 mod hex_binary;
+mod q_name;
 mod string;
+pub mod time;
 
 pub use base64_binary::*;
 pub use boolean::*;
-pub use date_time::*;
+pub use date::{Date, DateBuf, InvalidDate};
+pub(crate) use date_time::parse_timezone;
+pub use date_time::{DateTime, DateTimeBuf, InvalidDateTime};
 pub use decimal::*;
 pub use double::{Double, DoubleBuf, InvalidDouble};
+pub use duration::*;
 pub use float::{Float, FloatBuf, InvalidFloat};
+pub use g_day::{GDay, GDayBuf};
+pub use g_month::{GMonth, GMonthBuf};
+pub use g_month_day::{GMonthDay, GMonthDayBuf};
+pub use g_year::{GYear, GYearBuf};
+pub use g_year_month::{GYearMonth, GYearMonthBuf};
 pub use hex_binary::*;
+pub use q_name::*;
 pub use string::*;
+pub use time::{InvalidTime, Time, TimeBuf};
 
 /// Lexical type.
 pub trait Lexical {

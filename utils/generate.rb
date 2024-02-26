@@ -422,8 +422,8 @@ datatypes = [
 	Datatype.new({ variant: "Base64Binary", owned: "Base64BinaryBuf" }, "XSD_BASE64_BINARY", false, []),
 	Datatype.new({ variant: "HexBinary", owned: "HexBinaryBuf" }, "XSD_HEX_BINARY", false, []),
 	Datatype.new({ variant: "AnyUri", owned: "AnyUriBuf" }, "XSD_ANY_URI", false, []),
-	Datatype.new("QName", "XSD_Q_NAME", false, []),
-	Datatype.new("Notation", "XSD_NOTATION", false, [])
+	Datatype.new({ variant: "QName", owned: "QNameBuf" }, "XSD_Q_NAME", false, []),
+	# Datatype.new("Notation", "XSD_NOTATION", false, [])
 ]
 
 def generate_datatype_enum(classes)

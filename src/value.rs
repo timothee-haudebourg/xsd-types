@@ -13,7 +13,6 @@ mod g_month_day;
 mod g_year;
 mod g_year_month;
 pub mod hex_binary;
-mod notation;
 mod q_name;
 mod string;
 mod time;
@@ -33,7 +32,6 @@ pub use g_month_day::*;
 pub use g_year::*;
 pub use g_year_month::*;
 pub use hex_binary::{HexBinary, HexBinaryBuf, InvalidHex};
-pub use notation::*;
 pub use q_name::*;
 pub use string::*;
 pub use time::*;
@@ -44,9 +42,6 @@ pub trait XsdValue {
 	/// Returns the XSD datatype that best describes the value.
 	fn datatype(&self) -> Datatype;
 }
-
-// XsdDatatype impl
-// Display impl
 
 impl From<Value> for std::string::String {
 	fn from(value: Value) -> Self {

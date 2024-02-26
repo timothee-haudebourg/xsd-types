@@ -1,17 +1,45 @@
-use chrono::{FixedOffset, NaiveDate};
+use chrono::{Datelike, FixedOffset, NaiveDate};
 
-use crate::{Datatype, XsdValue};
+use crate::{
+	format_timezone,
+	lexical::{InvalidDate, LexicalFormOf},
+	Datatype, ParseRdf, XsdValue,
+};
 use core::fmt;
+use std::str::FromStr;
+
+#[derive(Debug, thiserror::Error)]
+#[error("invalid date value")]
+pub struct InvalidDateValue;
 
 #[derive(Debug, Clone, Copy)]
 pub struct Date {
 	pub date: NaiveDate,
-	pub offset: FixedOffset,
+	pub offset: Option<FixedOffset>,
 }
 
 impl Date {
-	pub fn new(date: NaiveDate, offset: FixedOffset) -> Self {
+	pub fn new(date: NaiveDate, offset: Option<FixedOffset>) -> Self {
 		Self { date, offset }
+	}
+}
+
+#[derive(Debug, thiserror::Error)]
+pub enum DateFromStrError {
+	#[error("invalid date syntax")]
+	Syntax(#[from] InvalidDate<String>),
+
+	#[error(transparent)]
+	Value(#[from] InvalidDateValue),
+}
+
+impl FromStr for Date {
+	type Err = DateFromStrError;
+
+	fn from_str(s: &str) -> Result<Self, Self::Err> {
+		let lexical_value =
+			crate::lexical::Date::new(s).map_err(|InvalidDate(s)| InvalidDate(s.to_owned()))?;
+		lexical_value.try_as_value().map_err(Into::into)
 	}
 }
 
@@ -21,8 +49,20 @@ impl XsdValue for Date {
 	}
 }
 
+impl ParseRdf for Date {
+	type LexicalForm = crate::lexical::Date;
+}
+
 impl fmt::Display for Date {
-	fn fmt(&self, _f: &mut fmt::Formatter<'_>) -> fmt::Result {
-		unimplemented!()
+	fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+		write!(
+			f,
+			"{:04}-{:02}-{:02}",
+			self.date.year(),
+			self.date.month(),
+			self.date.day()
+		)?;
+
+		format_timezone(self.offset, f)
 	}
 }

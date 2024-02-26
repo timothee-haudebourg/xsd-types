@@ -1,15 +1,46 @@
-use chrono::{FixedOffset, Timelike, Utc};
+use chrono::{Datelike, FixedOffset, Timelike, Utc};
 use std::{fmt, str::FromStr};
 
-use crate::{Datatype, ParseRdf, XsdValue};
+use crate::{
+	lexical::{InvalidDateTime, LexicalFormOf},
+	Datatype, ParseRdf, XsdValue,
+};
 
-#[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash)]
-pub struct DateTime(chrono::DateTime<FixedOffset>);
+#[derive(Debug, thiserror::Error)]
+#[error("missing timezone")]
+pub struct MissingTimezone;
+
+#[derive(Debug, thiserror::Error)]
+#[error("invalid timezone")]
+pub struct InvalidTimezone(chrono::NaiveDateTime, FixedOffset);
+
+#[derive(Debug, thiserror::Error)]
+pub enum TimezoneError {
+	#[error(transparent)]
+	Missing(#[from] MissingTimezone),
+
+	#[error(transparent)]
+	Invalid(#[from] InvalidTimezone),
+}
+
+#[derive(Debug, thiserror::Error)]
+#[error("invalid datetime value")]
+pub struct InvalidDateTimeValue;
+
+#[derive(Debug, Clone, Copy, Hash)]
+pub struct DateTime {
+	date_time: chrono::NaiveDateTime,
+	offset: Option<FixedOffset>,
+}
 
 impl DateTime {
+	pub fn new(date_time: chrono::NaiveDateTime, offset: Option<FixedOffset>) -> Self {
+		Self { date_time, offset }
+	}
+
 	/// Returns a `DateTime` which corresponds to the current time and date.
 	pub fn now() -> Self {
-		Self(Utc::now().into())
+		Utc::now().into()
 	}
 
 	/// Returns a `DateTime` which corresponds to the current time and date,
@@ -18,11 +49,11 @@ impl DateTime {
 		let now = Utc::now();
 		let ms = now.timestamp_subsec_millis();
 		let ns = ms * 1_000_000;
-		Self(now.with_nanosecond(ns).unwrap_or(now).into())
+		now.with_nanosecond(ns).unwrap_or(now).into()
 	}
 
 	pub fn into_string(self) -> String {
-		self.0.to_rfc3339_opts(chrono::SecondsFormat::AutoSi, true)
+		self.to_string()
 	}
 }
 
@@ -38,39 +69,103 @@ impl ParseRdf for DateTime {
 
 impl fmt::Display for DateTime {
 	fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-		self.into_string().fmt(f)
+		write!(
+			f,
+			"{:04}-{:02}-{:02}T{:02}:{:02}:{:02}",
+			self.date_time.year(),
+			self.date_time.month(),
+			self.date_time.day(),
+			self.date_time.hour(),
+			self.date_time.minute(),
+			self.date_time.second()
+		)?;
+
+		format_nanoseconds(self.date_time.nanosecond(), f)?;
+		format_timezone(self.offset, f)
 	}
 }
 
-impl FromStr for DateTime {
-	type Err = chrono::format::ParseError;
+pub(crate) fn format_nanoseconds(ns: u32, f: &mut fmt::Formatter) -> fmt::Result {
+	let nano = ns % 1_000_000_000;
+	if nano == 0 {
+		Ok(())
+	} else if nano % 1_000_000 == 0 {
+		write!(f, ".{:03}", nano / 1_000_000)
+	} else if nano % 1_000 == 0 {
+		write!(f, ".{:06}", nano / 1_000)
+	} else {
+		write!(f, ".{nano:09}")
+	}
+}
 
-	fn from_str(date_time: &str) -> Result<Self, Self::Err> {
-		Ok(Self(chrono::DateTime::parse_from_rfc3339(date_time)?))
+pub(crate) fn format_timezone(tz: Option<FixedOffset>, f: &mut fmt::Formatter) -> fmt::Result {
+	match tz {
+		Some(tz) => {
+			if tz.local_minus_utc() == 0 {
+				write!(f, "Z")
+			} else {
+				let tz_minutes = tz.local_minus_utc() / 60;
+				let hours = tz_minutes / 60;
+				let minutes = tz_minutes % 60;
+				write!(f, "{hours:02}:{minutes:02}")
+			}
+		}
+		None => Ok(()),
+	}
+}
+
+#[derive(Debug, thiserror::Error)]
+pub enum DateTimeFromStrError {
+	#[error("invalid date syntax")]
+	Syntax(#[from] InvalidDateTime<String>),
+
+	#[error(transparent)]
+	Value(#[from] InvalidDateTimeValue),
+}
+
+impl FromStr for DateTime {
+	type Err = DateTimeFromStrError;
+
+	fn from_str(s: &str) -> Result<Self, Self::Err> {
+		let lexical_value = crate::lexical::DateTime::new(s)
+			.map_err(|InvalidDateTime(s)| InvalidDateTime(s.to_owned()))?;
+		lexical_value.try_as_value().map_err(Into::into)
 	}
 }
 
 impl From<chrono::DateTime<FixedOffset>> for DateTime {
 	fn from(value: chrono::DateTime<FixedOffset>) -> Self {
-		Self(value)
+		let naive_date_time = value.naive_utc();
+		let offset = *value.offset();
+		Self::new(naive_date_time, Some(offset))
 	}
 }
 
 impl From<chrono::DateTime<Utc>> for DateTime {
 	fn from(value: chrono::DateTime<Utc>) -> Self {
-		Self(value.into())
+		let naive_date_time = value.naive_utc();
+		let offset = FixedOffset::east_opt(0).unwrap();
+		Self::new(naive_date_time, Some(offset))
 	}
 }
 
-impl From<DateTime> for chrono::DateTime<FixedOffset> {
-	fn from(value: DateTime) -> Self {
-		value.0
+impl TryFrom<DateTime> for chrono::DateTime<FixedOffset> {
+	type Error = MissingTimezone;
+
+	fn try_from(value: DateTime) -> Result<Self, MissingTimezone> {
+		match value.offset {
+			Some(offset) => Ok(value.date_time.and_local_timezone(offset).unwrap()),
+			None => Err(MissingTimezone),
+		}
 	}
 }
 
-impl From<DateTime> for chrono::DateTime<Utc> {
-	fn from(value: DateTime) -> Self {
-		value.0.into()
+impl TryFrom<DateTime> for chrono::DateTime<Utc> {
+	type Error = TimezoneError;
+
+	fn try_from(value: DateTime) -> Result<Self, TimezoneError> {
+		let fixed: chrono::DateTime<FixedOffset> = value.try_into()?;
+		Ok(fixed.into())
 	}
 }
 

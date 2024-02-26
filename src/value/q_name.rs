@@ -1,17 +1,6 @@
-use crate::{Datatype, XsdValue};
-use core::fmt;
+pub use crate::lexical::{QName, QNameBuf};
+use crate::ParseRdf;
 
-#[derive(Debug, Clone)]
-pub struct QName(());
-
-impl XsdValue for QName {
-	fn datatype(&self) -> Datatype {
-		Datatype::QName
-	}
-}
-
-impl fmt::Display for QName {
-	fn fmt(&self, _f: &mut fmt::Formatter<'_>) -> fmt::Result {
-		unimplemented!()
-	}
+impl ParseRdf for QNameBuf {
+	type LexicalForm = QName;
 }
