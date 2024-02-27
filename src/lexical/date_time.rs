@@ -169,7 +169,7 @@ pub(crate) fn parse_timezone(tz: &str) -> chrono::FixedOffset {
 		"Z" => chrono::FixedOffset::east_opt(0).unwrap(),
 		"14:00" => chrono::FixedOffset::east_opt(14 * HOUR).unwrap(),
 		n => {
-			let (h, m) = n.split_once(":").unwrap();
+			let (h, m) = n.split_once(':').unwrap();
 			chrono::FixedOffset::east_opt(
 				h.parse::<i32>().unwrap() * HOUR + m.parse::<i32>().unwrap() * MINUTE,
 			)
