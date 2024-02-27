@@ -1,4 +1,4 @@
-use crate::{Datatype, ParseRdf, XsdValue};
+use crate::{Datatype, ParseXsd, XsdValue};
 
 pub type AnyUri = iref::Uri;
 
@@ -16,6 +16,6 @@ impl XsdValue for AnyUriBuf {
 	}
 }
 
-impl ParseRdf for AnyUriBuf {
+impl ParseXsd for AnyUriBuf {
 	type LexicalForm = AnyUri;
 }

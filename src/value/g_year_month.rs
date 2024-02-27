@@ -1,6 +1,6 @@
 use chrono::FixedOffset;
 
-use crate::{format_timezone, Datatype, DisplayYear, ParseRdf, XsdValue};
+use crate::{format_timezone, Datatype, DisplayYear, ParseXsd, XsdValue};
 use core::fmt;
 
 #[derive(Debug, Clone, Copy)]
@@ -30,7 +30,7 @@ impl XsdValue for GYearMonth {
 	}
 }
 
-impl ParseRdf for GYearMonth {
+impl ParseXsd for GYearMonth {
 	type LexicalForm = crate::lexical::GYearMonth;
 }
 

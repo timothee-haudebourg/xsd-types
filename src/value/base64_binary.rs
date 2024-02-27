@@ -7,7 +7,7 @@ use std::{
 
 use crate::{
 	lexical::{self, LexicalFormOf},
-	Datatype, ParseRdf, XsdValue,
+	Datatype, ParseXsd, XsdValue,
 };
 
 const CHARS: [char; 64] = [
@@ -154,7 +154,7 @@ impl XsdValue for Base64BinaryBuf {
 	}
 }
 
-impl ParseRdf for Base64BinaryBuf {
+impl ParseXsd for Base64BinaryBuf {
 	type LexicalForm = lexical::Base64Binary;
 }
 

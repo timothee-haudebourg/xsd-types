@@ -1,6 +1,6 @@
 pub use crate::lexical::{QName, QNameBuf};
-use crate::ParseRdf;
+use crate::ParseXsd;
 
-impl ParseRdf for QNameBuf {
+impl ParseXsd for QNameBuf {
 	type LexicalForm = QName;
 }

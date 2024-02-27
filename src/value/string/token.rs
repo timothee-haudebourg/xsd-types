@@ -1,7 +1,7 @@
 use core::fmt;
 use std::{borrow::Borrow, ops::Deref, str::FromStr};
 
-use crate::ParseRdf;
+use crate::ParseXsd;
 
 #[derive(Debug, thiserror::Error)]
 #[error("invalid token `{0}`")]
@@ -131,6 +131,6 @@ impl FromStr for TokenBuf {
 	}
 }
 
-impl ParseRdf for TokenBuf {
+impl ParseXsd for TokenBuf {
 	type LexicalForm = crate::lexical::Token;
 }

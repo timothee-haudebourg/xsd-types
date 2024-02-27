@@ -13,7 +13,7 @@ use once_cell::unsync::OnceCell;
 use crate::lexical::LexicalFormOf;
 use crate::{
 	lexical, Datatype, DecimalDatatype, Double, Float, IntDatatype, LongDatatype,
-	NonNegativeIntegerDatatype, NonPositiveIntegerDatatype, ParseRdf, ShortDatatype,
+	NonNegativeIntegerDatatype, NonPositiveIntegerDatatype, ParseXsd, ShortDatatype,
 	UnsignedIntDatatype, UnsignedLongDatatype, UnsignedShortDatatype, XsdValue,
 };
 
@@ -389,7 +389,7 @@ impl XsdValue for Decimal {
 	}
 }
 
-impl ParseRdf for Decimal {
+impl ParseXsd for Decimal {
 	type LexicalForm = lexical::Decimal;
 }
 

@@ -1,6 +1,6 @@
 use static_regular_grammar::RegularGrammar;
 
-use crate::ParseRdf;
+use crate::ParseXsd;
 
 /// ID.
 ///
@@ -23,6 +23,6 @@ use crate::ParseRdf;
 )]
 pub struct Id(str);
 
-impl ParseRdf for IdBuf {
+impl ParseXsd for IdBuf {
 	type LexicalForm = crate::lexical::Id;
 }

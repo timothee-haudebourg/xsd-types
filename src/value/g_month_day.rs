@@ -1,6 +1,6 @@
 use chrono::FixedOffset;
 
-use crate::{format_timezone, Datatype, ParseRdf, XsdValue};
+use crate::{format_timezone, Datatype, ParseXsd, XsdValue};
 use core::fmt;
 
 const MONTH_MAX_LEN: [u8; 12] = [31, 29, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31];
@@ -33,7 +33,7 @@ impl XsdValue for GMonthDay {
 	}
 }
 
-impl ParseRdf for GMonthDay {
+impl ParseXsd for GMonthDay {
 	type LexicalForm = crate::lexical::GMonthDay;
 }
 

@@ -1,6 +1,6 @@
 use chrono::{FixedOffset, NaiveTime, Timelike};
 
-use crate::{format_nanoseconds, format_timezone, Datatype, ParseRdf, XsdValue};
+use crate::{format_nanoseconds, format_timezone, Datatype, ParseXsd, XsdValue};
 use core::fmt;
 
 #[derive(Debug, thiserror::Error)]
@@ -25,7 +25,7 @@ impl XsdValue for Time {
 	}
 }
 
-impl ParseRdf for Time {
+impl ParseXsd for Time {
 	type LexicalForm = crate::lexical::Time;
 }
 

@@ -1,6 +1,6 @@
 use static_regular_grammar::RegularGrammar;
 
-use crate::ParseRdf;
+use crate::ParseXsd;
 
 /// Language.
 ///
@@ -15,6 +15,6 @@ use crate::ParseRdf;
 ))]
 pub struct Language(str);
 
-impl ParseRdf for LanguageBuf {
+impl ParseXsd for LanguageBuf {
 	type LexicalForm = crate::lexical::Language;
 }

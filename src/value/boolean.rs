@@ -2,7 +2,7 @@ use core::fmt;
 
 use crate::{
 	lexical::{self, LexicalFormOf},
-	Datatype, ParseRdf, XsdValue,
+	Datatype, ParseXsd, XsdValue,
 };
 
 #[derive(Debug, Default, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash)]
@@ -34,7 +34,7 @@ impl LexicalFormOf<Boolean> for lexical::Boolean {
 	}
 }
 
-impl ParseRdf for Boolean {
+impl ParseXsd for Boolean {
 	type LexicalForm = lexical::Boolean;
 }
 

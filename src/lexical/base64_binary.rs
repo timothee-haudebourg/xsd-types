@@ -30,7 +30,7 @@ lexical_form! {
 	new_unchecked,
 
 	value: crate::Base64BinaryBuf,
-	error: InvalidBase64,
+	error: InvalidBase64Binary,
 	as_ref: as_base_64_binary,
 	parent_forms: {}
 }

@@ -1,4 +1,4 @@
-use crate::{Datatype, ParseRdf, XsdValue};
+use crate::{Datatype, ParseXsd, XsdValue};
 
 mod id;
 mod idref;
@@ -26,6 +26,6 @@ impl XsdValue for String {
 	}
 }
 
-impl ParseRdf for String {
+impl ParseXsd for String {
 	type LexicalForm = str;
 }

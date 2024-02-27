@@ -11,7 +11,7 @@ use num_traits::{Signed, Zero};
 use crate::{
 	impl_integer_arithmetic,
 	lexical::{self, LexicalFormOf},
-	Datatype, Integer, NonPositiveIntegerDatatype, ParseRdf, XsdValue,
+	Datatype, Integer, NonPositiveIntegerDatatype, ParseXsd, XsdValue,
 };
 
 use super::Sign;
@@ -127,7 +127,7 @@ impl XsdValue for NonPositiveInteger {
 	}
 }
 
-impl ParseRdf for NonPositiveInteger {
+impl ParseXsd for NonPositiveInteger {
 	type LexicalForm = lexical::NonPositiveInteger;
 }
 
@@ -329,7 +329,7 @@ impl XsdValue for NegativeInteger {
 	}
 }
 
-impl ParseRdf for NegativeInteger {
+impl ParseXsd for NegativeInteger {
 	type LexicalForm = lexical::NegativeInteger;
 }
 

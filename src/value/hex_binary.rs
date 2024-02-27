@@ -7,7 +7,7 @@ use std::{
 
 use crate::{
 	lexical::{self, LexicalFormOf},
-	Datatype, ParseRdf, XsdValue,
+	Datatype, ParseXsd, XsdValue,
 };
 
 const CHARS: [char; 16] = [
@@ -134,7 +134,7 @@ impl XsdValue for HexBinaryBuf {
 	}
 }
 
-impl ParseRdf for HexBinaryBuf {
+impl ParseXsd for HexBinaryBuf {
 	type LexicalForm = lexical::HexBinary;
 }
 

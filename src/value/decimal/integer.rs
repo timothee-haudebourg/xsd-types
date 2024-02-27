@@ -11,7 +11,7 @@ use num_traits::{Signed, Zero};
 use crate::{
 	lexical::{self, LexicalFormOf},
 	Datatype, IntDatatype, IntegerDatatype, LongDatatype, NonNegativeIntegerDatatype,
-	NonPositiveIntegerDatatype, ParseRdf, ShortDatatype, UnsignedIntDatatype, UnsignedLongDatatype,
+	NonPositiveIntegerDatatype, ParseXsd, ShortDatatype, UnsignedIntDatatype, UnsignedLongDatatype,
 	UnsignedShortDatatype, XsdValue,
 };
 
@@ -139,7 +139,7 @@ impl XsdValue for Integer {
 	}
 }
 
-impl ParseRdf for Integer {
+impl ParseXsd for Integer {
 	type LexicalForm = lexical::Integer;
 }
 
@@ -283,7 +283,7 @@ impl XsdValue for Long {
 	}
 }
 
-impl ParseRdf for Long {
+impl ParseXsd for Long {
 	type LexicalForm = lexical::Integer;
 }
 
@@ -319,7 +319,7 @@ impl XsdValue for Int {
 	}
 }
 
-impl ParseRdf for Int {
+impl ParseXsd for Int {
 	type LexicalForm = lexical::Integer;
 }
 
@@ -353,7 +353,7 @@ impl XsdValue for Short {
 	}
 }
 
-impl ParseRdf for Short {
+impl ParseXsd for Short {
 	type LexicalForm = lexical::Integer;
 }
 
@@ -373,7 +373,7 @@ impl XsdValue for Byte {
 	}
 }
 
-impl ParseRdf for Byte {
+impl ParseXsd for Byte {
 	type LexicalForm = lexical::Integer;
 }
 

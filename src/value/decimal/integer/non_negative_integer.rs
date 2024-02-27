@@ -12,7 +12,7 @@ use crate::{
 	impl_integer_arithmetic,
 	lexical::{self, LexicalFormOf},
 	value::decimal::{U16_MAX, U32_MAX, U64_MAX, U8_MAX},
-	Datatype, Integer, NonNegativeIntegerDatatype, ParseRdf, UnsignedIntDatatype,
+	Datatype, Integer, NonNegativeIntegerDatatype, ParseXsd, UnsignedIntDatatype,
 	UnsignedLongDatatype, UnsignedShortDatatype, XsdValue,
 };
 
@@ -137,7 +137,7 @@ impl XsdValue for NonNegativeInteger {
 	}
 }
 
-impl ParseRdf for NonNegativeInteger {
+impl ParseXsd for NonNegativeInteger {
 	type LexicalForm = lexical::NonNegativeInteger;
 }
 
@@ -295,7 +295,7 @@ impl XsdValue for UnsignedLong {
 	}
 }
 
-impl ParseRdf for UnsignedLong {
+impl ParseXsd for UnsignedLong {
 	type LexicalForm = lexical::NonNegativeInteger;
 }
 
@@ -331,7 +331,7 @@ impl XsdValue for UnsignedInt {
 	}
 }
 
-impl ParseRdf for UnsignedInt {
+impl ParseXsd for UnsignedInt {
 	type LexicalForm = lexical::NonNegativeInteger;
 }
 
@@ -365,7 +365,7 @@ impl XsdValue for UnsignedShort {
 	}
 }
 
-impl ParseRdf for UnsignedShort {
+impl ParseXsd for UnsignedShort {
 	type LexicalForm = lexical::NonNegativeInteger;
 }
 
@@ -385,7 +385,7 @@ impl XsdValue for UnsignedByte {
 	}
 }
 
-impl ParseRdf for UnsignedByte {
+impl ParseXsd for UnsignedByte {
 	type LexicalForm = lexical::NonNegativeInteger;
 }
 
@@ -473,7 +473,7 @@ impl XsdValue for PositiveInteger {
 	}
 }
 
-impl ParseRdf for PositiveInteger {
+impl ParseXsd for PositiveInteger {
 	type LexicalForm = lexical::PositiveInteger;
 }
 

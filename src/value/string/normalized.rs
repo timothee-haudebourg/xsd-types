@@ -1,7 +1,7 @@
 use core::fmt;
 use std::{borrow::Borrow, ops::Deref, str::FromStr};
 
-use crate::ParseRdf;
+use crate::ParseXsd;
 
 #[derive(Debug, thiserror::Error)]
 #[error("invalid normalized string `{0}`")]
@@ -112,6 +112,6 @@ impl FromStr for NormalizedString {
 	}
 }
 
-impl ParseRdf for NormalizedString {
+impl ParseXsd for NormalizedString {
 	type LexicalForm = crate::lexical::NormalizedStr;
 }

@@ -4,7 +4,7 @@ use std::{fmt, str::FromStr};
 use crate::{
 	lexical::{InvalidDateTime, LexicalFormOf},
 	utils::div_rem,
-	Datatype, ParseRdf, XsdValue,
+	Datatype, ParseXsd, XsdValue,
 };
 
 #[derive(Debug, thiserror::Error)]
@@ -64,7 +64,7 @@ impl XsdValue for DateTime {
 	}
 }
 
-impl ParseRdf for DateTime {
+impl ParseXsd for DateTime {
 	type LexicalForm = crate::lexical::DateTime;
 }
 

@@ -1,6 +1,6 @@
 use chrono::FixedOffset;
 
-use crate::{format_timezone, Datatype, ParseRdf, XsdValue};
+use crate::{format_timezone, Datatype, ParseXsd, XsdValue};
 use core::fmt;
 
 #[derive(Debug, Clone, Copy)]
@@ -25,7 +25,7 @@ impl XsdValue for GDay {
 	}
 }
 
-impl ParseRdf for GDay {
+impl ParseXsd for GDay {
 	type LexicalForm = crate::lexical::GDay;
 }
 

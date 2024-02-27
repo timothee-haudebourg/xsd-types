@@ -34,6 +34,7 @@ class Datatype
 	end
 
 	def generate_datatype_enum
+		puts "/// [`#{@ref_name}`] datatype variants."
 		puts "#[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash)]"
 		puts "pub enum #{@name}Datatype {"
 
@@ -81,10 +82,10 @@ class Datatype
 		puts "\t}"
 		puts "\tpub fn parse(&self, value: &str) -> Result<#{@name}Value, ParseError> {"
 		puts "\t\tmatch self {"
-		puts "\t\t\tSelf::#{@name} => ParseRdf::parse_rdf(value).map(#{@name}Value::#{@name}).map_err(|_| ParseError),"
+		puts "\t\t\tSelf::#{@name} => ParseXsd::parse_rdf(value).map(#{@name}Value::#{@name}).map_err(|_| ParseError),"
 		@subclasses.each do |c|
 			if c.subclasses.empty? then
-				puts "\t\t\tSelf::#{c.name} => ParseRdf::parse_rdf(value).map(#{@name}Value::#{c.name}).map_err(|_| ParseError),"
+				puts "\t\t\tSelf::#{c.name} => ParseXsd::parse_rdf(value).map(#{@name}Value::#{c.name}).map_err(|_| ParseError),"
 			else
 				puts "\t\t\tSelf::#{c.name}(t) => t.parse(value).map(Into::into),"
 			end
@@ -102,6 +103,7 @@ class Datatype
 	end
 
 	def generate_value_enum
+		puts "/// Any specialized [`#{@ref_name}`] value."
 		puts "#[derive(Debug, Clone)]"
 		puts "pub enum #{@name}Value {"
 		self.generate_value_variants
@@ -141,6 +143,7 @@ class Datatype
 		end
 	
 		if self.any_subtype? { |c| !c.is_copy? } then
+			puts "/// Any specialized [`#{@ref_name}`] value reference."
 			puts "#[derive(Debug, Clone, Copy)]"
 			puts "pub enum #{@name}ValueRef<'a> {"
 			self.generate_value_ref_variants
@@ -427,6 +430,7 @@ datatypes = [
 ]
 
 def generate_datatype_enum(classes)
+	puts "/// XSD datatype (primitive or not)."
 	puts "#[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash)]"
 	puts "pub enum Datatype {"
 
@@ -470,7 +474,7 @@ def generate_datatype_enum(classes)
 	puts "\t\tmatch self {"
 	classes.each do |c|
 		if c.subclasses.empty? then
-			puts "\t\t\tSelf::#{c.name} => ParseRdf::parse_rdf(value).map(Value::#{c.name}).map_err(|_| ParseError),"
+			puts "\t\t\tSelf::#{c.name} => ParseXsd::parse_rdf(value).map(Value::#{c.name}).map_err(|_| ParseError),"
 		else
 			puts "\t\t\tSelf::#{c.name}(t) => t.parse(value).map(Into::into),"
 		end
@@ -487,6 +491,7 @@ def generate_datatype_enum(classes)
 end
 
 def generate_value_enum(classes)
+	puts "/// Any XSD value."
 	puts "#[derive(Debug, Clone)]"
 	puts "pub enum Value {"
 	classes.each do |c|
@@ -520,6 +525,7 @@ def generate_value_enum(classes)
 	puts "\t}"
 	puts "}"
 
+	puts "/// Any XSD value reference."
 	puts "#[derive(Debug, Clone, Copy)]"
 	puts "pub enum ValueRef<'a> {"
 	classes.each do |c|
@@ -590,7 +596,7 @@ puts "use iref::Iri;"
 puts "use std::fmt;"
 puts "use crate::{"
 puts "XsdValue,"
-puts "ParseRdf,"
+puts "ParseXsd,"
 datatypes.each do |t|
 	t.each_subtype do |t|
 		puts "#{t.iri},"
@@ -608,6 +614,9 @@ datatypes.each do |t|
 end
 puts "};"
 
+puts "/// XSD value parse error."
+puts "#[derive(Debug, thiserror::Error)]"
+puts "#[error(\"XSD value syntax error\")]"
 puts "pub struct ParseError;"
 
 generate_datatype_enum(datatypes)

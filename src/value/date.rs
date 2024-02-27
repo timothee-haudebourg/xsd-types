@@ -3,7 +3,7 @@ use chrono::{Datelike, FixedOffset, NaiveDate};
 use crate::{
 	format_timezone,
 	lexical::{InvalidDate, LexicalFormOf},
-	Datatype, DisplayYear, ParseRdf, XsdValue,
+	Datatype, DisplayYear, ParseXsd, XsdValue,
 };
 use core::fmt;
 use std::str::FromStr;
@@ -49,7 +49,7 @@ impl XsdValue for Date {
 	}
 }
 
-impl ParseRdf for Date {
+impl ParseXsd for Date {
 	type LexicalForm = crate::lexical::Date;
 }
 

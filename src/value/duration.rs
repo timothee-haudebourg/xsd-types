@@ -1,4 +1,4 @@
-use crate::{format_nanoseconds, Datatype, ParseRdf, XsdValue};
+use crate::{format_nanoseconds, Datatype, ParseXsd, XsdValue};
 use core::fmt;
 
 #[derive(Debug, Clone, Copy)]
@@ -33,7 +33,7 @@ impl XsdValue for Duration {
 	}
 }
 
-impl ParseRdf for Duration {
+impl ParseXsd for Duration {
 	type LexicalForm = crate::lexical::Duration;
 }
 
