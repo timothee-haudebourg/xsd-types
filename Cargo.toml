@@ -1,6 +1,6 @@
 [package]
 name = "xsd-types"
-version = "0.8.2" # DO NOT PUBLISH YET
+version = "0.9.0"
 edition = "2021"
 authors = ["Timothée Haudebourg <author@haudebourg.net>"]
 description = "XSD data types."
