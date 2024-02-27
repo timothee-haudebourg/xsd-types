@@ -125,17 +125,37 @@ impl LexicalFormOf<crate::Duration> for Duration {
 	}
 }
 
+#[derive(Debug, PartialEq, Eq)]
 pub struct Parts<'a> {
-	is_negative: bool,
-	year: Option<&'a str>,
-	month: Option<&'a str>,
-	day: Option<&'a str>,
-	hour: Option<&'a str>,
-	minute: Option<&'a str>,
-	second: Option<&'a str>,
+	pub is_negative: bool,
+	pub year: Option<&'a str>,
+	pub month: Option<&'a str>,
+	pub day: Option<&'a str>,
+	pub hour: Option<&'a str>,
+	pub minute: Option<&'a str>,
+	pub second: Option<&'a str>,
 }
 
 impl<'a> Parts<'a> {
+	pub fn new(
+		is_negative: bool,
+		year: Option<&'a str>,
+		month: Option<&'a str>,
+		day: Option<&'a str>,
+		hour: Option<&'a str>,
+		minute: Option<&'a str>,
+		second: Option<&'a str>,
+	) -> Self {
+		Self {
+			is_negative,
+			year,
+			month,
+			day,
+			hour,
+			minute,
+			second,
+		}
+	}
 	fn to_duration(&self) -> crate::Duration {
 		let mut months = 0u32;
 
@@ -175,5 +195,47 @@ impl<'a> Parts<'a> {
 		}
 
 		crate::Duration::new(self.is_negative, months, seconds, nano_seconds)
+	}
+}
+
+#[cfg(test)]
+mod tests {
+	use super::*;
+
+	#[test]
+	fn parsing() {
+		let vectors = [
+			(
+				"P9Y11M",
+				Parts::new(false, Some("9"), Some("11"), None, None, None, None),
+				"P9Y11M",
+			),
+			(
+				"P9Y12M",
+				Parts::new(false, Some("9"), Some("12"), None, None, None, None),
+				"P10Y",
+			),
+			(
+				"-P9Y12M1DT24H01M1.0001S",
+				Parts::new(
+					true,
+					Some("9"),
+					Some("12"),
+					Some("1"),
+					Some("24"),
+					Some("01"),
+					Some("1.0001"),
+				),
+				"-P10Y2DT1M1.0001S",
+			),
+		];
+
+		for (input, parts, normalized) in vectors {
+			let lexical_repr = Duration::new(input).unwrap();
+			assert_eq!(lexical_repr.parts(), parts);
+
+			let value = lexical_repr.try_as_value().unwrap();
+			assert_eq!(value.to_string().as_str(), normalized)
+		}
 	}
 }

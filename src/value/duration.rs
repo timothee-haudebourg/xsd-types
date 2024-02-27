@@ -77,14 +77,17 @@ impl fmt::Display for Duration {
 			}
 
 			if minute > 0 {
-				write!(f, "{minute}H")?;
+				write!(f, "{minute}M")?;
 			}
 
-			if second > 0 {
-				write!(f, "{second}H")?;
-			}
+			if second > 0 || self.nano_seconds > 0 {
+				if second > 0 {
+					second.fmt(f)?;
+				}
 
-			format_nanoseconds(self.nano_seconds, f)?;
+				format_nanoseconds(self.nano_seconds, f)?;
+				write!(f, "S")?;
+			}
 		}
 
 		Ok(())
