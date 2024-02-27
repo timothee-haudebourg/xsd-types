@@ -82,10 +82,10 @@ class Datatype
 		puts "\t}"
 		puts "\tpub fn parse(&self, value: &str) -> Result<#{@name}Value, ParseError> {"
 		puts "\t\tmatch self {"
-		puts "\t\t\tSelf::#{@name} => ParseXsd::parse_rdf(value).map(#{@name}Value::#{@name}).map_err(|_| ParseError),"
+		puts "\t\t\tSelf::#{@name} => ParseXsd::parse_xsd(value).map(#{@name}Value::#{@name}).map_err(|_| ParseError),"
 		@subclasses.each do |c|
 			if c.subclasses.empty? then
-				puts "\t\t\tSelf::#{c.name} => ParseXsd::parse_rdf(value).map(#{@name}Value::#{c.name}).map_err(|_| ParseError),"
+				puts "\t\t\tSelf::#{c.name} => ParseXsd::parse_xsd(value).map(#{@name}Value::#{c.name}).map_err(|_| ParseError),"
 			else
 				puts "\t\t\tSelf::#{c.name}(t) => t.parse(value).map(Into::into),"
 			end
@@ -474,7 +474,7 @@ def generate_datatype_enum(classes)
 	puts "\t\tmatch self {"
 	classes.each do |c|
 		if c.subclasses.empty? then
-			puts "\t\t\tSelf::#{c.name} => ParseXsd::parse_rdf(value).map(Value::#{c.name}).map_err(|_| ParseError),"
+			puts "\t\t\tSelf::#{c.name} => ParseXsd::parse_xsd(value).map(Value::#{c.name}).map_err(|_| ParseError),"
 		else
 			puts "\t\t\tSelf::#{c.name}(t) => t.parse(value).map(Into::into),"
 		end
