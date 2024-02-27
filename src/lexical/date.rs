@@ -1,6 +1,6 @@
 use static_regular_grammar::RegularGrammar;
 
-use crate::lexical::parse_timezone;
+use crate::{lexical::parse_timezone, utils::byte_index_of};
 
 use super::{Lexical, LexicalFormOf};
 
@@ -23,8 +23,7 @@ use super::{Lexical, LexicalFormOf};
 ///     / ("1" / "2") DIGIT
 ///     / "3" ("0" / "1")
 ///
-/// minute = "0" NZDIGIT
-///        / ("1" / "2" / "3" / "4" / "5") DIGIT
+/// minute = ("0" / "1" / "2" / "3" / "4" / "5") DIGIT
 ///
 /// timezone = ("+" / "-") ((("0" DIGIT / "1" ("0" / "1" / "2" / "3")) ":" minute) / "14:00")
 ///          / %s"Z"
@@ -37,56 +36,18 @@ pub struct Date(str);
 
 impl Date {
 	pub fn parts(&self) -> Parts {
-		enum State {
-			Year,
-			Month,
-			Day,
-		}
-
-		let mut state = State::Year;
-
-		let mut month = 0;
-		let mut day = 0;
-		let mut timezone = 0;
-
-		for (i, c) in self.0.char_indices() {
-			state = match state {
-				State::Year => match c {
-					'-' if i > 0 => {
-						month = i + 1;
-						State::Month
-					}
-					_ => State::Year,
-				},
-				State::Month => match c {
-					'-' => {
-						day = i + 1;
-						timezone = day;
-						State::Day
-					}
-					_ => State::Month,
-				},
-				State::Day => match c {
-					'0'..='9' => {
-						timezone = i;
-						State::Day
-					}
-					_ => {
-						timezone = i;
-						break;
-					}
-				},
-			};
-		}
+		let year_end = byte_index_of(self.0.as_bytes(), 4, b'-').unwrap();
+		let month_end = year_end + 3;
+		let day_end = month_end + 3;
 
 		Parts {
-			year: &self.0[..(month - 1)],
-			month: &self.0[month..(day - 1)],
-			day: &self.0[day..timezone],
-			timezone: if timezone == self.0.len() {
+			year: &self.0[..year_end],
+			month: &self.0[(year_end + 1)..month_end],
+			day: &self.0[(month_end + 1)..day_end],
+			timezone: if day_end == self.0.len() {
 				None
 			} else {
-				Some(&self.0[timezone..])
+				Some(&self.0[day_end..])
 			},
 		}
 	}
@@ -108,6 +69,7 @@ impl LexicalFormOf<crate::Date> for Date {
 	}
 }
 
+#[derive(Debug, PartialEq, Eq)]
 pub struct Parts<'a> {
 	year: &'a str,
 	month: &'a str,
@@ -116,6 +78,15 @@ pub struct Parts<'a> {
 }
 
 impl<'a> Parts<'a> {
+	pub fn new(year: &'a str, month: &'a str, day: &'a str, timezone: Option<&'a str>) -> Self {
+		Self {
+			year,
+			month,
+			day,
+			timezone,
+		}
+	}
+
 	fn to_date(&self) -> Result<crate::Date, crate::InvalidDateValue> {
 		let date = chrono::NaiveDate::from_ymd_opt(
 			self.year.parse().unwrap(),
@@ -125,5 +96,36 @@ impl<'a> Parts<'a> {
 		.ok_or(crate::InvalidDateValue)?;
 
 		Ok(crate::Date::new(date, self.timezone.map(parse_timezone)))
+	}
+}
+
+#[cfg(test)]
+mod tests {
+	use super::*;
+
+	#[test]
+	fn parsing() {
+		let vectors = [
+			(
+				"2002-05-31+01:00",
+				Parts::new("2002", "05", "31", Some("+01:00")),
+			),
+			(
+				"2002-10-10-05:00",
+				Parts::new("2002", "10", "10", Some("-05:00")),
+			),
+			(
+				"202002-10-10-05:00",
+				Parts::new("202002", "10", "10", Some("-05:00")),
+			),
+		];
+
+		for (input, parts) in vectors {
+			let lexical_repr = Date::new(input).unwrap();
+			assert_eq!(lexical_repr.parts(), parts);
+
+			let value = lexical_repr.try_as_value().unwrap();
+			assert_eq!(value.to_string().as_str(), input)
+		}
 	}
 }

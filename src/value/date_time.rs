@@ -3,6 +3,7 @@ use std::{fmt, str::FromStr};
 
 use crate::{
 	lexical::{InvalidDateTime, LexicalFormOf},
+	utils::div_rem,
 	Datatype, ParseRdf, XsdValue,
 };
 
@@ -86,15 +87,35 @@ impl fmt::Display for DateTime {
 }
 
 pub(crate) fn format_nanoseconds(ns: u32, f: &mut fmt::Formatter) -> fmt::Result {
-	let nano = ns % 1_000_000_000;
+	let mut nano = ns % 1_000_000_000;
+
 	if nano == 0 {
 		Ok(())
-	} else if nano % 1_000_000 == 0 {
-		write!(f, ".{:03}", nano / 1_000_000)
-	} else if nano % 1_000 == 0 {
-		write!(f, ".{:06}", nano / 1_000)
 	} else {
-		write!(f, ".{nano:09}")
+		let mut buffer = *b".000000000";
+		let mut i = 10;
+		let mut trailing = true;
+		let mut end = 10;
+		while nano > 0 {
+			i -= 1;
+			let (rest, d) = div_rem(nano, 10);
+			nano = rest;
+
+			if trailing {
+				if d == 0 {
+					end = i;
+					continue;
+				} else {
+					trailing = false;
+				}
+			}
+
+			buffer[i] = b'0' + d as u8;
+		}
+
+		let string = unsafe { std::str::from_utf8_unchecked(&buffer[..end]) };
+
+		f.write_str(string)
 	}
 }
 
@@ -104,7 +125,15 @@ pub(crate) fn format_timezone(tz: Option<FixedOffset>, f: &mut fmt::Formatter) -
 			if tz.local_minus_utc() == 0 {
 				write!(f, "Z")
 			} else {
-				let tz_minutes = tz.local_minus_utc() / 60;
+				let tz = if tz.local_minus_utc() > 0 {
+					write!(f, "+")?;
+					tz.local_minus_utc() as u32
+				} else {
+					write!(f, "-")?;
+					-tz.local_minus_utc() as u32
+				};
+
+				let tz_minutes = tz / 60;
 				let hours = tz_minutes / 60;
 				let minutes = tz_minutes % 60;
 				write!(f, "{hours:02}:{minutes:02}")

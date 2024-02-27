@@ -1,6 +1,6 @@
 use static_regular_grammar::RegularGrammar;
 
-use crate::InvalidDateTimeValue;
+use crate::{utils::byte_index_of, InvalidDateTimeValue};
 
 use super::{Lexical, LexicalFormOf};
 
@@ -26,15 +26,12 @@ use super::{Lexical, LexicalFormOf};
 ///     / ("1" / "2") DIGIT
 ///     / "3" ("0" / "1")
 ///
-/// hour = "0" NZDIGIT
-///      / "1" DIGIT
+/// hour = ("0" / "1") DIGIT
 ///      / "2" ("0" / "1" / "2" / "3")
 ///
-/// minute = "0" NZDIGIT
-///        / ("1" / "2" / "3" / "4" / "5") DIGIT
+/// minute = ("0" / "1" / "2" / "3" / "4" / "5") DIGIT
 ///
-/// second = "0" NZDIGIT
-///        / ("1" / "2" / "3" / "4" / "5") DIGIT
+/// second = ("0" / "1" / "2" / "3" / "4" / "5") DIGIT
 ///
 /// fraction = 1*DIGIT
 ///
@@ -50,84 +47,25 @@ pub struct DateTime(str);
 
 impl DateTime {
 	pub fn parts(&self) -> Parts {
-		enum State {
-			Year,
-			Month,
-			Day,
-			Hours,
-			Minutes,
-			Seconds,
-		}
-
-		let mut state = State::Year;
-
-		let mut month = 0;
-		let mut day = 0;
-		let mut hours = 0;
-		let mut minutes = 0;
-		let mut seconds = 0;
-		let mut timezone = 0;
-
-		for (i, c) in self.0.char_indices() {
-			state = match state {
-				State::Year => match c {
-					'-' if i > 0 => {
-						month = i + 1;
-						State::Month
-					}
-					_ => State::Year,
-				},
-				State::Month => match c {
-					'-' => {
-						day = i + 1;
-						State::Day
-					}
-					_ => State::Month,
-				},
-				State::Day => match c {
-					'T' => {
-						hours = i + 1;
-						State::Hours
-					}
-					_ => State::Day,
-				},
-				State::Hours => match c {
-					':' => {
-						minutes = i + 1;
-						State::Minutes
-					}
-					_ => State::Hours,
-				},
-				State::Minutes => match c {
-					':' => {
-						seconds = i + 1;
-						State::Seconds
-					}
-					_ => State::Minutes,
-				},
-				State::Seconds => {
-					timezone = i;
-
-					if !matches!(c, '0'..='9' | '.') {
-						break;
-					}
-
-					State::Seconds
-				}
-			};
-		}
+		let year_end = byte_index_of(self.0.as_bytes(), 4, b'-').unwrap();
+		let month_end = year_end + 3;
+		let day_end = month_end + 3;
+		let hour_end = day_end + 3;
+		let minute_end = hour_end + 3;
+		let second_end =
+			byte_index_of(self.0.as_bytes(), minute_end + 3, [b'+', b'-']).unwrap_or(self.0.len());
 
 		Parts {
-			year: &self.0[..(month - 1)],
-			month: &self.0[month..(day - 1)],
-			day: &self.0[day..(hours - 1)],
-			hours: &self.0[hours..(minutes - 1)],
-			minutes: &self.0[minutes..(seconds - 1)],
-			seconds: &self.0[seconds..timezone],
-			timezone: if timezone == self.0.len() {
+			year: &self.0[..year_end],
+			month: &self.0[(year_end + 1)..month_end],
+			day: &self.0[(month_end + 1)..day_end],
+			hours: &self.0[(day_end + 1)..hour_end],
+			minutes: &self.0[(hour_end + 1)..minute_end],
+			seconds: &self.0[(minute_end + 1)..second_end],
+			timezone: if second_end == self.0.len() {
 				None
 			} else {
-				Some(&self.0[timezone..])
+				Some(&self.0[second_end..])
 			},
 		}
 	}
@@ -149,17 +87,38 @@ impl LexicalFormOf<crate::DateTime> for DateTime {
 	}
 }
 
+#[derive(Debug, PartialEq, Eq)]
 pub struct Parts<'a> {
-	year: &'a str,
-	month: &'a str,
-	day: &'a str,
-	hours: &'a str,
-	minutes: &'a str,
-	seconds: &'a str,
-	timezone: Option<&'a str>,
+	pub year: &'a str,
+	pub month: &'a str,
+	pub day: &'a str,
+	pub hours: &'a str,
+	pub minutes: &'a str,
+	pub seconds: &'a str,
+	pub timezone: Option<&'a str>,
 }
 
 impl<'a> Parts<'a> {
+	pub fn new(
+		year: &'a str,
+		month: &'a str,
+		day: &'a str,
+		hours: &'a str,
+		minutes: &'a str,
+		seconds: &'a str,
+		timezone: Option<&'a str>,
+	) -> Self {
+		Self {
+			year,
+			month,
+			day,
+			hours,
+			minutes,
+			seconds,
+			timezone,
+		}
+	}
+
 	fn to_datetime(&self) -> Result<crate::DateTime, crate::InvalidDateTimeValue> {
 		let date = chrono::NaiveDate::from_ymd_opt(
 			self.year.parse().unwrap(),
@@ -168,10 +127,13 @@ impl<'a> Parts<'a> {
 		)
 		.ok_or(crate::InvalidDateTimeValue)?;
 
-		let time = chrono::NaiveTime::from_hms_opt(
+		let (seconds, nanoseconds) = parse_seconds_decimal(self.seconds);
+
+		let time = chrono::NaiveTime::from_hms_nano_opt(
 			self.hours.parse().unwrap(),
 			self.minutes.parse().unwrap(),
-			self.seconds.parse().unwrap(),
+			seconds,
+			nanoseconds,
 		)
 		.ok_or(crate::InvalidDateTimeValue)?;
 
@@ -181,6 +143,21 @@ impl<'a> Parts<'a> {
 			datetime,
 			self.timezone.map(parse_timezone),
 		))
+	}
+}
+
+/// Parses a decimal number representing seconds and returns the represented
+/// number of seconds and nanoseconds.
+pub(crate) fn parse_seconds_decimal(decimal: &str) -> (u32, u32) {
+	match decimal.split_once('.') {
+		Some((integer, fract)) => {
+			let seconds = integer.parse().unwrap();
+			let fract = if fract.len() > 9 { &fract[..9] } else { fract };
+			let nano_seconds = fract.parse::<u32>().unwrap() * 10u32.pow(9 - fract.len() as u32);
+
+			(seconds, nano_seconds)
+		}
+		None => (decimal.parse().unwrap(), 0),
 	}
 }
 
@@ -197,6 +174,57 @@ pub(crate) fn parse_timezone(tz: &str) -> chrono::FixedOffset {
 				h.parse::<i32>().unwrap() * HOUR + m.parse::<i32>().unwrap() * MINUTE,
 			)
 			.unwrap()
+		}
+	}
+}
+
+#[cfg(test)]
+mod tests {
+	use super::*;
+
+	#[test]
+	fn parsing() {
+		let vectors = [
+			(
+				"2002-05-31T13:07:12+01:00",
+				Parts::new("2002", "05", "31", "13", "07", "12", Some("+01:00")),
+			),
+			(
+				"2002-05-31T13:07:12",
+				Parts::new("2002", "05", "31", "13", "07", "12", None),
+			),
+			(
+				"-2002-05-31T13:07:12+01:00",
+				Parts::new("-2002", "05", "31", "13", "07", "12", Some("+01:00")),
+			),
+			(
+				"2002-10-10T12:00:00-05:00",
+				Parts::new("2002", "10", "10", "12", "00", "00", Some("-05:00")),
+			),
+			(
+				"202002-10-10T12:00:00.00001-05:00",
+				Parts::new("202002", "10", "10", "12", "00", "00.00001", Some("-05:00")),
+			),
+			(
+				"-202002-10-10T12:00:00.00001-05:00",
+				Parts::new(
+					"-202002",
+					"10",
+					"10",
+					"12",
+					"00",
+					"00.00001",
+					Some("-05:00"),
+				),
+			),
+		];
+
+		for (input, parts) in vectors {
+			let lexical_repr = DateTime::new(input).unwrap();
+			assert_eq!(lexical_repr.parts(), parts);
+
+			let value = lexical_repr.try_as_value().unwrap();
+			assert_eq!(value.to_string().as_str(), input)
 		}
 	}
 }

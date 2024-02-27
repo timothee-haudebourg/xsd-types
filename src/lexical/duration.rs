@@ -1,4 +1,4 @@
-use super::{Lexical, LexicalFormOf};
+use super::{date_time::parse_seconds_decimal, Lexical, LexicalFormOf};
 use static_regular_grammar::RegularGrammar;
 
 /// Duration.
@@ -169,21 +169,9 @@ impl<'a> Parts<'a> {
 		let mut nano_seconds = 0u32;
 
 		if let Some(s) = self.second {
-			match s.split_once('.') {
-				Some((s, fract)) => {
-					let s: u32 = s.parse().unwrap();
-					seconds += s;
-
-					let fract = if fract.len() > 9 { &fract[..9] } else { fract };
-
-					nano_seconds =
-						fract.parse::<u32>().unwrap() * 10u32.pow(9 - fract.len() as u32);
-				}
-				None => {
-					let s: u32 = s.parse().unwrap();
-					seconds += s;
-				}
-			}
+			let (s, ns) = parse_seconds_decimal(s);
+			seconds += s;
+			nano_seconds = ns;
 		}
 
 		crate::Duration::new(self.is_negative, months, seconds, nano_seconds)

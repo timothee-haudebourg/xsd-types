@@ -5,6 +5,7 @@ use iref::Iri;
 use static_iref::iri;
 
 pub mod lexical;
+pub(crate) mod utils;
 pub mod value;
 
 use lexical::{Lexical, LexicalFormOf};

@@ -7,14 +7,13 @@ use super::{Lexical, LexicalFormOf};
 /// GDay.
 ///
 /// ```abnf
-/// date = "---" day [timezone]
+/// g-day = "---" day [timezone]
 ///
 /// day = "0" NZDIGIT
 ///     / ("1" / "2") DIGIT
 ///     / "3" ("0" / "1")
 ///
-/// minute = "0" NZDIGIT
-///        / ("1" / "2" / "3" / "4" / "5") DIGIT
+/// minute = ("0" / "1" / "2" / "3" / "4" / "5") DIGIT
 ///
 /// timezone = ("+" / "-") ((("0" DIGIT / "1" ("0" / "1" / "2" / "3")) ":" minute) / "14:00")
 ///          / %s"Z"
@@ -50,7 +49,7 @@ impl LexicalFormOf<crate::GDay> for GDay {
 	type ValueError = std::convert::Infallible;
 
 	fn try_as_value(&self) -> Result<crate::GDay, Self::ValueError> {
-		Ok(self.parts().to_gday())
+		Ok(self.parts().to_g_day())
 	}
 }
 
@@ -60,7 +59,7 @@ pub struct Parts<'a> {
 }
 
 impl<'a> Parts<'a> {
-	fn to_gday(&self) -> crate::GDay {
+	fn to_g_day(&self) -> crate::GDay {
 		crate::GDay::new(self.day.parse().unwrap(), self.timezone.map(parse_timezone)).unwrap()
 	}
 }

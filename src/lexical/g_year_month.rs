@@ -7,7 +7,7 @@ use super::{Lexical, LexicalFormOf};
 /// GYearMonth.
 ///
 /// ```abnf
-/// date = year "-" month [timezone]
+/// g-year-month = year "-" month [timezone]
 ///
 /// year = [ "-" ] year-number
 ///
@@ -19,8 +19,7 @@ use super::{Lexical, LexicalFormOf};
 /// month = "0" NZDIGIT
 ///       / "1" ( "0" / "1" / "2" )
 ///
-/// minute = "0" NZDIGIT
-///        / ("1" / "2" / "3" / "4" / "5") DIGIT
+/// minute = ("0" / "1" / "2" / "3" / "4" / "5") DIGIT
 ///
 /// timezone = ("+" / "-") ((("0" DIGIT / "1" ("0" / "1" / "2" / "3")) ":" minute) / "14:00")
 ///          / %s"Z"
