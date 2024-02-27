@@ -1,6 +1,6 @@
 use static_regular_grammar::RegularGrammar;
 
-use crate::lexical::parse_timezone;
+use crate::{lexical::parse_timezone, utils::byte_index_of};
 
 use super::{Lexical, LexicalFormOf};
 
@@ -29,18 +29,15 @@ pub struct GYear(str);
 
 impl GYear {
 	pub fn parts(&self) -> Parts {
-		let year_end = self.as_bytes()[4..]
-			.iter()
-			.position(|&c| matches!(c, b'+' | b'-' | b'Z'))
-			.map(|i| i + 4)
-			.unwrap_or(self.0.len());
+		let year_end =
+			byte_index_of(self.0.as_bytes(), 4, [b'+', b'-', b'Z']).unwrap_or(self.0.len());
 
 		Parts {
 			year: &self.0[..year_end],
 			timezone: if self.0.len() > year_end {
-				None
-			} else {
 				Some(&self.0[year_end..])
+			} else {
+				None
 			},
 		}
 	}
@@ -62,16 +59,43 @@ impl LexicalFormOf<crate::GYear> for GYear {
 	}
 }
 
+#[derive(Debug, PartialEq, Eq)]
 pub struct Parts<'a> {
-	year: &'a str,
-	timezone: Option<&'a str>,
+	pub year: &'a str,
+	pub timezone: Option<&'a str>,
 }
 
 impl<'a> Parts<'a> {
+	pub fn new(year: &'a str, timezone: Option<&'a str>) -> Self {
+		Self { year, timezone }
+	}
+
 	fn to_g_year_month(&self) -> crate::GYear {
 		crate::GYear::new(
 			self.year.parse().unwrap(),
 			self.timezone.map(parse_timezone),
 		)
+	}
+}
+
+#[cfg(test)]
+mod tests {
+	use super::*;
+
+	#[test]
+	fn parsing() {
+		let vectors = [
+			("2014", Parts::new("2014", None)),
+			("-0001Z", Parts::new("-0001", Some("Z"))),
+			("10000+05:00", Parts::new("10000", Some("+05:00"))),
+		];
+
+		for (input, parts) in vectors {
+			let lexical_repr = GYear::new(input).unwrap();
+			assert_eq!(lexical_repr.parts(), parts);
+
+			let value = lexical_repr.try_as_value().unwrap();
+			assert_eq!(value.to_string().as_str(), input)
+		}
 	}
 }

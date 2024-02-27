@@ -72,8 +72,8 @@ impl fmt::Display for DateTime {
 	fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
 		write!(
 			f,
-			"{:04}-{:02}-{:02}T{:02}:{:02}:{:02}",
-			self.date_time.year(),
+			"{}-{:02}-{:02}T{:02}:{:02}:{:02}",
+			DisplayYear(self.date_time.year()),
 			self.date_time.month(),
 			self.date_time.day(),
 			self.date_time.hour(),
@@ -140,6 +140,18 @@ pub(crate) fn format_timezone(tz: Option<FixedOffset>, f: &mut fmt::Formatter) -
 			}
 		}
 		None => Ok(()),
+	}
+}
+
+pub(crate) struct DisplayYear(pub i32);
+
+impl fmt::Display for DisplayYear {
+	fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+		if self.0.is_negative() {
+			write!(f, "-{:04}", -self.0)
+		} else {
+			write!(f, "{:04}", self.0)
+		}
 	}
 }
 

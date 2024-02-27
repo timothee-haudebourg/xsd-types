@@ -1,6 +1,6 @@
 use chrono::FixedOffset;
 
-use crate::{format_timezone, Datatype, ParseRdf, XsdValue};
+use crate::{format_timezone, Datatype, DisplayYear, ParseRdf, XsdValue};
 use core::fmt;
 
 #[derive(Debug, Clone, Copy)]
@@ -27,8 +27,7 @@ impl ParseRdf for GYear {
 
 impl fmt::Display for GYear {
 	fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-		write!(f, "{:04}", self.year)?;
-
+		DisplayYear(self.year).fmt(f)?;
 		format_timezone(self.offset, f)
 	}
 }

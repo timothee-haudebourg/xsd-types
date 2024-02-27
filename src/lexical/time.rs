@@ -30,7 +30,8 @@ pub struct Time(str);
 
 impl Time {
 	fn parts(&self) -> Parts {
-		let seconds_end = byte_index_of(self.0.as_bytes(), 8, [b'+', b'-']).unwrap_or(self.0.len());
+		let seconds_end =
+			byte_index_of(self.0.as_bytes(), 8, [b'+', b'-', b'Z']).unwrap_or(self.0.len());
 		Parts {
 			hours: &self.0[..2],
 			minutes: &self.0[3..5],

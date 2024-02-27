@@ -33,9 +33,9 @@ impl GMonthDay {
 			month: &self.0[2..4],
 			day: &self.0[5..7],
 			timezone: if self.0.len() > 7 {
-				None
-			} else {
 				Some(&self.0[7..])
+			} else {
+				None
 			},
 		}
 	}
@@ -57,13 +57,22 @@ impl LexicalFormOf<crate::GMonthDay> for GMonthDay {
 	}
 }
 
+#[derive(Debug, PartialEq, Eq)]
 pub struct Parts<'a> {
-	month: &'a str,
-	day: &'a str,
-	timezone: Option<&'a str>,
+	pub month: &'a str,
+	pub day: &'a str,
+	pub timezone: Option<&'a str>,
 }
 
 impl<'a> Parts<'a> {
+	pub fn new(month: &'a str, day: &'a str, timezone: Option<&'a str>) -> Self {
+		Self {
+			month,
+			day,
+			timezone,
+		}
+	}
+
 	fn to_g_month_day(&self) -> crate::GMonthDay {
 		crate::GMonthDay::new(
 			self.month.parse().unwrap(),
@@ -71,5 +80,27 @@ impl<'a> Parts<'a> {
 			self.timezone.map(parse_timezone),
 		)
 		.unwrap()
+	}
+}
+
+#[cfg(test)]
+mod tests {
+	use super::*;
+
+	#[test]
+	fn parsing() {
+		let vectors = [
+			("--01-12", Parts::new("01", "12", None)),
+			("--03-31Z", Parts::new("03", "31", Some("Z"))),
+			("--02-20+05:00", Parts::new("02", "20", Some("+05:00"))),
+		];
+
+		for (input, parts) in vectors {
+			let lexical_repr = GMonthDay::new(input).unwrap();
+			assert_eq!(lexical_repr.parts(), parts);
+
+			let value = lexical_repr.try_as_value().unwrap();
+			assert_eq!(value.to_string().as_str(), input)
+		}
 	}
 }

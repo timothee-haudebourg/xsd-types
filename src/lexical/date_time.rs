@@ -52,8 +52,8 @@ impl DateTime {
 		let day_end = month_end + 3;
 		let hour_end = day_end + 3;
 		let minute_end = hour_end + 3;
-		let second_end =
-			byte_index_of(self.0.as_bytes(), minute_end + 3, [b'+', b'-']).unwrap_or(self.0.len());
+		let second_end = byte_index_of(self.0.as_bytes(), minute_end + 3, [b'+', b'-', b'Z'])
+			.unwrap_or(self.0.len());
 
 		Parts {
 			year: &self.0[..year_end],

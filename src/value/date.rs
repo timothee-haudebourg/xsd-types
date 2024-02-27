@@ -3,7 +3,7 @@ use chrono::{Datelike, FixedOffset, NaiveDate};
 use crate::{
 	format_timezone,
 	lexical::{InvalidDate, LexicalFormOf},
-	Datatype, ParseRdf, XsdValue,
+	Datatype, DisplayYear, ParseRdf, XsdValue,
 };
 use core::fmt;
 use std::str::FromStr;
@@ -57,8 +57,8 @@ impl fmt::Display for Date {
 	fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
 		write!(
 			f,
-			"{:04}-{:02}-{:02}",
-			self.date.year(),
+			"{}-{:02}-{:02}",
+			DisplayYear(self.date.year()),
 			self.date.month(),
 			self.date.day()
 		)?;
