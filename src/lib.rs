@@ -5,7 +5,7 @@
 //!
 //! # Usage
 //!
-//! For each XSD datatype, this library provides a two families of types:
+//! For each XSD datatype, this library provides two families of types:
 //! one representing the *lexical space* of the datatype (see the [`lexical`]
 //! module), and one representing the *value space* of the datatype (see the
 //! [`value`] module).
