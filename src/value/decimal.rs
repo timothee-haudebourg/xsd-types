@@ -7,7 +7,7 @@ use std::{borrow::Borrow, collections::HashSet};
 use lazy_static::lazy_static;
 use num_bigint::BigInt;
 use num_rational::BigRational;
-use num_traits::{Signed, Zero};
+use num_traits::{Signed, ToPrimitive, Zero};
 use once_cell::unsync::OnceCell;
 
 use crate::lexical::LexicalFormOf;
@@ -264,6 +264,22 @@ impl Decimal {
 		self.lexical
 			.get_or_init(|| decimal_lexical_representation(&self.data).unwrap())
 	}
+
+	pub fn as_f64(&self) -> Option<f64> {
+		self.data.to_f64()
+	}
+
+	pub fn as_f32(&self) -> Option<f32> {
+		self.data.to_f32()
+	}
+
+	pub fn as_float(&self) -> Option<Float> {
+		self.as_f32().map(Float::from)
+	}
+
+	pub fn as_double(&self) -> Option<Double> {
+		self.as_f64().map(Double::from)
+	}
 }
 
 impl fmt::Display for Decimal {
@@ -368,6 +384,38 @@ macro_rules! try_into_int {
 pub struct FromDecimalError;
 
 try_into_int!(u8, u16, u32, u64, i8, i16, i32, i64, usize, isize);
+
+impl TryFrom<Decimal> for f32 {
+	type Error = FromDecimalError;
+
+	fn try_from(value: Decimal) -> Result<Self, Self::Error> {
+		value.as_f32().ok_or(FromDecimalError)
+	}
+}
+
+impl TryFrom<Decimal> for Float {
+	type Error = FromDecimalError;
+
+	fn try_from(value: Decimal) -> Result<Self, Self::Error> {
+		value.as_float().ok_or(FromDecimalError)
+	}
+}
+
+impl TryFrom<Decimal> for f64 {
+	type Error = FromDecimalError;
+
+	fn try_from(value: Decimal) -> Result<Self, Self::Error> {
+		value.as_f64().ok_or(FromDecimalError)
+	}
+}
+
+impl TryFrom<Decimal> for Double {
+	type Error = FromDecimalError;
+
+	fn try_from(value: Decimal) -> Result<Self, Self::Error> {
+		value.as_double().ok_or(FromDecimalError)
+	}
+}
 
 impl From<BigInt> for Decimal {
 	#[inline(always)]
