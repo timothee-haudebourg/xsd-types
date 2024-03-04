@@ -209,6 +209,22 @@ impl Decimal {
 		self.data.is_negative()
 	}
 
+	pub fn as_integer(&self) -> Option<&Integer> {
+		if self.data.is_integer() {
+			Some(Integer::from_bigint_ref(self.data.numer()))
+		} else {
+			None
+		}
+	}
+
+	pub fn into_integer(self) -> Option<Integer> {
+		if self.data.is_integer() {
+			Some(Integer::from(self.data.numer().clone())) // TODO avoid cloning.
+		} else {
+			None
+		}
+	}
+
 	pub fn decimal_type(&self) -> DecimalDatatype {
 		if self.data.is_integer() {
 			if self.data >= BigRational::zero() {
@@ -298,7 +314,7 @@ impl FromStr for Decimal {
 	}
 }
 
-macro_rules! from_native {
+macro_rules! from_int {
 	($($ty:ident),*) => {
 		$(
 			impl From<$ty> for Decimal {
@@ -313,7 +329,45 @@ macro_rules! from_native {
 	};
 }
 
-from_native!(u8, u16, u32, u64, i8, i16, i32, i64, usize, isize);
+from_int!(u8, u16, u32, u64, i8, i16, i32, i64, usize, isize);
+
+macro_rules! try_into_int {
+	($($ty:ident),*) => {
+		$(
+			impl TryFrom<Decimal> for $ty {
+				type Error = FromDecimalError;
+
+				fn try_from(value: Decimal) -> Result<Self, FromDecimalError> {
+					match value.as_integer() {
+						Some(i) => {
+							i.try_into().map_err(|_| FromDecimalError)
+						}
+						None => Err(FromDecimalError)
+					}
+				}
+			}
+
+			impl<'a> TryFrom<&'a Decimal> for $ty {
+				type Error = FromDecimalError;
+
+				fn try_from(value: &'a Decimal) -> Result<Self, FromDecimalError> {
+					match value.as_integer() {
+						Some(i) => {
+							i.try_into().map_err(|_| FromDecimalError)
+						}
+						None => Err(FromDecimalError)
+					}
+				}
+			}
+		)*
+	};
+}
+
+#[derive(Debug, thiserror::Error)]
+#[error("decimal number conversion failed")]
+pub struct FromDecimalError;
+
+try_into_int!(u8, u16, u32, u64, i8, i16, i32, i64, usize, isize);
 
 impl From<BigInt> for Decimal {
 	#[inline(always)]

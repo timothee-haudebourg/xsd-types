@@ -39,6 +39,12 @@ impl Integer {
 		}
 	}
 
+	/// Converts a `BigInt` into an `Integer`.
+	#[inline(always)]
+	pub fn from_bigint(n: BigInt) -> Self {
+		Self(n)
+	}
+
 	pub fn from_bytes_be(sign: Sign, bytes: &[u8]) -> Self {
 		Self(BigInt::from_bytes_be(sign, bytes))
 	}
@@ -249,6 +255,14 @@ macro_rules! try_into {
 
 				fn try_from(value: Integer) -> Result<Self, Self::Error> {
 					value.0.try_into().map_err(|e: TryFromBigIntError<BigInt>| IntegerOutOfTargetBounds(Integer(e.into_original())))
+				}
+			}
+
+			impl<'a> TryFrom<&'a Integer> for $ty {
+				type Error = IntegerOutOfTargetBounds;
+
+				fn try_from(value: &'a Integer) -> Result<Self, Self::Error> {
+					value.0.clone().try_into().map_err(|e: TryFromBigIntError<BigInt>| IntegerOutOfTargetBounds(Integer(e.into_original()))) // TODO avoid cloning.
 				}
 			}
 		)*
