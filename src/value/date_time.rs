@@ -1,5 +1,5 @@
 use chrono::{Datelike, FixedOffset, Timelike, Utc};
-use std::{fmt, str::FromStr};
+use std::{cmp::Ordering, fmt, hash::Hash, str::FromStr};
 
 use crate::{
 	lexical::{InvalidDateTime, LexicalFormOf},
@@ -28,7 +28,7 @@ pub enum TimezoneError {
 #[error("invalid datetime value")]
 pub struct InvalidDateTimeValue;
 
-#[derive(Debug, Clone, Copy, Hash)]
+#[derive(Debug, Clone, Copy)]
 pub struct DateTime {
 	date_time: chrono::NaiveDateTime,
 	offset: Option<FixedOffset>,
@@ -55,6 +55,59 @@ impl DateTime {
 
 	pub fn into_string(self) -> String {
 		self.to_string()
+	}
+
+	/// Returns the earliest date/time with offset represented by this
+	/// date/time.
+	pub fn earliest(&self) -> chrono::DateTime<FixedOffset> {
+		match self.offset {
+			Some(offset) => self.date_time.and_local_timezone(offset).unwrap(),
+			None => self
+				.date_time
+				.and_local_timezone(FixedOffset::west_opt(14 * 60 * 60).unwrap())
+				.unwrap(),
+		}
+	}
+
+	/// Returns the latest date/time with offset represented by this
+	/// date/time.
+	pub fn latest(&self) -> chrono::DateTime<FixedOffset> {
+		match self.offset {
+			Some(offset) => self.date_time.and_local_timezone(offset).unwrap(),
+			None => self
+				.date_time
+				.and_local_timezone(FixedOffset::east_opt(14 * 60 * 60).unwrap())
+				.unwrap(),
+		}
+	}
+}
+
+impl PartialEq for DateTime {
+	fn eq(&self, other: &Self) -> bool {
+		self.earliest() == other.earliest() && self.latest() == other.latest()
+	}
+}
+
+impl Eq for DateTime {}
+
+impl Hash for DateTime {
+	fn hash<H: std::hash::Hasher>(&self, state: &mut H) {
+		self.date_time.hash(state);
+		self.offset.hash(state)
+	}
+}
+
+impl PartialOrd for DateTime {
+	fn partial_cmp(&self, other: &Self) -> Option<Ordering> {
+		match (
+			self.earliest().cmp(&other.latest()),
+			self.latest().cmp(&other.earliest()),
+		) {
+			(Ordering::Equal, Ordering::Equal) => Some(Ordering::Equal),
+			(Ordering::Less, Ordering::Less) => Some(Ordering::Less),
+			(Ordering::Greater, Ordering::Greater) => Some(Ordering::Greater),
+			_ => None,
+		}
 	}
 }
 
