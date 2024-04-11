@@ -413,8 +413,13 @@ datatypes = [
 			])
 		])
 	]),
-	Datatype.new("Duration", "XSD_DURATION", true, []),
-	Datatype.new("DateTime", "XSD_DATE_TIME", true, []),
+	Datatype.new("Duration", "XSD_DURATION", true, [
+		Datatype.new("DayTimeDuration", "XSD_DAY_TIME_DURATION", true, []),
+		Datatype.new("YearMonthDuration", "XSD_YEAR_MONTH_DURATION", true, []),
+	]),
+	Datatype.new("DateTime", "XSD_DATE_TIME", true, [
+		Datatype.new("DateTimeStamp", "XSD_DATE_TIME_STAMP", true, []),
+	]),
 	Datatype.new("Time", "XSD_TIME", true, []),
 	Datatype.new("Date", "XSD_DATE", true, []),
 	Datatype.new("GYearMonth", "XSD_G_YEAR_MONTH", true, []),

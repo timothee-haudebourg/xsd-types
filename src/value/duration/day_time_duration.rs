@@ -1,16 +1,15 @@
-use crate::{format_nanoseconds, Datatype, ParseXsd, XsdValue};
+use crate::{format_nanoseconds, Datatype, DurationDatatype, ParseXsd, XsdValue};
 use core::fmt;
 
 #[derive(Debug, Clone, Copy)]
-pub struct Duration {
+pub struct DayTimeDuration {
 	is_negative: bool,
-	months: u32,
 	seconds: u32,
 	nano_seconds: u32,
 }
 
-impl Duration {
-	pub fn new(is_negative: bool, months: u32, mut seconds: u32, mut nano_seconds: u32) -> Self {
+impl DayTimeDuration {
+	pub fn new(is_negative: bool, mut seconds: u32, mut nano_seconds: u32) -> Self {
 		// Normalize nanoseconds.
 		let s = nano_seconds / 1_000_000_000;
 		if s > 0 {
@@ -20,28 +19,24 @@ impl Duration {
 
 		Self {
 			is_negative,
-			months,
 			seconds,
 			nano_seconds,
 		}
 	}
 }
 
-impl XsdValue for Duration {
+impl XsdValue for DayTimeDuration {
 	fn datatype(&self) -> Datatype {
-		Datatype::Duration
+		Datatype::Duration(DurationDatatype::Duration)
 	}
 }
 
-impl ParseXsd for Duration {
-	type LexicalForm = crate::lexical::Duration;
+impl ParseXsd for DayTimeDuration {
+	type LexicalForm = crate::lexical::DayTimeDuration;
 }
 
-impl fmt::Display for Duration {
+impl fmt::Display for DayTimeDuration {
 	fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-		let year = self.months / 12;
-		let month = self.months - year * 12;
-
 		let mut minute = self.seconds / 60;
 		let second = self.seconds - minute * 60;
 
@@ -56,14 +51,6 @@ impl fmt::Display for Duration {
 		}
 
 		write!(f, "P")?;
-
-		if year > 0 {
-			write!(f, "{year}Y")?;
-		}
-
-		if month > 0 {
-			write!(f, "{month}M")?;
-		}
 
 		if day > 0 {
 			write!(f, "{day}D")?;

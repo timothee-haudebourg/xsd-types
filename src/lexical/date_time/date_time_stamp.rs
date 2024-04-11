@@ -1,13 +1,13 @@
 use static_regular_grammar::RegularGrammar;
 
-use crate::{utils::byte_index_of, InvalidDateTimeValue};
+use crate::{utils::byte_index_of, InvalidDateTimeStampValue};
 
 use super::{Lexical, LexicalFormOf};
 
-/// Date and time.
+/// Date and time with required timezone offset.
 ///
 /// ```abnf
-/// date-time = year "-" month "-" day %s"T" time [timezone]
+/// date-time = year "-" month "-" day %s"T" time timezone
 ///
 /// time = hour ":" minute ":" second ["." fraction]
 ///      / "24:00:00" ["." 1*"0"]
@@ -42,10 +42,10 @@ use super::{Lexical, LexicalFormOf};
 /// ```
 ///
 #[derive(RegularGrammar, PartialEq, Eq, PartialOrd, Ord, Hash)]
-#[grammar(sized(DateTimeBuf, derive(PartialEq, Eq, PartialOrd, Ord, Hash)))]
-pub struct DateTime(str);
+#[grammar(sized(DateTimeStampBuf, derive(PartialEq, Eq, PartialOrd, Ord, Hash)))]
+pub struct DateTimeStamp(str);
 
-impl DateTime {
+impl DateTimeStamp {
 	pub fn parts(&self) -> Parts {
 		let year_end = byte_index_of(self.0.as_bytes(), 4, b'-').unwrap();
 		let month_end = year_end + 3;
@@ -62,27 +62,23 @@ impl DateTime {
 			hours: &self.0[(day_end + 1)..hour_end],
 			minutes: &self.0[(hour_end + 1)..minute_end],
 			seconds: &self.0[(minute_end + 1)..second_end],
-			timezone: if second_end == self.0.len() {
-				None
-			} else {
-				Some(&self.0[second_end..])
-			},
+			timezone: &self.0[second_end..],
 		}
 	}
 }
 
-impl Lexical for DateTime {
-	type Error = InvalidDateTime<String>;
+impl Lexical for DateTimeStamp {
+	type Error = InvalidDateTimeStamp<String>;
 
 	fn parse(value: &str) -> Result<&Self, Self::Error> {
-		Self::new(value).map_err(|_| InvalidDateTime(value.to_owned()))
+		Self::new(value).map_err(|_| InvalidDateTimeStamp(value.to_owned()))
 	}
 }
 
-impl LexicalFormOf<crate::DateTime> for DateTime {
-	type ValueError = InvalidDateTimeValue;
+impl LexicalFormOf<crate::DateTimeStamp> for DateTimeStamp {
+	type ValueError = InvalidDateTimeStampValue;
 
-	fn try_as_value(&self) -> Result<crate::DateTime, Self::ValueError> {
+	fn try_as_value(&self) -> Result<crate::DateTimeStamp, Self::ValueError> {
 		self.parts().to_datetime()
 	}
 }
@@ -95,7 +91,7 @@ pub struct Parts<'a> {
 	pub hours: &'a str,
 	pub minutes: &'a str,
 	pub seconds: &'a str,
-	pub timezone: Option<&'a str>,
+	pub timezone: &'a str,
 }
 
 impl<'a> Parts<'a> {
@@ -106,7 +102,7 @@ impl<'a> Parts<'a> {
 		hours: &'a str,
 		minutes: &'a str,
 		seconds: &'a str,
-		timezone: Option<&'a str>,
+		timezone: &'a str,
 	) -> Self {
 		Self {
 			year,
@@ -119,13 +115,13 @@ impl<'a> Parts<'a> {
 		}
 	}
 
-	fn to_datetime(&self) -> Result<crate::DateTime, crate::InvalidDateTimeValue> {
+	fn to_datetime(&self) -> Result<crate::DateTimeStamp, crate::InvalidDateTimeStampValue> {
 		let date = chrono::NaiveDate::from_ymd_opt(
 			self.year.parse().unwrap(),
 			self.month.parse().unwrap(),
 			self.day.parse().unwrap(),
 		)
-		.ok_or(crate::InvalidDateTimeValue)?;
+		.ok_or(crate::InvalidDateTimeStampValue)?;
 
 		let (seconds, nanoseconds) = parse_seconds_decimal(self.seconds);
 
@@ -135,13 +131,13 @@ impl<'a> Parts<'a> {
 			seconds,
 			nanoseconds,
 		)
-		.ok_or(crate::InvalidDateTimeValue)?;
+		.ok_or(crate::InvalidDateTimeStampValue)?;
 
 		let datetime = chrono::NaiveDateTime::new(date, time);
 
-		Ok(crate::DateTime::new(
+		Ok(crate::DateTimeStamp::new(
 			datetime,
-			self.timezone.map(parse_timezone),
+			parse_timezone(self.timezone),
 		))
 	}
 }
@@ -187,40 +183,28 @@ mod tests {
 		let vectors = [
 			(
 				"2002-05-31T13:07:12+01:00",
-				Parts::new("2002", "05", "31", "13", "07", "12", Some("+01:00")),
-			),
-			(
-				"2002-05-31T13:07:12",
-				Parts::new("2002", "05", "31", "13", "07", "12", None),
+				Parts::new("2002", "05", "31", "13", "07", "12", "+01:00"),
 			),
 			(
 				"-2002-05-31T13:07:12+01:00",
-				Parts::new("-2002", "05", "31", "13", "07", "12", Some("+01:00")),
+				Parts::new("-2002", "05", "31", "13", "07", "12", "+01:00"),
 			),
 			(
 				"2002-10-10T12:00:00-05:00",
-				Parts::new("2002", "10", "10", "12", "00", "00", Some("-05:00")),
+				Parts::new("2002", "10", "10", "12", "00", "00", "-05:00"),
 			),
 			(
 				"202002-10-10T12:00:00.00001-05:00",
-				Parts::new("202002", "10", "10", "12", "00", "00.00001", Some("-05:00")),
+				Parts::new("202002", "10", "10", "12", "00", "00.00001", "-05:00"),
 			),
 			(
 				"-202002-10-10T12:00:00.00001-05:00",
-				Parts::new(
-					"-202002",
-					"10",
-					"10",
-					"12",
-					"00",
-					"00.00001",
-					Some("-05:00"),
-				),
+				Parts::new("-202002", "10", "10", "12", "00", "00.00001", "-05:00"),
 			),
 		];
 
 		for (input, parts) in vectors {
-			let lexical_repr = DateTime::new(input).unwrap();
+			let lexical_repr = DateTimeStamp::new(input).unwrap();
 			assert_eq!(lexical_repr.parts(), parts);
 
 			let value = lexical_repr.try_as_value().unwrap();

@@ -91,8 +91,18 @@ pub enum PrimitiveDatatype {
 /// <http://www.w3.org/2001/XMLSchema#duration> datatype IRI.
 pub const XSD_DURATION: &Iri = iri!("http://www.w3.org/2001/XMLSchema#duration");
 
+/// <http://www.w3.org/2001/XMLSchema#dayTimeDuration> datatype IRI.
+pub const XSD_DAY_TIME_DURATION: &Iri = iri!("http://www.w3.org/2001/XMLSchema#dayTimeDuration");
+
+/// <http://www.w3.org/2001/XMLSchema#yearMonthDuration> datatype IRI.
+pub const XSD_YEAR_MONTH_DURATION: &Iri =
+	iri!("http://www.w3.org/2001/XMLSchema#yearMonthDuration");
+
 /// <http://www.w3.org/2001/XMLSchema#dateTime> datatype IRI.
 pub const XSD_DATE_TIME: &Iri = iri!("http://www.w3.org/2001/XMLSchema#dateTime");
+
+/// <http://www.w3.org/2001/XMLSchema#dateTimeStamp> datatype IRI.
+pub const XSD_DATE_TIME_STAMP: &Iri = iri!("http://www.w3.org/2001/XMLSchema#dateTimeStamp");
 
 /// <http://www.w3.org/2001/XMLSchema#time> datatype IRI.
 pub const XSD_TIME: &Iri = iri!("http://www.w3.org/2001/XMLSchema#time");

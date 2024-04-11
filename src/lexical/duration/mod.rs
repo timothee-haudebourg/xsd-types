@@ -1,6 +1,12 @@
 use super::{date_time::parse_seconds_decimal, Lexical, LexicalFormOf};
 use static_regular_grammar::RegularGrammar;
 
+pub mod day_time_duration;
+pub use day_time_duration::{DayTimeDuration, DayTimeDurationBuf, InvalidDayTimeDuration};
+
+pub mod year_month_duration;
+pub use year_month_duration::{InvalidYearMonthDuration, YearMonthDuration, YearMonthDurationBuf};
+
 /// Duration.
 ///
 /// ```abnf

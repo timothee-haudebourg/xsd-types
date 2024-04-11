@@ -4,8 +4,11 @@ use std::{cmp::Ordering, fmt, hash::Hash, str::FromStr};
 use crate::{
 	lexical::{InvalidDateTime, LexicalFormOf},
 	utils::div_rem,
-	Datatype, ParseXsd, XsdValue,
+	Datatype, DateTimeDatatype, ParseXsd, XsdValue,
 };
+
+mod date_time_stamp;
+pub use date_time_stamp::*;
 
 #[derive(Debug, thiserror::Error)]
 #[error("missing timezone")]
@@ -113,7 +116,7 @@ impl PartialOrd for DateTime {
 
 impl XsdValue for DateTime {
 	fn datatype(&self) -> Datatype {
-		Datatype::DateTime
+		Datatype::DateTime(DateTimeDatatype::DateTime)
 	}
 }
 

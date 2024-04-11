@@ -1,19 +1,21 @@
 use super::{
-	AnyUri, AnyUriBuf, Base64Binary, Base64BinaryBuf, Boolean, Byte, Date, DateTime, Decimal,
-	Double, Duration, Float, GDay, GMonth, GMonthDay, GYear, GYearMonth, HexBinary, HexBinaryBuf,
-	Id, IdBuf, IdRef, IdRefBuf, Int, Integer, Language, LanguageBuf, Long, NCName, NCNameBuf,
-	NMToken, NMTokenBuf, Name, NameBuf, NegativeInteger, NonNegativeInteger, NonPositiveInteger,
-	NormalizedStr, NormalizedString, PositiveInteger, QName, QNameBuf, Short, Time, Token,
-	TokenBuf, UnsignedByte, UnsignedInt, UnsignedLong, UnsignedShort,
+	AnyUri, AnyUriBuf, Base64Binary, Base64BinaryBuf, Boolean, Byte, Date, DateTime, DateTimeStamp,
+	DayTimeDuration, Decimal, Double, Duration, Float, GDay, GMonth, GMonthDay, GYear, GYearMonth,
+	HexBinary, HexBinaryBuf, Id, IdBuf, IdRef, IdRefBuf, Int, Integer, Language, LanguageBuf, Long,
+	NCName, NCNameBuf, NMToken, NMTokenBuf, Name, NameBuf, NegativeInteger, NonNegativeInteger,
+	NonPositiveInteger, NormalizedStr, NormalizedString, PositiveInteger, QName, QNameBuf, Short,
+	Time, Token, TokenBuf, UnsignedByte, UnsignedInt, UnsignedLong, UnsignedShort,
+	YearMonthDuration,
 };
 use crate::{
 	ParseXsd, XsdValue, XSD_ANY_URI, XSD_BASE64_BINARY, XSD_BOOLEAN, XSD_BYTE, XSD_DATE,
-	XSD_DATE_TIME, XSD_DECIMAL, XSD_DOUBLE, XSD_DURATION, XSD_FLOAT, XSD_G_DAY, XSD_G_MONTH,
-	XSD_G_MONTH_DAY, XSD_G_YEAR, XSD_G_YEAR_MONTH, XSD_HEX_BINARY, XSD_ID, XSD_IDREF, XSD_INT,
-	XSD_INTEGER, XSD_LANGUAGE, XSD_LONG, XSD_NAME, XSD_NC_NAME, XSD_NEGATIVE_INTEGER, XSD_NMTOKEN,
-	XSD_NON_NEGATIVE_INTEGER, XSD_NON_POSITIVE_INTEGER, XSD_NORMALIZED_STRING,
-	XSD_POSITIVE_INTEGER, XSD_Q_NAME, XSD_SHORT, XSD_STRING, XSD_TIME, XSD_TOKEN,
-	XSD_UNSIGNED_BYTE, XSD_UNSIGNED_INT, XSD_UNSIGNED_LONG, XSD_UNSIGNED_SHORT,
+	XSD_DATE_TIME, XSD_DATE_TIME_STAMP, XSD_DAY_TIME_DURATION, XSD_DECIMAL, XSD_DOUBLE,
+	XSD_DURATION, XSD_FLOAT, XSD_G_DAY, XSD_G_MONTH, XSD_G_MONTH_DAY, XSD_G_YEAR, XSD_G_YEAR_MONTH,
+	XSD_HEX_BINARY, XSD_ID, XSD_IDREF, XSD_INT, XSD_INTEGER, XSD_LANGUAGE, XSD_LONG, XSD_NAME,
+	XSD_NC_NAME, XSD_NEGATIVE_INTEGER, XSD_NMTOKEN, XSD_NON_NEGATIVE_INTEGER,
+	XSD_NON_POSITIVE_INTEGER, XSD_NORMALIZED_STRING, XSD_POSITIVE_INTEGER, XSD_Q_NAME, XSD_SHORT,
+	XSD_STRING, XSD_TIME, XSD_TOKEN, XSD_UNSIGNED_BYTE, XSD_UNSIGNED_INT, XSD_UNSIGNED_LONG,
+	XSD_UNSIGNED_SHORT, XSD_YEAR_MONTH_DURATION,
 };
 use iref::Iri;
 use std::fmt;
@@ -29,8 +31,8 @@ pub enum Datatype {
 	Double,
 	Decimal(DecimalDatatype),
 	String(StringDatatype),
-	Duration,
-	DateTime,
+	Duration(DurationDatatype),
+	DateTime(DateTimeDatatype),
 	Time,
 	Date,
 	GYearMonth,
@@ -60,11 +62,11 @@ impl Datatype {
 		if let Some(t) = StringDatatype::from_iri(iri) {
 			return Some(Self::String(t));
 		}
-		if iri == XSD_DURATION {
-			return Some(Self::Duration);
+		if let Some(t) = DurationDatatype::from_iri(iri) {
+			return Some(Self::Duration(t));
 		}
-		if iri == XSD_DATE_TIME {
-			return Some(Self::DateTime);
+		if let Some(t) = DateTimeDatatype::from_iri(iri) {
+			return Some(Self::DateTime(t));
 		}
 		if iri == XSD_TIME {
 			return Some(Self::Time);
@@ -108,8 +110,8 @@ impl Datatype {
 			Self::Double => XSD_DOUBLE,
 			Self::Decimal(t) => t.iri(),
 			Self::String(t) => t.iri(),
-			Self::Duration => XSD_DURATION,
-			Self::DateTime => XSD_DATE_TIME,
+			Self::Duration(t) => t.iri(),
+			Self::DateTime(t) => t.iri(),
 			Self::Time => XSD_TIME,
 			Self::Date => XSD_DATE,
 			Self::GYearMonth => XSD_G_YEAR_MONTH,
@@ -136,12 +138,8 @@ impl Datatype {
 				.map_err(|_| ParseError),
 			Self::Decimal(t) => t.parse(value).map(Into::into),
 			Self::String(t) => t.parse(value).map(Into::into),
-			Self::Duration => ParseXsd::parse_xsd(value)
-				.map(Value::Duration)
-				.map_err(|_| ParseError),
-			Self::DateTime => ParseXsd::parse_xsd(value)
-				.map(Value::DateTime)
-				.map_err(|_| ParseError),
+			Self::Duration(t) => t.parse(value).map(Into::into),
+			Self::DateTime(t) => t.parse(value).map(Into::into),
 			Self::Time => ParseXsd::parse_xsd(value)
 				.map(Value::Time)
 				.map_err(|_| ParseError),
@@ -448,6 +446,80 @@ impl TryFrom<StringDatatype> for NCNameDatatype {
 		}
 	}
 }
+/// [`Duration`] datatype variants.
+#[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash)]
+pub enum DurationDatatype {
+	Duration,
+	DayTimeDuration,
+	YearMonthDuration,
+}
+impl DurationDatatype {
+	pub fn from_iri(iri: &Iri) -> Option<Self> {
+		if iri == XSD_DURATION {
+			return Some(Self::Duration);
+		}
+		if iri == XSD_DAY_TIME_DURATION {
+			return Some(Self::DayTimeDuration);
+		}
+		if iri == XSD_YEAR_MONTH_DURATION {
+			return Some(Self::YearMonthDuration);
+		}
+		None
+	}
+	pub fn iri(&self) -> &'static Iri {
+		match self {
+			Self::Duration => XSD_DURATION,
+			Self::DayTimeDuration => XSD_DAY_TIME_DURATION,
+			Self::YearMonthDuration => XSD_YEAR_MONTH_DURATION,
+		}
+	}
+	pub fn parse(&self, value: &str) -> Result<DurationValue, ParseError> {
+		match self {
+			Self::Duration => ParseXsd::parse_xsd(value)
+				.map(DurationValue::Duration)
+				.map_err(|_| ParseError),
+			Self::DayTimeDuration => ParseXsd::parse_xsd(value)
+				.map(DurationValue::DayTimeDuration)
+				.map_err(|_| ParseError),
+			Self::YearMonthDuration => ParseXsd::parse_xsd(value)
+				.map(DurationValue::YearMonthDuration)
+				.map_err(|_| ParseError),
+		}
+	}
+}
+/// [`DateTime`] datatype variants.
+#[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash)]
+pub enum DateTimeDatatype {
+	DateTime,
+	DateTimeStamp,
+}
+impl DateTimeDatatype {
+	pub fn from_iri(iri: &Iri) -> Option<Self> {
+		if iri == XSD_DATE_TIME {
+			return Some(Self::DateTime);
+		}
+		if iri == XSD_DATE_TIME_STAMP {
+			return Some(Self::DateTimeStamp);
+		}
+		None
+	}
+	pub fn iri(&self) -> &'static Iri {
+		match self {
+			Self::DateTime => XSD_DATE_TIME,
+			Self::DateTimeStamp => XSD_DATE_TIME_STAMP,
+		}
+	}
+	pub fn parse(&self, value: &str) -> Result<DateTimeValue, ParseError> {
+		match self {
+			Self::DateTime => ParseXsd::parse_xsd(value)
+				.map(DateTimeValue::DateTime)
+				.map_err(|_| ParseError),
+			Self::DateTimeStamp => ParseXsd::parse_xsd(value)
+				.map(DateTimeValue::DateTimeStamp)
+				.map_err(|_| ParseError),
+		}
+	}
+}
 /// Any XSD value.
 #[derive(Debug, Clone)]
 pub enum Value {
@@ -478,7 +550,10 @@ pub enum Value {
 	IdRef(IdRefBuf),
 	NMToken(NMTokenBuf),
 	Duration(Duration),
+	DayTimeDuration(DayTimeDuration),
+	YearMonthDuration(YearMonthDuration),
 	DateTime(DateTime),
+	DateTimeStamp(DateTimeStamp),
 	Time(Time),
 	Date(Date),
 	GYearMonth(GYearMonth),
@@ -580,8 +655,11 @@ impl Value {
 			Self::NMToken(_) => Datatype::String(StringDatatype::NormalizedString(
 				NormalizedStringDatatype::Token(TokenDatatype::NMToken),
 			)),
-			Self::Duration(_) => Datatype::Duration,
-			Self::DateTime(_) => Datatype::DateTime,
+			Self::Duration(_) => Datatype::Duration(DurationDatatype::Duration),
+			Self::DayTimeDuration(_) => Datatype::Duration(DurationDatatype::DayTimeDuration),
+			Self::YearMonthDuration(_) => Datatype::Duration(DurationDatatype::YearMonthDuration),
+			Self::DateTime(_) => Datatype::DateTime(DateTimeDatatype::DateTime),
+			Self::DateTimeStamp(_) => Datatype::DateTime(DateTimeDatatype::DateTimeStamp),
 			Self::Time(_) => Datatype::Time,
 			Self::Date(_) => Datatype::Date,
 			Self::GYearMonth(_) => Datatype::GYearMonth,
@@ -631,7 +709,10 @@ impl fmt::Display for Value {
 			Self::IdRef(v) => v.fmt(f),
 			Self::NMToken(v) => v.fmt(f),
 			Self::Duration(v) => v.fmt(f),
+			Self::DayTimeDuration(v) => v.fmt(f),
+			Self::YearMonthDuration(v) => v.fmt(f),
 			Self::DateTime(v) => v.fmt(f),
+			Self::DateTimeStamp(v) => v.fmt(f),
 			Self::Time(v) => v.fmt(f),
 			Self::Date(v) => v.fmt(f),
 			Self::GYearMonth(v) => v.fmt(f),
@@ -676,7 +757,10 @@ pub enum ValueRef<'a> {
 	IdRef(&'a IdRef),
 	NMToken(&'a NMToken),
 	Duration(Duration),
+	DayTimeDuration(DayTimeDuration),
+	YearMonthDuration(YearMonthDuration),
 	DateTime(DateTime),
+	DateTimeStamp(DateTimeStamp),
 	Time(Time),
 	Date(Date),
 	GYearMonth(GYearMonth),
@@ -719,7 +803,10 @@ impl<'a> fmt::Display for ValueRef<'a> {
 			Self::IdRef(v) => v.fmt(f),
 			Self::NMToken(v) => v.fmt(f),
 			Self::Duration(v) => v.fmt(f),
+			Self::DayTimeDuration(v) => v.fmt(f),
+			Self::YearMonthDuration(v) => v.fmt(f),
 			Self::DateTime(v) => v.fmt(f),
+			Self::DateTimeStamp(v) => v.fmt(f),
 			Self::Time(v) => v.fmt(f),
 			Self::Date(v) => v.fmt(f),
 			Self::GYearMonth(v) => v.fmt(f),
@@ -764,7 +851,10 @@ impl Value {
 			Self::IdRef(value) => ValueRef::IdRef(value),
 			Self::NMToken(value) => ValueRef::NMToken(value),
 			Self::Duration(value) => ValueRef::Duration(*value),
+			Self::DayTimeDuration(value) => ValueRef::DayTimeDuration(*value),
+			Self::YearMonthDuration(value) => ValueRef::YearMonthDuration(*value),
 			Self::DateTime(value) => ValueRef::DateTime(*value),
+			Self::DateTimeStamp(value) => ValueRef::DateTimeStamp(*value),
 			Self::Time(value) => ValueRef::Time(*value),
 			Self::Date(value) => ValueRef::Date(*value),
 			Self::GYearMonth(value) => ValueRef::GYearMonth(*value),
@@ -868,8 +958,11 @@ impl<'a> ValueRef<'a> {
 			Self::NMToken(_) => Datatype::String(StringDatatype::NormalizedString(
 				NormalizedStringDatatype::Token(TokenDatatype::NMToken),
 			)),
-			Self::Duration(_) => Datatype::Duration,
-			Self::DateTime(_) => Datatype::DateTime,
+			Self::Duration(_) => Datatype::Duration(DurationDatatype::Duration),
+			Self::DayTimeDuration(_) => Datatype::Duration(DurationDatatype::DayTimeDuration),
+			Self::YearMonthDuration(_) => Datatype::Duration(DurationDatatype::YearMonthDuration),
+			Self::DateTime(_) => Datatype::DateTime(DateTimeDatatype::DateTime),
+			Self::DateTimeStamp(_) => Datatype::DateTime(DateTimeDatatype::DateTimeStamp),
 			Self::Time(_) => Datatype::Time,
 			Self::Date(_) => Datatype::Date,
 			Self::GYearMonth(_) => Datatype::GYearMonth,
@@ -912,7 +1005,10 @@ impl<'a> ValueRef<'a> {
 			Self::IdRef(value) => Value::IdRef(value.to_owned()),
 			Self::NMToken(value) => Value::NMToken(value.to_owned()),
 			Self::Duration(value) => Value::Duration(value),
+			Self::DayTimeDuration(value) => Value::DayTimeDuration(value),
+			Self::YearMonthDuration(value) => Value::YearMonthDuration(value),
 			Self::DateTime(value) => Value::DateTime(value),
+			Self::DateTimeStamp(value) => Value::DateTimeStamp(value),
 			Self::Time(value) => Value::Time(value),
 			Self::Date(value) => Value::Date(value),
 			Self::GYearMonth(value) => Value::GYearMonth(value),
@@ -5149,6 +5245,129 @@ impl<'a> fmt::Display for NCNameValueRef<'a> {
 			Self::NCName(v) => v.fmt(f),
 			Self::Id(v) => v.fmt(f),
 			Self::IdRef(v) => v.fmt(f),
+		}
+	}
+}
+impl From<DurationDatatype> for Datatype {
+	fn from(value: DurationDatatype) -> Self {
+		Self::Duration(value)
+	}
+}
+impl TryFrom<Datatype> for DurationDatatype {
+	type Error = Datatype;
+	fn try_from(value: Datatype) -> Result<Self, Datatype> {
+		match value {
+			Datatype::Duration(value) => Ok(value),
+			other => Err(other),
+		}
+	}
+}
+impl From<DurationValue> for Value {
+	fn from(value: DurationValue) -> Self {
+		match value {
+			DurationValue::Duration(value) => Self::Duration(value),
+			DurationValue::DayTimeDuration(value) => Self::DayTimeDuration(value),
+			DurationValue::YearMonthDuration(value) => Self::YearMonthDuration(value),
+		}
+	}
+}
+impl TryFrom<Value> for DurationValue {
+	type Error = Value;
+	fn try_from(value: Value) -> Result<Self, Value> {
+		match value {
+			Value::Duration(value) => Ok(Self::Duration(value)),
+			Value::DayTimeDuration(value) => Ok(Self::DayTimeDuration(value)),
+			Value::YearMonthDuration(value) => Ok(Self::YearMonthDuration(value)),
+			other => Err(other),
+		}
+	}
+}
+/// Any specialized [`Duration`] value.
+#[derive(Debug, Clone)]
+pub enum DurationValue {
+	Duration(Duration),
+	DayTimeDuration(DayTimeDuration),
+	YearMonthDuration(YearMonthDuration),
+}
+impl DurationValue {
+	pub fn datatype(&self) -> DurationDatatype {
+		match self {
+			Self::Duration(_) => DurationDatatype::Duration,
+			Self::DayTimeDuration(_) => DurationDatatype::DayTimeDuration,
+			Self::YearMonthDuration(_) => DurationDatatype::YearMonthDuration,
+		}
+	}
+}
+impl XsdValue for DurationValue {
+	fn datatype(&self) -> Datatype {
+		self.datatype().into()
+	}
+}
+impl fmt::Display for DurationValue {
+	fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+		match self {
+			Self::Duration(v) => v.fmt(f),
+			Self::DayTimeDuration(v) => v.fmt(f),
+			Self::YearMonthDuration(v) => v.fmt(f),
+		}
+	}
+}
+impl From<DateTimeDatatype> for Datatype {
+	fn from(value: DateTimeDatatype) -> Self {
+		Self::DateTime(value)
+	}
+}
+impl TryFrom<Datatype> for DateTimeDatatype {
+	type Error = Datatype;
+	fn try_from(value: Datatype) -> Result<Self, Datatype> {
+		match value {
+			Datatype::DateTime(value) => Ok(value),
+			other => Err(other),
+		}
+	}
+}
+impl From<DateTimeValue> for Value {
+	fn from(value: DateTimeValue) -> Self {
+		match value {
+			DateTimeValue::DateTime(value) => Self::DateTime(value),
+			DateTimeValue::DateTimeStamp(value) => Self::DateTimeStamp(value),
+		}
+	}
+}
+impl TryFrom<Value> for DateTimeValue {
+	type Error = Value;
+	fn try_from(value: Value) -> Result<Self, Value> {
+		match value {
+			Value::DateTime(value) => Ok(Self::DateTime(value)),
+			Value::DateTimeStamp(value) => Ok(Self::DateTimeStamp(value)),
+			other => Err(other),
+		}
+	}
+}
+/// Any specialized [`DateTime`] value.
+#[derive(Debug, Clone)]
+pub enum DateTimeValue {
+	DateTime(DateTime),
+	DateTimeStamp(DateTimeStamp),
+}
+impl DateTimeValue {
+	pub fn datatype(&self) -> DateTimeDatatype {
+		match self {
+			Self::DateTime(_) => DateTimeDatatype::DateTime,
+			Self::DateTimeStamp(_) => DateTimeDatatype::DateTimeStamp,
+		}
+	}
+}
+impl XsdValue for DateTimeValue {
+	fn datatype(&self) -> Datatype {
+		self.datatype().into()
+	}
+}
+impl fmt::Display for DateTimeValue {
+	fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+		match self {
+			Self::DateTime(v) => v.fmt(f),
+			Self::DateTimeStamp(v) => v.fmt(f),
 		}
 	}
 }

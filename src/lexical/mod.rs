@@ -5,7 +5,7 @@ pub mod date;
 pub mod date_time;
 mod decimal;
 pub mod double;
-mod duration;
+pub mod duration;
 pub mod float;
 pub mod g_day;
 pub mod g_month;
@@ -21,10 +21,13 @@ pub use base64_binary::*;
 pub use boolean::*;
 pub use date::{Date, DateBuf, InvalidDate};
 pub(crate) use date_time::parse_timezone;
-pub use date_time::{DateTime, DateTimeBuf, InvalidDateTime};
+pub use date_time::{DateTime, DateTimeBuf, DateTimeStamp, DateTimeStampBuf, InvalidDateTime};
 pub use decimal::*;
 pub use double::{Double, DoubleBuf, InvalidDouble};
-pub use duration::{Duration, DurationBuf, InvalidDuration};
+pub use duration::{
+	DayTimeDuration, DayTimeDurationBuf, Duration, DurationBuf, InvalidDuration, YearMonthDuration,
+	YearMonthDurationBuf,
+};
 pub use float::{Float, FloatBuf, InvalidFloat};
 pub use g_day::{GDay, GDayBuf, InvalidGDay};
 pub use g_month::{GMonth, GMonthBuf, InvalidGMonth};
@@ -294,7 +297,7 @@ macro_rules! lexical_form {
 		impl PartialEq<$ty> for $buffer_ty {
 			#[inline(always)]
 			fn eq(&self, other: &$ty) -> bool {
-				self == other
+				self.$as_ref() == other
 			}
 		}
 
@@ -308,7 +311,7 @@ macro_rules! lexical_form {
 		impl PartialEq<$buffer_ty> for $ty {
 			#[inline(always)]
 			fn eq(&self, other: &$buffer_ty) -> bool {
-				self == other
+				self == other.$as_ref()
 			}
 		}
 
