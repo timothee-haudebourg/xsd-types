@@ -57,6 +57,18 @@ impl PartialEq for DateTimeStamp {
 	}
 }
 
+impl<Tz: chrono::TimeZone> PartialEq<chrono::DateTime<Tz>> for DateTimeStamp {
+	fn eq(&self, other: &chrono::DateTime<Tz>) -> bool {
+		self.to_chrono_date_time() == *other
+	}
+}
+
+impl<Tz: chrono::TimeZone> PartialEq<DateTimeStamp> for chrono::DateTime<Tz> {
+	fn eq(&self, other: &DateTimeStamp) -> bool {
+		*self == other.to_chrono_date_time()
+	}
+}
+
 impl Eq for DateTimeStamp {}
 
 impl Hash for DateTimeStamp {
@@ -69,6 +81,18 @@ impl Hash for DateTimeStamp {
 impl PartialOrd for DateTimeStamp {
 	fn partial_cmp(&self, other: &Self) -> Option<Ordering> {
 		Some(self.cmp(other))
+	}
+}
+
+impl<Tz: chrono::TimeZone> PartialOrd<chrono::DateTime<Tz>> for DateTimeStamp {
+	fn partial_cmp(&self, other: &chrono::DateTime<Tz>) -> Option<Ordering> {
+		self.to_chrono_date_time().partial_cmp(other)
+	}
+}
+
+impl<Tz: chrono::TimeZone> PartialOrd<DateTimeStamp> for chrono::DateTime<Tz> {
+	fn partial_cmp(&self, other: &DateTimeStamp) -> Option<Ordering> {
+		self.partial_cmp(&other.to_chrono_date_time())
 	}
 }
 
