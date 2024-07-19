@@ -33,8 +33,8 @@ pub struct InvalidDateTimeValue;
 
 #[derive(Debug, Clone, Copy)]
 pub struct DateTime {
-	date_time: chrono::NaiveDateTime,
-	offset: Option<FixedOffset>,
+	pub date_time: chrono::NaiveDateTime,
+	pub offset: Option<FixedOffset>,
 }
 
 impl DateTime {

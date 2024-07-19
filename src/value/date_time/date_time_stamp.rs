@@ -17,8 +17,8 @@ pub struct InvalidDateTimeStampValue;
 
 #[derive(Debug, Clone, Copy)]
 pub struct DateTimeStamp {
-	date_time: chrono::NaiveDateTime,
-	offset: FixedOffset,
+	pub date_time: chrono::NaiveDateTime,
+	pub offset: FixedOffset,
 }
 
 impl DateTimeStamp {
