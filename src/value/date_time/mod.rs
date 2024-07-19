@@ -56,16 +56,6 @@ impl DateTime {
 		now.with_nanosecond(ns).unwrap_or(now).into()
 	}
 
-	/// Returns the inner date/time without offset
-	pub fn date_time(&self) -> chrono::NaiveDateTime {
-		self.date_time
-	}
-
-	/// Returns the inner offset
-	pub fn offset(&self) -> Option<FixedOffset> {
-		self.offset
-	}
-
 	pub fn into_string(self) -> String {
 		self.to_string()
 	}
