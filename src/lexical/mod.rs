@@ -58,6 +58,16 @@ pub trait LexicalFormOf<V>: Lexical {
 	type ValueError;
 
 	fn try_as_value(&self) -> Result<V, Self::ValueError>;
+
+	fn as_value(&self) -> V
+	where
+		Self: LexicalFormOf<V, ValueError = std::convert::Infallible>,
+	{
+		unsafe {
+			// SAFETY: the error type is not constructible.
+			self.try_as_value().unwrap_unchecked()
+		}
+	}
 }
 
 macro_rules! lexical_form {

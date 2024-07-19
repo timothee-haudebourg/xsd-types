@@ -1,5 +1,10 @@
-use crate::{format_nanoseconds, Datatype, DurationDatatype, ParseXsd, XsdValue};
+use crate::{
+	format_nanoseconds,
+	lexical::{InvalidDuration, LexicalFormOf},
+	Datatype, DurationDatatype, ParseXsd, XsdValue,
+};
 use core::fmt;
+use std::str::FromStr;
 
 pub mod day_time_duration;
 pub use day_time_duration::*;
@@ -31,6 +36,10 @@ impl Duration {
 			nano_seconds,
 		}
 	}
+
+	pub fn into_string(self) -> String {
+		self.to_string()
+	}
 }
 
 impl XsdValue for Duration {
@@ -41,6 +50,16 @@ impl XsdValue for Duration {
 
 impl ParseXsd for Duration {
 	type LexicalForm = crate::lexical::Duration;
+}
+
+impl FromStr for Duration {
+	type Err = InvalidDuration<String>;
+
+	fn from_str(s: &str) -> Result<Self, Self::Err> {
+		let lexical_value = crate::lexical::Duration::new(s)
+			.map_err(|InvalidDuration(s)| InvalidDuration(s.to_owned()))?;
+		Ok(lexical_value.as_value())
+	}
 }
 
 impl fmt::Display for Duration {
@@ -97,5 +116,42 @@ impl fmt::Display for Duration {
 		}
 
 		Ok(())
+	}
+}
+
+#[cfg(feature = "serde")]
+impl serde::Serialize for Duration {
+	fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
+	where
+		S: serde::Serializer,
+	{
+		self.into_string().serialize(serializer)
+	}
+}
+
+#[cfg(feature = "serde")]
+impl<'de> serde::Deserialize<'de> for Duration {
+	fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
+	where
+		D: serde::Deserializer<'de>,
+	{
+		struct Visitor;
+
+		impl<'de> serde::de::Visitor<'de> for Visitor {
+			type Value = Duration;
+
+			fn expecting(&self, formatter: &mut fmt::Formatter) -> fmt::Result {
+				formatter.write_str("a http://www.w3.org/2001/XMLSchema#duration")
+			}
+
+			fn visit_str<E>(self, v: &str) -> Result<Self::Value, E>
+			where
+				E: serde::de::Error,
+			{
+				v.parse().map_err(|e| E::custom(e))
+			}
+		}
+
+		deserializer.deserialize_str(Visitor)
 	}
 }
