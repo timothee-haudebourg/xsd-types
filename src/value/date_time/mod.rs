@@ -246,6 +246,17 @@ impl From<chrono::DateTime<Utc>> for DateTime {
 	}
 }
 
+#[cfg(feature = "time")]
+impl From<time::OffsetDateTime> for DateTime {
+	fn from(value: time::OffsetDateTime) -> Self {
+		use chrono::TimeZone;
+		FixedOffset::east_opt(value.offset().whole_seconds())
+			.unwrap()
+			.timestamp_nanos(value.unix_timestamp_nanos() as i64)
+			.into()
+	}
+}
+
 impl TryFrom<DateTime> for chrono::DateTime<FixedOffset> {
 	type Error = MissingTimezone;
 
@@ -263,6 +274,30 @@ impl TryFrom<DateTime> for chrono::DateTime<Utc> {
 	fn try_from(value: DateTime) -> Result<Self, TimezoneError> {
 		let fixed: chrono::DateTime<FixedOffset> = value.try_into()?;
 		Ok(fixed.into())
+	}
+}
+
+#[cfg(feature = "time")]
+impl TryFrom<DateTime> for time::OffsetDateTime {
+	type Error = MissingTimezone;
+
+	fn try_from(value: DateTime) -> Result<Self, MissingTimezone> {
+		match value.offset {
+			Some(offset) => {
+				let date_time = match value.date_time.timestamp_nanos_opt() {
+					Some(t) => time::OffsetDateTime::from_unix_timestamp_nanos(t as i128).unwrap(),
+					None => time::OffsetDateTime::from_unix_timestamp_nanos(
+						value.date_time.timestamp_micros() as i128 * 1000,
+					)
+					.unwrap(),
+				};
+
+				Ok(date_time.to_offset(
+					time::UtcOffset::from_whole_seconds(offset.local_minus_utc()).unwrap(),
+				))
+			}
+			None => Err(MissingTimezone),
+		}
 	}
 }
 
@@ -300,5 +335,26 @@ impl<'de> serde::Deserialize<'de> for DateTime {
 		}
 
 		deserializer.deserialize_str(Visitor)
+	}
+}
+
+#[cfg(test)]
+mod tests {
+	#[cfg(feature = "time")]
+	#[test]
+	fn chrono_time_roundtrip() {
+		use super::DateTime;
+
+		let expected_time =
+			time::OffsetDateTime::from_unix_timestamp_nanos(1726661641326000001).unwrap();
+		let xsd: DateTime = expected_time.into();
+		let chrono: chrono::DateTime<chrono::Utc> = xsd.try_into().unwrap();
+		let expected_chrono = chrono::DateTime::from_timestamp_millis(1726661641326).unwrap()
+			+ std::time::Duration::from_nanos(1);
+		assert_eq!(chrono, expected_chrono);
+
+		let xsd: DateTime = chrono.into();
+		let time: time::OffsetDateTime = xsd.try_into().unwrap();
+		assert_eq!(time, expected_time);
 	}
 }

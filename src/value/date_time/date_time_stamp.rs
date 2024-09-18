@@ -165,6 +165,17 @@ impl From<chrono::DateTime<Utc>> for DateTimeStamp {
 	}
 }
 
+#[cfg(feature = "time")]
+impl From<time::OffsetDateTime> for DateTimeStamp {
+	fn from(value: time::OffsetDateTime) -> Self {
+		use chrono::TimeZone;
+		FixedOffset::east_opt(value.offset().whole_seconds())
+			.unwrap()
+			.timestamp_nanos(value.unix_timestamp_nanos() as i64)
+			.into()
+	}
+}
+
 impl From<DateTimeStamp> for chrono::DateTime<FixedOffset> {
 	fn from(value: DateTimeStamp) -> Self {
 		value.to_chrono_date_time()
@@ -174,6 +185,22 @@ impl From<DateTimeStamp> for chrono::DateTime<FixedOffset> {
 impl From<DateTimeStamp> for chrono::DateTime<Utc> {
 	fn from(value: DateTimeStamp) -> Self {
 		value.to_chrono_date_time().into()
+	}
+}
+
+#[cfg(feature = "time")]
+impl From<DateTimeStamp> for time::OffsetDateTime {
+	fn from(value: DateTimeStamp) -> Self {
+		let date_time = match value.date_time.timestamp_nanos_opt() {
+			Some(t) => time::OffsetDateTime::from_unix_timestamp_nanos(t as i128).unwrap(),
+			None => time::OffsetDateTime::from_unix_timestamp_nanos(
+				value.date_time.timestamp_micros() as i128 * 1000,
+			)
+			.unwrap(),
+		};
+
+		date_time
+			.to_offset(time::UtcOffset::from_whole_seconds(value.offset.local_minus_utc()).unwrap())
 	}
 }
 
@@ -211,5 +238,26 @@ impl<'de> serde::Deserialize<'de> for DateTimeStamp {
 		}
 
 		deserializer.deserialize_str(Visitor)
+	}
+}
+
+#[cfg(test)]
+mod tests {
+	#[cfg(feature = "time")]
+	#[test]
+	fn chrono_time_roundtrip() {
+		use super::DateTimeStamp;
+
+		let expected_time =
+			time::OffsetDateTime::from_unix_timestamp_nanos(1726661641326000001).unwrap();
+		let xsd: DateTimeStamp = expected_time.into();
+		let chrono: chrono::DateTime<chrono::Utc> = xsd.into();
+		let expected_chrono = chrono::DateTime::from_timestamp_millis(1726661641326).unwrap()
+			+ std::time::Duration::from_nanos(1);
+		assert_eq!(chrono, expected_chrono);
+
+		let xsd: DateTimeStamp = chrono.into();
+		let time: time::OffsetDateTime = xsd.into();
+		assert_eq!(time, expected_time);
 	}
 }
