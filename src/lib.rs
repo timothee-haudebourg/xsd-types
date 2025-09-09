@@ -48,8 +48,7 @@
 //! ```
 //!
 //! [`Value`]: crate::Value
-use iref::Iri;
-use static_iref::iri;
+use iref::{iri, Iri};
 
 /// Lexical domain types.
 pub mod lexical;
