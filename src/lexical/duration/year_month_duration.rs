@@ -17,7 +17,7 @@ use static_regular_grammar::RegularGrammar;
 pub struct YearMonthDuration(str);
 
 impl YearMonthDuration {
-	pub fn parts(&self) -> Parts {
+	pub fn parts(&self) -> Parts<'_> {
 		enum State {
 			Sign,
 			DateNumber,

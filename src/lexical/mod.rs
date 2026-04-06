@@ -1,3 +1,4 @@
+//! Lexical domain types.
 mod any_uri;
 mod base64_binary;
 mod boolean;

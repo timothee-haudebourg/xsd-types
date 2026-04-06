@@ -49,7 +49,7 @@ pub use date_time_stamp::{DateTimeStamp, DateTimeStampBuf, InvalidDateTimeStamp}
 pub struct DateTime(str);
 
 impl DateTime {
-	pub fn parts(&self) -> Parts {
+	pub fn parts(&self) -> Parts<'_> {
 		let year_end = byte_index_of(self.0.as_bytes(), 4, b'-').unwrap();
 		let month_end = year_end + 3;
 		let day_end = month_end + 3;

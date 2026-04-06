@@ -822,7 +822,7 @@ impl<'a> fmt::Display for ValueRef<'a> {
 	}
 }
 impl Value {
-	pub fn as_ref(&self) -> ValueRef {
+	pub fn as_ref(&self) -> ValueRef<'_> {
 		match self {
 			Self::Boolean(value) => ValueRef::Boolean(*value),
 			Self::Float(value) => ValueRef::Float(*value),
@@ -2062,7 +2062,7 @@ pub enum DecimalValueRef<'a> {
 	Byte(Byte),
 }
 impl DecimalValue {
-	pub fn as_ref(&self) -> DecimalValueRef {
+	pub fn as_ref(&self) -> DecimalValueRef<'_> {
 		match self {
 			Self::Decimal(value) => DecimalValueRef::Decimal(value),
 			Self::Integer(value) => DecimalValueRef::Integer(value),
@@ -2709,7 +2709,7 @@ pub enum IntegerValueRef<'a> {
 	Byte(Byte),
 }
 impl IntegerValue {
-	pub fn as_ref(&self) -> IntegerValueRef {
+	pub fn as_ref(&self) -> IntegerValueRef<'_> {
 		match self {
 			Self::Integer(value) => IntegerValueRef::Integer(value),
 			Self::NonPositiveInteger(value) => IntegerValueRef::NonPositiveInteger(value),
@@ -2895,7 +2895,7 @@ pub enum NonPositiveIntegerValueRef<'a> {
 	NegativeInteger(&'a NegativeInteger),
 }
 impl NonPositiveIntegerValue {
-	pub fn as_ref(&self) -> NonPositiveIntegerValueRef {
+	pub fn as_ref(&self) -> NonPositiveIntegerValueRef<'_> {
 		match self {
 			Self::NonPositiveInteger(value) => {
 				NonPositiveIntegerValueRef::NonPositiveInteger(value)
@@ -3118,7 +3118,7 @@ pub enum NonNegativeIntegerValueRef<'a> {
 	UnsignedByte(UnsignedByte),
 }
 impl NonNegativeIntegerValue {
-	pub fn as_ref(&self) -> NonNegativeIntegerValueRef {
+	pub fn as_ref(&self) -> NonNegativeIntegerValueRef<'_> {
 		match self {
 			Self::NonNegativeInteger(value) => {
 				NonNegativeIntegerValueRef::NonNegativeInteger(value)
@@ -4243,7 +4243,7 @@ pub enum StringValueRef<'a> {
 	NMToken(&'a NMToken),
 }
 impl StringValue {
-	pub fn as_ref(&self) -> StringValueRef {
+	pub fn as_ref(&self) -> StringValueRef<'_> {
 		match self {
 			Self::String(value) => StringValueRef::String(value),
 			Self::NormalizedString(value) => StringValueRef::NormalizedString(value),
@@ -4632,7 +4632,7 @@ pub enum NormalizedStringValueRef<'a> {
 	NMToken(&'a NMToken),
 }
 impl NormalizedStringValue {
-	pub fn as_ref(&self) -> NormalizedStringValueRef {
+	pub fn as_ref(&self) -> NormalizedStringValueRef<'_> {
 		match self {
 			Self::NormalizedString(value) => NormalizedStringValueRef::NormalizedString(value),
 			Self::Token(value) => NormalizedStringValueRef::Token(value),
@@ -4911,7 +4911,7 @@ pub enum TokenValueRef<'a> {
 	NMToken(&'a NMToken),
 }
 impl TokenValue {
-	pub fn as_ref(&self) -> TokenValueRef {
+	pub fn as_ref(&self) -> TokenValueRef<'_> {
 		match self {
 			Self::Token(value) => TokenValueRef::Token(value),
 			Self::Language(value) => TokenValueRef::Language(value),
@@ -5110,7 +5110,7 @@ pub enum NameValueRef<'a> {
 	IdRef(&'a IdRef),
 }
 impl NameValue {
-	pub fn as_ref(&self) -> NameValueRef {
+	pub fn as_ref(&self) -> NameValueRef<'_> {
 		match self {
 			Self::Name(value) => NameValueRef::Name(value),
 			Self::NCName(value) => NameValueRef::NCName(value),
@@ -5210,7 +5210,7 @@ pub enum NCNameValueRef<'a> {
 	IdRef(&'a IdRef),
 }
 impl NCNameValue {
-	pub fn as_ref(&self) -> NCNameValueRef {
+	pub fn as_ref(&self) -> NCNameValueRef<'_> {
 		match self {
 			Self::NCName(value) => NCNameValueRef::NCName(value),
 			Self::Id(value) => NCNameValueRef::Id(value),

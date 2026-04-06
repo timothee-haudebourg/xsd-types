@@ -15,19 +15,6 @@ pub use date_time_stamp::*;
 pub struct MissingTimezone;
 
 #[derive(Debug, thiserror::Error)]
-#[error("invalid timezone")]
-pub struct InvalidTimezone(chrono::NaiveDateTime, FixedOffset);
-
-#[derive(Debug, thiserror::Error)]
-pub enum TimezoneError {
-	#[error(transparent)]
-	Missing(#[from] MissingTimezone),
-
-	#[error(transparent)]
-	Invalid(#[from] InvalidTimezone),
-}
-
-#[derive(Debug, thiserror::Error)]
 #[error("invalid datetime value")]
 pub struct InvalidDateTimeValue;
 
@@ -269,9 +256,9 @@ impl TryFrom<DateTime> for chrono::DateTime<FixedOffset> {
 }
 
 impl TryFrom<DateTime> for chrono::DateTime<Utc> {
-	type Error = TimezoneError;
+	type Error = MissingTimezone;
 
-	fn try_from(value: DateTime) -> Result<Self, TimezoneError> {
+	fn try_from(value: DateTime) -> Result<Self, MissingTimezone> {
 		let fixed: chrono::DateTime<FixedOffset> = value.try_into()?;
 		Ok(fixed.into())
 	}

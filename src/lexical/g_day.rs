@@ -25,7 +25,7 @@ use super::{Lexical, LexicalFormOf};
 pub struct GDay(str);
 
 impl GDay {
-	pub fn parts(&self) -> Parts {
+	pub fn parts(&self) -> Parts<'_> {
 		Parts {
 			day: &self.0[3..5],
 			timezone: if self.0.len() > 5 {

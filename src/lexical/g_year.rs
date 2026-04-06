@@ -28,7 +28,7 @@ use super::{Lexical, LexicalFormOf};
 pub struct GYear(str);
 
 impl GYear {
-	pub fn parts(&self) -> Parts {
+	pub fn parts(&self) -> Parts<'_> {
 		let year_end =
 			byte_index_of(self.0.as_bytes(), 4, [b'+', b'-', b'Z']).unwrap_or(self.0.len());
 

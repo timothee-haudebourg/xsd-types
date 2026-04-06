@@ -1,4 +1,4 @@
-use core::fmt;
+use core::{fmt, str::FromStr};
 
 use crate::{
 	lexical::{self, LexicalFormOf},
@@ -36,6 +36,15 @@ impl LexicalFormOf<Boolean> for lexical::Boolean {
 
 impl ParseXsd for Boolean {
 	type LexicalForm = lexical::Boolean;
+}
+
+impl FromStr for Boolean {
+	type Err = lexical::InvalidBoolean;
+
+	fn from_str(s: &str) -> Result<Self, Self::Err> {
+		let l = lexical::Boolean::new(s)?;
+		Ok(l.into())
+	}
 }
 
 impl fmt::Display for Boolean {

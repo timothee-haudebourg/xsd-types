@@ -178,7 +178,7 @@ impl Base64Binary {
 		unsafe { std::mem::transmute(bytes) }
 	}
 
-	pub fn chars(&self) -> Chars {
+	pub fn chars(&self) -> Chars<'_> {
 		Chars {
 			offset: 0,
 			rest: 0,

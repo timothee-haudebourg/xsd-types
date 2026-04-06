@@ -25,7 +25,7 @@ use static_regular_grammar::RegularGrammar;
 pub struct DayTimeDuration(str);
 
 impl DayTimeDuration {
-	pub fn parts(&self) -> Parts {
+	pub fn parts(&self) -> Parts<'_> {
 		enum State {
 			Sign,
 			DateNumber,

@@ -158,7 +158,7 @@ impl HexBinary {
 		unsafe { std::mem::transmute(bytes) }
 	}
 
-	pub fn chars(&self) -> Chars {
+	pub fn chars(&self) -> Chars<'_> {
 		Chars {
 			pending: None,
 			bytes: self.0.iter(),

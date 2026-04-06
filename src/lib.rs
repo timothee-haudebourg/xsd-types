@@ -48,21 +48,19 @@
 //! ```
 //!
 //! [`Value`]: crate::Value
+#[doc(hidden)]
+pub use iref;
+
 use iref::{iri, Iri};
 
-/// Lexical domain types.
 pub mod lexical;
+mod types;
 pub(crate) mod utils;
-
-/// Value domain types.
 pub mod value;
 
 use lexical::{Lexical, LexicalFormOf};
-pub use value::*;
-
-mod types;
-
 pub use types::*;
+pub use value::*;
 
 /// XSD primitive datatype.
 pub enum PrimitiveDatatype {

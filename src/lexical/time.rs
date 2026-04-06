@@ -29,7 +29,7 @@ use super::{date_time::parse_seconds_decimal, parse_timezone, Lexical, LexicalFo
 pub struct Time(str);
 
 impl Time {
-	fn parts(&self) -> Parts {
+	fn parts(&self) -> Parts<'_> {
 		let seconds_end =
 			byte_index_of(self.0.as_bytes(), 8, [b'+', b'-', b'Z']).unwrap_or(self.0.len());
 		Parts {

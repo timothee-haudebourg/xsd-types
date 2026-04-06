@@ -24,7 +24,7 @@ use super::{Lexical, LexicalFormOf};
 pub struct GMonth(str);
 
 impl GMonth {
-	pub fn parts(&self) -> Parts {
+	pub fn parts(&self) -> Parts<'_> {
 		Parts {
 			month: &self.0[2..4],
 			timezone: if self.0.len() > 4 {
