@@ -1,4 +1,3 @@
-use chrono::{Datelike, FixedOffset, Timelike, Utc};
 use std::{cmp::Ordering, fmt, hash::Hash, str::FromStr};
 
 use crate::{
@@ -20,55 +19,57 @@ pub struct InvalidDateTimeValue;
 
 #[derive(Debug, Clone, Copy)]
 pub struct DateTime {
-	pub date_time: chrono::NaiveDateTime,
-	pub offset: Option<FixedOffset>,
+	pub date_time: time::PrimitiveDateTime,
+	pub offset: Option<time::UtcOffset>,
 }
 
 impl DateTime {
-	pub fn new(date_time: chrono::NaiveDateTime, offset: Option<FixedOffset>) -> Self {
+	pub fn new(date_time: time::PrimitiveDateTime, offset: Option<time::UtcOffset>) -> Self {
 		Self { date_time, offset }
 	}
 
 	/// Returns a `DateTime` which corresponds to the current time and date.
 	pub fn now() -> Self {
-		Utc::now().into()
+		time::OffsetDateTime::now_utc().into()
 	}
 
 	/// Returns a `DateTime` which corresponds to the current time and date,
 	/// with millisecond precision (at most).
 	pub fn now_ms() -> Self {
-		let now = Utc::now();
-		let ms = now.timestamp_subsec_millis();
-		let ns = ms * 1_000_000;
-		now.with_nanosecond(ns).unwrap_or(now).into()
+		let now = time::OffsetDateTime::now_utc();
+		let ms = now.millisecond();
+		let ns = ms as u32 * 1_000_000;
+		now.replace_nanosecond(ns).unwrap_or(now).into()
 	}
 
 	pub fn into_string(self) -> String {
 		self.to_string()
 	}
 
+	/// Returns this `DateTime` as a `DateTimeStamp`, using the given offset
+	/// if this `DateTime` has none of its own.
+	fn with_offset(&self, default_offset: time::UtcOffset) -> DateTimeStamp {
+		DateTimeStamp::new(self.date_time, self.offset.unwrap_or(default_offset))
+	}
+
 	/// Returns the earliest date/time with offset represented by this
 	/// date/time.
-	pub fn earliest(&self) -> chrono::DateTime<FixedOffset> {
-		match self.offset {
-			Some(offset) => self.date_time.and_local_timezone(offset).unwrap(),
-			None => self
-				.date_time
-				.and_local_timezone(FixedOffset::west_opt(14 * 60 * 60).unwrap())
-				.unwrap(),
-		}
+	///
+	/// The instant represented by an offset-less `DateTime` is
+	/// `self.date_time - offset` for some unknown `offset` in
+	/// `-14:00..=+14:00`. The earliest (smallest) possible instant is
+	/// therefore obtained with the largest offset, `+14:00`.
+	pub fn earliest(&self) -> DateTimeStamp {
+		self.with_offset(time::UtcOffset::from_whole_seconds(14 * 60 * 60).unwrap())
 	}
 
 	/// Returns the latest date/time with offset represented by this
 	/// date/time.
-	pub fn latest(&self) -> chrono::DateTime<FixedOffset> {
-		match self.offset {
-			Some(offset) => self.date_time.and_local_timezone(offset).unwrap(),
-			None => self
-				.date_time
-				.and_local_timezone(FixedOffset::east_opt(14 * 60 * 60).unwrap())
-				.unwrap(),
-		}
+	///
+	/// The latest (largest) possible instant is obtained with the smallest
+	/// offset, `-14:00`.
+	pub fn latest(&self) -> DateTimeStamp {
+		self.with_offset(time::UtcOffset::from_whole_seconds(-14 * 60 * 60).unwrap())
 	}
 }
 
@@ -117,7 +118,7 @@ impl fmt::Display for DateTime {
 			f,
 			"{}-{:02}-{:02}T{:02}:{:02}:{:02}",
 			DisplayYear(self.date_time.year()),
-			self.date_time.month(),
+			u8::from(self.date_time.month()),
 			self.date_time.day(),
 			self.date_time.hour(),
 			self.date_time.minute(),
@@ -162,21 +163,22 @@ pub(crate) fn format_nanoseconds(ns: u32, f: &mut fmt::Formatter) -> fmt::Result
 	}
 }
 
-pub(crate) fn format_timezone(tz: Option<FixedOffset>, f: &mut fmt::Formatter) -> fmt::Result {
+pub(crate) fn format_timezone(tz: Option<time::UtcOffset>, f: &mut fmt::Formatter) -> fmt::Result {
 	match tz {
 		Some(tz) => {
-			if tz.local_minus_utc() == 0 {
+			let total_seconds = tz.whole_seconds();
+			if total_seconds == 0 {
 				write!(f, "Z")
 			} else {
-				let tz = if tz.local_minus_utc() > 0 {
+				let abs_seconds = if total_seconds > 0 {
 					write!(f, "+")?;
-					tz.local_minus_utc() as u32
+					total_seconds as u32
 				} else {
 					write!(f, "-")?;
-					-tz.local_minus_utc() as u32
+					-total_seconds as u32
 				};
 
-				let tz_minutes = tz / 60;
+				let tz_minutes = abs_seconds / 60;
 				let hours = tz_minutes / 60;
 				let minutes = tz_minutes % 60;
 				write!(f, "{hours:02}:{minutes:02}")
@@ -217,74 +219,67 @@ impl FromStr for DateTime {
 	}
 }
 
-impl From<chrono::DateTime<FixedOffset>> for DateTime {
-	fn from(value: chrono::DateTime<FixedOffset>) -> Self {
-		let naive_date_time = value.naive_utc();
-		let offset = *value.offset();
-		Self::new(naive_date_time, Some(offset))
-	}
-}
-
-impl From<chrono::DateTime<Utc>> for DateTime {
-	fn from(value: chrono::DateTime<Utc>) -> Self {
-		let naive_date_time = value.naive_utc();
-		let offset = FixedOffset::east_opt(0).unwrap();
-		Self::new(naive_date_time, Some(offset))
-	}
-}
-
-#[cfg(feature = "time")]
 impl From<time::OffsetDateTime> for DateTime {
 	fn from(value: time::OffsetDateTime) -> Self {
-		use chrono::TimeZone;
-		FixedOffset::east_opt(value.offset().whole_seconds())
-			.unwrap()
-			.timestamp_nanos(value.unix_timestamp_nanos() as i64)
-			.into()
+		let date_time = time::PrimitiveDateTime::new(value.date(), value.time());
+		Self::new(date_time, Some(value.offset()))
 	}
 }
 
-impl TryFrom<DateTime> for chrono::DateTime<FixedOffset> {
-	type Error = MissingTimezone;
-
-	fn try_from(value: DateTime) -> Result<Self, MissingTimezone> {
-		match value.offset {
-			Some(offset) => Ok(value.date_time.and_local_timezone(offset).unwrap()),
-			None => Err(MissingTimezone),
-		}
-	}
-}
-
-impl TryFrom<DateTime> for chrono::DateTime<Utc> {
-	type Error = MissingTimezone;
-
-	fn try_from(value: DateTime) -> Result<Self, MissingTimezone> {
-		let fixed: chrono::DateTime<FixedOffset> = value.try_into()?;
-		Ok(fixed.into())
-	}
-}
-
-#[cfg(feature = "time")]
 impl TryFrom<DateTime> for time::OffsetDateTime {
 	type Error = MissingTimezone;
 
 	fn try_from(value: DateTime) -> Result<Self, MissingTimezone> {
 		match value.offset {
-			Some(offset) => {
-				let date_time = match value.date_time.timestamp_nanos_opt() {
-					Some(t) => time::OffsetDateTime::from_unix_timestamp_nanos(t as i128).unwrap(),
-					None => time::OffsetDateTime::from_unix_timestamp_nanos(
-						value.date_time.timestamp_micros() as i128 * 1000,
-					)
-					.unwrap(),
-				};
-
-				Ok(date_time.to_offset(
-					time::UtcOffset::from_whole_seconds(offset.local_minus_utc()).unwrap(),
-				))
-			}
+			Some(offset) => Ok(value.date_time.assume_offset(offset)),
 			None => Err(MissingTimezone),
 		}
+	}
+}
+
+#[cfg(feature = "chrono")]
+impl From<chrono::DateTime<chrono::FixedOffset>> for DateTime {
+	fn from(value: chrono::DateTime<chrono::FixedOffset>) -> Self {
+		let offset = time::UtcOffset::from_whole_seconds(value.offset().local_minus_utc()).unwrap();
+		let odt = match value.timestamp_nanos_opt() {
+			Some(t) => time::OffsetDateTime::from_unix_timestamp_nanos(t as i128).unwrap(),
+			None => time::OffsetDateTime::from_unix_timestamp_nanos(
+				value.timestamp_micros() as i128 * 1000,
+			)
+			.unwrap(),
+		};
+
+		odt.to_offset(offset).into()
+	}
+}
+
+#[cfg(feature = "chrono")]
+impl From<chrono::DateTime<chrono::Utc>> for DateTime {
+	fn from(value: chrono::DateTime<chrono::Utc>) -> Self {
+		value.fixed_offset().into()
+	}
+}
+
+#[cfg(feature = "chrono")]
+impl TryFrom<DateTime> for chrono::DateTime<chrono::FixedOffset> {
+	type Error = MissingTimezone;
+
+	fn try_from(value: DateTime) -> Result<Self, MissingTimezone> {
+		use chrono::TimeZone;
+
+		let odt: time::OffsetDateTime = value.try_into()?;
+		let offset = chrono::FixedOffset::east_opt(odt.offset().whole_seconds()).unwrap();
+		Ok(offset.timestamp_nanos(odt.unix_timestamp_nanos() as i64))
+	}
+}
+
+#[cfg(feature = "chrono")]
+impl TryFrom<DateTime> for chrono::DateTime<chrono::Utc> {
+	type Error = MissingTimezone;
+
+	fn try_from(value: DateTime) -> Result<Self, MissingTimezone> {
+		let fixed: chrono::DateTime<chrono::FixedOffset> = value.try_into()?;
+		Ok(fixed.into())
 	}
 }
 
@@ -327,11 +322,25 @@ impl<'de> serde::Deserialize<'de> for DateTime {
 
 #[cfg(test)]
 mod tests {
-	#[cfg(feature = "time")]
+	use super::{DateTime, DateTimeStamp};
+
+	#[cfg(feature = "chrono")]
+	#[test]
+	fn chrono_fixed_offset_roundtrip() {
+		// A non-zero, non-symmetric offset is essential here: with a `+00:00`
+		// offset, an inverted sign conversion would go unnoticed.
+		let xsd: DateTime = "2024-01-01T12:00:00+05:00".parse().unwrap();
+		let chrono: chrono::DateTime<chrono::FixedOffset> = xsd.try_into().unwrap();
+
+		assert_eq!(chrono.offset().local_minus_utc(), 5 * 3600);
+
+		let back: DateTime = chrono.into();
+		assert_eq!(xsd, back);
+	}
+
+	#[cfg(feature = "chrono")]
 	#[test]
 	fn chrono_time_roundtrip() {
-		use super::DateTime;
-
 		let expected_time =
 			time::OffsetDateTime::from_unix_timestamp_nanos(1726661641326000001).unwrap();
 		let xsd: DateTime = expected_time.into();
@@ -343,5 +352,46 @@ mod tests {
 		let xsd: DateTime = chrono.into();
 		let time: time::OffsetDateTime = xsd.try_into().unwrap();
 		assert_eq!(time, expected_time);
+	}
+
+	#[test]
+	fn earliest_latest_with_offset() {
+		let dt: DateTime = "2024-01-01T12:00:00+02:00".parse().unwrap();
+		let offset = time::UtcOffset::from_whole_seconds(2 * 60 * 60).unwrap();
+		let expected = DateTimeStamp::new(dt.date_time, offset);
+
+		// When the offset is known, `earliest` and `latest` both resolve to
+		// that single, unambiguous instant.
+		assert_eq!(dt.earliest(), expected);
+		assert_eq!(dt.latest(), expected);
+	}
+
+	#[test]
+	fn earliest_latest_without_offset() {
+		let dt: DateTime = "2024-01-01T12:00:00".parse().unwrap();
+
+		let west = time::UtcOffset::from_whole_seconds(-14 * 60 * 60).unwrap();
+		let east = time::UtcOffset::from_whole_seconds(14 * 60 * 60).unwrap();
+
+		// The earliest possible instant is obtained with the `+14:00` offset,
+		// the latest with the `-14:00` offset.
+		assert_eq!(dt.earliest(), DateTimeStamp::new(dt.date_time, east));
+		assert_eq!(dt.latest(), DateTimeStamp::new(dt.date_time, west));
+
+		// The two bounds must be 28 hours apart (the full `-14:00`..=`+14:00`
+		// timezone range), with `latest` after `earliest`.
+		let earliest = dt.earliest().to_offset_date_time();
+		let latest = dt.latest().to_offset_date_time();
+		assert_eq!(latest - earliest, time::Duration::hours(28));
+	}
+
+	#[test]
+	fn eq_uses_earliest_and_latest() {
+		let a: DateTime = "2024-01-01T12:00:00+02:00".parse().unwrap();
+		let b: DateTime = "2024-01-01T12:00:00+02:00".parse().unwrap();
+		let c: DateTime = "2024-01-01T12:00:00+03:00".parse().unwrap();
+
+		assert_eq!(a, b);
+		assert_ne!(a, c);
 	}
 }

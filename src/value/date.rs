@@ -1,5 +1,3 @@
-use chrono::{Datelike, FixedOffset, NaiveDate};
-
 use crate::{
 	format_timezone,
 	lexical::{InvalidDate, LexicalFormOf},
@@ -14,12 +12,12 @@ pub struct InvalidDateValue;
 
 #[derive(Debug, Clone, Copy)]
 pub struct Date {
-	pub date: NaiveDate,
-	pub offset: Option<FixedOffset>,
+	pub date: time::Date,
+	pub offset: Option<time::UtcOffset>,
 }
 
 impl Date {
-	pub fn new(date: NaiveDate, offset: Option<FixedOffset>) -> Self {
+	pub fn new(date: time::Date, offset: Option<time::UtcOffset>) -> Self {
 		Self { date, offset }
 	}
 }
@@ -59,7 +57,7 @@ impl fmt::Display for Date {
 			f,
 			"{}-{:02}-{:02}",
 			DisplayYear(self.date.year()),
-			self.date.month(),
+			u8::from(self.date.month()),
 			self.date.day()
 		)?;
 

@@ -77,7 +77,7 @@ impl<'a> Parts<'a> {
 		crate::GMonthDay::new(
 			self.month.parse().unwrap(),
 			self.day.parse().unwrap(),
-			self.timezone.map(parse_timezone),
+			self.timezone.map(|tz| parse_timezone(tz).unwrap()),
 		)
 		.unwrap()
 	}

@@ -116,24 +116,27 @@ impl<'a> Parts<'a> {
 	}
 
 	fn to_datetime(&self) -> Result<crate::DateTimeStamp, crate::InvalidDateTimeStampValue> {
-		let date = chrono::NaiveDate::from_ymd_opt(
+		let month = time::Month::try_from(self.month.parse::<u8>().unwrap())
+			.map_err(|_| crate::InvalidDateTimeStampValue)?;
+
+		let date = time::Date::from_calendar_date(
 			self.year.parse().unwrap(),
-			self.month.parse().unwrap(),
+			month,
 			self.day.parse().unwrap(),
 		)
-		.ok_or(crate::InvalidDateTimeStampValue)?;
+		.map_err(|_| crate::InvalidDateTimeStampValue)?;
 
 		let (seconds, nanoseconds) = parse_seconds_decimal(self.seconds);
 
-		let time = chrono::NaiveTime::from_hms_nano_opt(
+		let time = time::Time::from_hms_nano(
 			self.hours.parse().unwrap(),
 			self.minutes.parse().unwrap(),
-			seconds,
+			seconds as u8,
 			nanoseconds,
 		)
-		.ok_or(crate::InvalidDateTimeStampValue)?;
+		.map_err(|_| crate::InvalidDateTimeStampValue)?;
 
-		let datetime = chrono::NaiveDateTime::new(date, time);
+		let datetime = time::PrimitiveDateTime::new(date, time);
 
 		Ok(crate::DateTimeStamp::new(
 			datetime,
@@ -157,16 +160,16 @@ pub(crate) fn parse_seconds_decimal(decimal: &str) -> (u32, u32) {
 	}
 }
 
-pub(crate) fn parse_timezone(tz: &str) -> chrono::FixedOffset {
+pub(crate) fn parse_timezone(tz: &str) -> time::UtcOffset {
 	const HOUR: i32 = 3600;
 	const MINUTE: i32 = 60;
 
 	match tz {
-		"Z" => chrono::FixedOffset::east_opt(0).unwrap(),
-		"14:00" => chrono::FixedOffset::east_opt(14 * HOUR).unwrap(),
+		"Z" => time::UtcOffset::UTC,
+		"14:00" => time::UtcOffset::from_whole_seconds(14 * HOUR).unwrap(),
 		n => {
 			let (h, m) = n.split_once(':').unwrap();
-			chrono::FixedOffset::east_opt(
+			time::UtcOffset::from_whole_seconds(
 				h.parse::<i32>().unwrap() * HOUR + m.parse::<i32>().unwrap() * MINUTE,
 			)
 			.unwrap()
@@ -193,6 +196,23 @@ mod tests {
 				"2002-10-10T12:00:00-05:00",
 				Parts::new("2002", "10", "10", "12", "00", "00", "-05:00"),
 			),
+		];
+
+		for (input, parts) in vectors {
+			let lexical_repr = DateTimeStamp::new(input).unwrap();
+			assert_eq!(lexical_repr.parts(), parts);
+
+			let value = lexical_repr.try_as_value().unwrap();
+			assert_eq!(value.to_string().as_str(), input)
+		}
+	}
+
+	/// Years outside of `-9999..=9999` require the `large-dates` feature of
+	/// the `time` crate.
+	#[cfg(feature = "large-dates")]
+	#[test]
+	fn parsing_large_dates() {
+		let vectors = [
 			(
 				"202002-10-10T12:00:00.00001-05:00",
 				Parts::new("202002", "10", "10", "12", "00", "00.00001", "-05:00"),

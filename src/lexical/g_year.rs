@@ -73,7 +73,7 @@ impl<'a> Parts<'a> {
 	fn to_g_year_month(&self) -> crate::GYear {
 		crate::GYear::new(
 			self.year.parse().unwrap(),
-			self.timezone.map(parse_timezone),
+			self.timezone.map(|tz| parse_timezone(tz).unwrap()),
 		)
 	}
 }

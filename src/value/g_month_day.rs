@@ -1,5 +1,3 @@
-use chrono::FixedOffset;
-
 use crate::{format_timezone, Datatype, ParseXsd, XsdValue};
 use core::fmt;
 
@@ -9,11 +7,11 @@ const MONTH_MAX_LEN: [u8; 12] = [31, 29, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31]
 pub struct GMonthDay {
 	month: u8,
 	day: u8,
-	offset: Option<FixedOffset>,
+	offset: Option<time::UtcOffset>,
 }
 
 impl GMonthDay {
-	pub fn new(month: u8, day: u8, offset: Option<FixedOffset>) -> Option<Self> {
+	pub fn new(month: u8, day: u8, offset: Option<time::UtcOffset>) -> Option<Self> {
 		if month > 0 {
 			let max_day = *MONTH_MAX_LEN.get(month as usize - 1)?;
 			if (1..=max_day).contains(&day) {

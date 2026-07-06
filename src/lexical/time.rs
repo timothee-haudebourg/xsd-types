@@ -87,15 +87,18 @@ impl<'a> Parts<'a> {
 	fn to_time(&self) -> Result<crate::Time, crate::InvalidTimeValue> {
 		let (seconds, nanoseconds) = parse_seconds_decimal(self.seconds);
 
-		let time = chrono::NaiveTime::from_hms_nano_opt(
+		let time = time::Time::from_hms_nano(
 			self.hours.parse().unwrap(),
 			self.minutes.parse().unwrap(),
-			seconds,
+			seconds as u8,
 			nanoseconds,
 		)
-		.ok_or(crate::InvalidTimeValue)?;
+		.map_err(|_| crate::InvalidTimeValue)?;
 
-		Ok(crate::Time::new(time, self.timezone.map(parse_timezone)))
+		Ok(crate::Time::new(
+			time,
+			self.timezone.map(|tz| parse_timezone(tz).unwrap()),
+		))
 	}
 }
 

@@ -66,7 +66,7 @@ impl<'a> Parts<'a> {
 	fn to_g_month(&self) -> crate::GMonth {
 		crate::GMonth::new(
 			self.month.parse().unwrap(),
-			self.timezone.map(parse_timezone),
+			self.timezone.map(|tz| parse_timezone(tz).unwrap()),
 		)
 		.unwrap()
 	}

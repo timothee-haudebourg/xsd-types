@@ -1,5 +1,3 @@
-use chrono::FixedOffset;
-
 use crate::{format_timezone, Datatype, DisplayYear, ParseXsd, XsdValue};
 use core::fmt;
 
@@ -7,11 +5,11 @@ use core::fmt;
 pub struct GYearMonth {
 	year: i32,
 	month: u8,
-	offset: Option<FixedOffset>,
+	offset: Option<time::UtcOffset>,
 }
 
 impl GYearMonth {
-	pub fn new(year: i32, month: u8, offset: Option<FixedOffset>) -> Option<Self> {
+	pub fn new(year: i32, month: u8, offset: Option<time::UtcOffset>) -> Option<Self> {
 		if (1..=12).contains(&month) {
 			Some(Self {
 				year,

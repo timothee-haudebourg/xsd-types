@@ -1,16 +1,14 @@
-use chrono::FixedOffset;
-
 use crate::{format_timezone, Datatype, ParseXsd, XsdValue};
 use core::fmt;
 
 #[derive(Debug, Clone, Copy)]
 pub struct GDay {
 	day: u8,
-	offset: Option<FixedOffset>,
+	offset: Option<time::UtcOffset>,
 }
 
 impl GDay {
-	pub fn new(day: u8, offset: Option<FixedOffset>) -> Option<Self> {
+	pub fn new(day: u8, offset: Option<time::UtcOffset>) -> Option<Self> {
 		if (1..=31).contains(&day) {
 			Some(Self { day, offset })
 		} else {

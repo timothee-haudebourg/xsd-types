@@ -1,5 +1,3 @@
-use chrono::{FixedOffset, NaiveTime, Timelike};
-
 use crate::{format_nanoseconds, format_timezone, Datatype, ParseXsd, XsdValue};
 use core::fmt;
 
@@ -9,12 +7,12 @@ pub struct InvalidTimeValue;
 
 #[derive(Debug, Clone, Copy)]
 pub struct Time {
-	pub time: NaiveTime,
-	pub offset: Option<FixedOffset>,
+	pub time: time::Time,
+	pub offset: Option<time::UtcOffset>,
 }
 
 impl Time {
-	pub fn new(time: NaiveTime, offset: Option<FixedOffset>) -> Self {
+	pub fn new(time: time::Time, offset: Option<time::UtcOffset>) -> Self {
 		Self { time, offset }
 	}
 }

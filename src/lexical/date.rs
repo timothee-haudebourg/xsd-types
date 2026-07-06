@@ -71,10 +71,10 @@ impl LexicalFormOf<crate::Date> for Date {
 
 #[derive(Debug, PartialEq, Eq)]
 pub struct Parts<'a> {
-	year: &'a str,
-	month: &'a str,
-	day: &'a str,
-	timezone: Option<&'a str>,
+	pub year: &'a str,
+	pub month: &'a str,
+	pub day: &'a str,
+	pub timezone: Option<&'a str>,
 }
 
 impl<'a> Parts<'a> {
@@ -88,14 +88,24 @@ impl<'a> Parts<'a> {
 	}
 
 	fn to_date(&self) -> Result<crate::Date, crate::InvalidDateValue> {
-		let date = chrono::NaiveDate::from_ymd_opt(
-			self.year.parse().unwrap(),
-			self.month.parse().unwrap(),
-			self.day.parse().unwrap(),
-		)
-		.ok_or(crate::InvalidDateValue)?;
+		let year = self.year.parse().map_err(|_| crate::InvalidDateValue)?;
+		let day = self.day.parse().map_err(|_| crate::InvalidDateValue)?;
 
-		Ok(crate::Date::new(date, self.timezone.map(parse_timezone)))
+		let month = self
+			.month
+			.parse::<u8>()
+			.map_err(|_| crate::InvalidDateValue)?;
+		let month = time::Month::try_from(month).map_err(|_| crate::InvalidDateValue)?;
+
+		let date = time::Date::from_calendar_date(year, month, day)
+			.map_err(|_| crate::InvalidDateValue)?;
+
+		let offset = match self.timezone {
+			Some(tz) => Some(parse_timezone(tz).ok_or(crate::InvalidDateValue)?),
+			None => None,
+		};
+
+		Ok(crate::Date::new(date, offset))
 	}
 }
 
@@ -114,11 +124,26 @@ mod tests {
 				"2002-10-10-05:00",
 				Parts::new("2002", "10", "10", Some("-05:00")),
 			),
-			(
-				"202002-10-10-05:00",
-				Parts::new("202002", "10", "10", Some("-05:00")),
-			),
 		];
+
+		for (input, parts) in vectors {
+			let lexical_repr = Date::new(input).unwrap();
+			assert_eq!(lexical_repr.parts(), parts);
+
+			let value = lexical_repr.try_as_value().unwrap();
+			assert_eq!(value.to_string().as_str(), input)
+		}
+	}
+
+	/// Years outside of `-9999..=9999` require the `large-dates` feature of
+	/// the `time` crate.
+	#[cfg(feature = "large-dates")]
+	#[test]
+	fn parsing_large_dates() {
+		let vectors = [(
+			"202002-10-10-05:00",
+			Parts::new("202002", "10", "10", Some("-05:00")),
+		)];
 
 		for (input, parts) in vectors {
 			let lexical_repr = Date::new(input).unwrap();

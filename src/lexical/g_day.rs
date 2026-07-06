@@ -65,7 +65,11 @@ impl<'a> Parts<'a> {
 	}
 
 	fn to_g_day(&self) -> crate::GDay {
-		crate::GDay::new(self.day.parse().unwrap(), self.timezone.map(parse_timezone)).unwrap()
+		crate::GDay::new(
+			self.day.parse().unwrap(),
+			self.timezone.map(|tz| parse_timezone(tz).unwrap()),
+		)
+		.unwrap()
 	}
 }
 
