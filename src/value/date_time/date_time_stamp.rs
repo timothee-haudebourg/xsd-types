@@ -8,10 +8,6 @@ use crate::{
 };
 
 #[derive(Debug, thiserror::Error)]
-#[error("invalid timezone")]
-pub struct InvalidTimezone(chrono::NaiveDateTime, FixedOffset);
-
-#[derive(Debug, thiserror::Error)]
 #[error("invalid datetimestamp value")]
 pub struct InvalidDateTimeStampValue;
 
