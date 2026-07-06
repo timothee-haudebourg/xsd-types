@@ -31,7 +31,7 @@ use super::{Lexical, LexicalFormOf};
 pub struct GYearMonth(str);
 
 impl GYearMonth {
-	pub fn parts(&self) -> Parts {
+	pub fn parts(&self) -> Parts<'_> {
 		let year_end = byte_index_of(self.0.as_bytes(), 4, b'-').unwrap();
 		let month_end = year_end + 3;
 

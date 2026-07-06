@@ -158,7 +158,7 @@ impl HexBinary {
 		unsafe { std::mem::transmute(bytes) }
 	}
 
-	pub fn chars(&self) -> Chars {
+	pub fn chars(&self) -> Chars<'_> {
 		Chars {
 			pending: None,
 			bytes: self.0.iter(),
@@ -237,7 +237,7 @@ impl<'a> Iterator for Chars<'a> {
 mod tests {
 	use super::*;
 
-	const TESTS: [(&'static [u8], &'static str); 9] = [
+	const TESTS: [(&[u8], &str); 9] = [
 		(b"M", "4D"),
 		(b"Ma", "4D61"),
 		(b"Man", "4D616E"),

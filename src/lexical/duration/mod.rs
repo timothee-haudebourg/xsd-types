@@ -35,7 +35,7 @@ pub use year_month_duration::{InvalidYearMonthDuration, YearMonthDuration, YearM
 pub struct Duration(str);
 
 impl Duration {
-	pub fn parts(&self) -> Parts {
+	pub fn parts(&self) -> Parts<'_> {
 		enum State {
 			Sign,
 			DateNumber,

@@ -39,7 +39,7 @@ class Datatype
 		puts "pub enum #{@name}Datatype {"
 
 		puts "\t#{@name},"
-	
+
 		@subclasses.each do |c|
 			if c.subclasses.empty? then
 				puts "\t#{c.name},"
@@ -47,7 +47,7 @@ class Datatype
 				puts "\t#{c.name}(#{c.name}Datatype),"
 			end
 		end
-	
+
 		puts "}"
 
 		puts "impl #{@name}Datatype {"
@@ -93,7 +93,7 @@ class Datatype
 		puts "\t\t}"
 		puts "\t}"
 		puts "}"
-	
+
 		@subclasses.each do |c|
 			if !c.subclasses.empty? then
 				c.generate_into_datatype("#{@name}Datatype", lambda { |value| "Self::#{c.name}(#{value})" })
@@ -108,7 +108,7 @@ class Datatype
 		puts "pub enum #{@name}Value {"
 		self.generate_value_variants
 		puts "}"
-	
+
 		puts "impl #{@name}Value {"
 		puts "\tpub fn datatype(&self) -> #{@name}Datatype {"
 		puts "\t\tmatch self {"
@@ -133,7 +133,7 @@ class Datatype
 		puts "\t\t}"
 		puts "\t}"
 		puts "}"
-	
+
 		@subclasses.each do |c|
 			if !c.subclasses.empty? then
 				c.generate_into_value("#{@name}Value")
@@ -141,7 +141,7 @@ class Datatype
 				c.generate_datatype_enum
 			end
 		end
-	
+
 		if self.any_subtype? { |c| !c.is_copy? } then
 			puts "/// Any specialized [`#{@ref_name}`] value reference."
 			puts "#[derive(Debug, Clone, Copy)]"
@@ -150,7 +150,7 @@ class Datatype
 			puts "}"
 
 			puts "impl #{@name}Value {"
-			puts "\tpub fn as_ref(&self) -> #{@name}ValueRef {"
+			puts "\tpub fn as_ref(&self) -> #{@name}ValueRef<'_> {"
 			puts "\t\tmatch self {"
 			self.generate_value_variants_as_ref("#{@name}ValueRef")
 			puts "\t\t}"
@@ -194,7 +194,7 @@ class Datatype
 				end
 			end
 		end
-	
+
 		@subclasses.each do |c|
 			if !c.subclasses.empty? then
 				c.generate_value_enum
@@ -549,7 +549,7 @@ def generate_value_enum(classes)
 	puts "}"
 
 	puts "impl Value {"
-	puts "\tpub fn as_ref(&self) -> ValueRef {"
+	puts "\tpub fn as_ref(&self) -> ValueRef<'_> {"
 	puts "\t\tmatch self {"
 	classes.each do |c|
 		c.generate_value_variants_as_ref("ValueRef")

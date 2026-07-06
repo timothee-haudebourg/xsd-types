@@ -178,7 +178,7 @@ impl Base64Binary {
 		unsafe { std::mem::transmute(bytes) }
 	}
 
-	pub fn chars(&self) -> Chars {
+	pub fn chars(&self) -> Chars<'_> {
 		Chars {
 			offset: 0,
 			rest: 0,
@@ -284,7 +284,7 @@ impl XsdValue for Base64Binary {
 mod tests {
 	use super::*;
 
-	const TESTS: [(&'static [u8], &'static str); 9] = [
+	const TESTS: [(&[u8], &str); 9] = [
 		(b"M", "TQ=="),
 		(b"Ma", "TWE="),
 		(b"Man", "TWFu"),
