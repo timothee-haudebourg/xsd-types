@@ -17,8 +17,7 @@ serde = ["dep:serde"]
 time = ["dep:time"]
 
 [dependencies]
-iref = "3.1"
-static-iref = "3.0"
+iref = "4.0"
 pretty_dtoa = "0.3.0"
 num-bigint = "0.4"
 num-rational = "0.4"

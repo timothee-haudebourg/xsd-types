@@ -1,3 +1,4 @@
+//! Value domain types.
 mod any_uri;
 pub mod base64_binary;
 mod boolean;
@@ -55,7 +56,7 @@ pub enum CowValue<'a> {
 }
 
 impl<'a> CowValue<'a> {
-	pub fn as_value_ref(&self) -> ValueRef {
+	pub fn as_value_ref(&self) -> ValueRef<'_> {
 		match self {
 			Self::Borrowed(v) => *v,
 			Self::Owned(v) => v.as_ref(),
