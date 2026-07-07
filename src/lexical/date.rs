@@ -1,4 +1,5 @@
-use static_regular_grammar::RegularGrammar;
+use static_automata::Validate;
+use str_newtype::StrNewType;
 
 use crate::{lexical::parse_timezone, utils::byte_index_of};
 
@@ -30,8 +31,9 @@ use super::{Lexical, LexicalFormOf};
 ///
 /// NZDIGIT = "1" / "2" / "3" / "4" / "5" / "6" / "7" / "8" / "9"
 /// ```
-#[derive(RegularGrammar, PartialEq, Eq, PartialOrd, Ord, Hash)]
-#[grammar(sized(DateBuf, derive(PartialEq, Eq, PartialOrd, Ord, Hash)))]
+#[derive(Validate, StrNewType, PartialEq, Eq, PartialOrd, Ord, Hash)]
+#[automaton(super::grammar::Date)]
+#[newtype(owned(DateBuf, derive(PartialEq, Eq, PartialOrd, Ord, Hash)))]
 pub struct Date(str);
 
 impl Date {

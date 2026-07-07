@@ -1,4 +1,26 @@
 //! Lexical domain types.
+use static_automata::grammar;
+
+#[grammar(
+	file = "grammar.abnf",
+	export(
+		"date" as Date,
+		"date-time" as DateTime,
+		"date-time-stamp" as DateTimeStamp,
+		"xsd-time" as Time,
+		"g-day" as GDay,
+		"g-month" as GMonth,
+		"g-month-day" as GMonthDay,
+		"g-year" as GYear,
+		"g-year-month" as GYearMonth,
+		"duration" as Duration,
+		"day-time-duration" as DayTimeDuration,
+		"year-month-duration" as YearMonthDuration,
+		"QName" as QName
+	)
+)]
+mod grammar {}
+
 mod any_uri;
 mod base64_binary;
 mod boolean;

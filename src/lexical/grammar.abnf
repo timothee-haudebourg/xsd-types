@@ -1,0 +1,100 @@
+; Shared calendar/clock components, used by `date`, `date-time`,
+; `date-time-stamp`, `xsd-time`, `g-day`, `g-month`, `g-month-day`, `g-year`
+; and `g-year-month`.
+year        = [ "-" ] year-number
+year-number = *3DIGIT NZDIGIT
+            / *2DIGIT NZDIGIT DIGIT
+            / *1DIGIT NZDIGIT 2DIGIT
+            / NZDIGIT 3*DIGIT
+
+month = "0" NZDIGIT
+      / "1" ( "0" / "1" / "2" )
+
+day = "0" NZDIGIT
+    / ("1" / "2") DIGIT
+    / "3" ("0" / "1")
+
+hour = ("0" / "1") DIGIT
+     / "2" ("0" / "1" / "2" / "3")
+
+minute = ("0" / "1" / "2" / "3" / "4" / "5") DIGIT
+
+second = ("0" / "1" / "2" / "3" / "4" / "5") DIGIT
+
+fraction = 1*DIGIT
+
+time = hour ":" minute ":" second ["." fraction]
+     / "24:00:00" ["." 1*"0"]
+
+timezone = ("+" / "-") ((("0" DIGIT / "1" ("0" / "1" / "2" / "3")) ":" minute) / "14:00")
+         / %s"Z"
+
+NZDIGIT = "1" / "2" / "3" / "4" / "5" / "6" / "7" / "8" / "9"
+
+; `date`
+date = year "-" month "-" day [timezone]
+
+; `date-time`
+date-time = year "-" month "-" day %s"T" time [timezone]
+
+; `date-time-stamp`
+date-time-stamp = year "-" month "-" day %s"T" time timezone
+
+; `xsd-time`
+xsd-time = time [timezone]
+
+; `g-day`
+g-day = "---" day [timezone]
+
+; `g-month`
+g-month = "--" month [timezone]
+
+; `g-month-day`
+g-month-day = "--" month "-" day [timezone]
+
+; `g-year`
+g-year = year [timezone]
+
+; `g-year-month`
+g-year-month = year "-" month [timezone]
+
+; Duration components. Named with a `dur-` prefix to avoid colliding with
+; the calendar/clock components above, which use different grammars for
+; the same names (e.g. `dur-year` is a number of years, not a calendar
+; year).
+dur-year   = 1*DIGIT %s"Y"
+dur-month  = 1*DIGIT %s"M"
+dur-day    = 1*DIGIT %s"D"
+dur-hour   = 1*DIGIT %s"H"
+dur-minute = 1*DIGIT %s"M"
+dur-second = ((1*DIGIT ["." *DIGIT]) / "." 1*DIGIT) %s"S"
+
+year-month = (dur-year [ dur-month ]) / dur-month
+day-time   = (dur-day [ dur-time ]) / dur-time
+dur-time   = %s"T" ((dur-hour [ dur-minute ] [ dur-second ]) / (dur-minute [ dur-second ]) / dur-second)
+
+; `duration`
+duration = [ "-" ] %s"P" ((year-month [ day-time ]) / day-time)
+
+; `day-time-duration`
+day-time-duration = [ "-" ] %s"P" day-time
+
+; `year-month-duration`
+year-month-duration = [ "-" ] %s"P" year-month
+
+; `QName`
+QName = PrefixedName / UnprefixedName
+
+PrefixedName = Prefix ":" LocalPart
+
+UnprefixedName = LocalPart
+
+Prefix = NCName
+
+LocalPart = NCName
+
+NCName = NCNameStartChar *NCNameChar
+
+NCNameStartChar = ALPHA / "_" / %xC0-D6 / %xD8-F6 / %xF8-2FF / %x370-37D / %x37F-1FFF / %x200C-200D / %x2070-218F / %x2C00-2FEF / %x3001-D7FF / %xF900-FDCF / %xFDF0-FFFD / %x10000-EFFFF
+
+NCNameChar = NCNameStartChar / "-" / "." / DIGIT / %xB7 / %x0300-036F / %x203F-2040

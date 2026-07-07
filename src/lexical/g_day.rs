@@ -1,4 +1,5 @@
-use static_regular_grammar::RegularGrammar;
+use static_automata::Validate;
+use str_newtype::StrNewType;
 
 use crate::lexical::parse_timezone;
 
@@ -20,8 +21,9 @@ use super::{Lexical, LexicalFormOf};
 ///
 /// NZDIGIT = "1" / "2" / "3" / "4" / "5" / "6" / "7" / "8" / "9"
 /// ```
-#[derive(RegularGrammar, PartialEq, Eq, PartialOrd, Ord, Hash)]
-#[grammar(sized(GDayBuf, derive(PartialEq, Eq, PartialOrd, Ord, Hash)))]
+#[derive(Validate, StrNewType, PartialEq, Eq, PartialOrd, Ord, Hash)]
+#[automaton(super::grammar::GDay)]
+#[newtype(owned(GDayBuf, derive(PartialEq, Eq, PartialOrd, Ord, Hash)))]
 pub struct GDay(str);
 
 impl GDay {

@@ -1,4 +1,5 @@
-use static_regular_grammar::RegularGrammar;
+use static_automata::Validate;
+use str_newtype::StrNewType;
 
 use super::{Lexical, LexicalFormOf};
 
@@ -21,8 +22,9 @@ use super::{Lexical, LexicalFormOf};
 ///
 /// NCNameChar = NCNameStartChar / "-" / "." / DIGIT / %xB7 / %x0300-036F / %x203F-2040
 /// ```
-#[derive(RegularGrammar, PartialEq, Eq, PartialOrd, Ord, Hash)]
-#[grammar(sized(QNameBuf, derive(Debug, PartialEq, Eq, PartialOrd, Ord, Hash)))]
+#[derive(Validate, StrNewType, PartialEq, Eq, PartialOrd, Ord, Hash)]
+#[automaton(super::grammar::QName)]
+#[newtype(owned(QNameBuf, derive(PartialEq, Eq, PartialOrd, Ord, Hash)))]
 pub struct QName(str);
 
 impl Lexical for QName {

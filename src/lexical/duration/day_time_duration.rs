@@ -1,7 +1,8 @@
 use crate::lexical::date_time::parse_seconds_decimal;
 
 use super::{Lexical, LexicalFormOf};
-use static_regular_grammar::RegularGrammar;
+use static_automata::Validate;
+use str_newtype::StrNewType;
 
 /// Day Time Duration.
 ///
@@ -20,8 +21,9 @@ use static_regular_grammar::RegularGrammar;
 ///
 /// second = ((1*DIGIT ["." *DIGIT] ) / "." 1*DIGIT) %s"S"
 /// ```
-#[derive(RegularGrammar, PartialEq, Eq, PartialOrd, Ord, Hash)]
-#[grammar(sized(DayTimeDurationBuf, derive(PartialEq, Eq, PartialOrd, Ord, Hash)))]
+#[derive(Validate, StrNewType, PartialEq, Eq, PartialOrd, Ord, Hash)]
+#[automaton(super::super::grammar::DayTimeDuration)]
+#[newtype(owned(DayTimeDurationBuf, derive(PartialEq, Eq, PartialOrd, Ord, Hash)))]
 pub struct DayTimeDuration(str);
 
 impl DayTimeDuration {

@@ -1,5 +1,6 @@
 use super::{date_time::parse_seconds_decimal, Lexical, LexicalFormOf};
-use static_regular_grammar::RegularGrammar;
+use static_automata::Validate;
+use str_newtype::StrNewType;
 
 pub mod day_time_duration;
 pub use day_time_duration::{DayTimeDuration, DayTimeDurationBuf, InvalidDayTimeDuration};
@@ -30,8 +31,9 @@ pub use year_month_duration::{InvalidYearMonthDuration, YearMonthDuration, YearM
 ///
 /// second = ((1*DIGIT ["." *DIGIT] ) / "." 1*DIGIT) %s"S"
 /// ```
-#[derive(RegularGrammar, PartialEq, Eq, PartialOrd, Ord, Hash)]
-#[grammar(sized(DurationBuf, derive(PartialEq, Eq, PartialOrd, Ord, Hash)))]
+#[derive(Validate, StrNewType, PartialEq, Eq, PartialOrd, Ord, Hash)]
+#[automaton(super::grammar::Duration)]
+#[newtype(owned(DurationBuf, derive(PartialEq, Eq, PartialOrd, Ord, Hash)))]
 pub struct Duration(str);
 
 impl Duration {

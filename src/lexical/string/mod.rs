@@ -1,3 +1,18 @@
+use static_automata::grammar;
+
+#[grammar(
+	file = "grammar.abnf",
+	export(
+		"NCName" as Id,
+		"NCName" as IdRef,
+		"NCName" as NCName,
+		"Name" as Name,
+		"Nmtoken" as NMToken,
+		"language" as Language
+	)
+)]
+mod grammar {}
+
 mod id;
 mod idref;
 mod language;

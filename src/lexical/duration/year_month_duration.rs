@@ -1,5 +1,6 @@
 use super::{Lexical, LexicalFormOf};
-use static_regular_grammar::RegularGrammar;
+use static_automata::Validate;
+use str_newtype::StrNewType;
 
 /// Year Month Duration.
 ///
@@ -12,8 +13,9 @@ use static_regular_grammar::RegularGrammar;
 ///
 /// month = 1*DIGIT %s"M"
 /// ```
-#[derive(RegularGrammar, PartialEq, Eq, PartialOrd, Ord, Hash)]
-#[grammar(sized(YearMonthDurationBuf, derive(PartialEq, Eq, PartialOrd, Ord, Hash)))]
+#[derive(Validate, StrNewType, PartialEq, Eq, PartialOrd, Ord, Hash)]
+#[automaton(super::super::grammar::YearMonthDuration)]
+#[newtype(owned(YearMonthDurationBuf, derive(PartialEq, Eq, PartialOrd, Ord, Hash)))]
 pub struct YearMonthDuration(str);
 
 impl YearMonthDuration {

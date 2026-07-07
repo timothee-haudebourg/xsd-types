@@ -1,6 +1,17 @@
+use static_automata::Validate;
+use str_newtype::StrNewType;
+
 use crate::lexical::{Lexical, LexicalFormOf};
-use crate::InvalidLanguage;
-pub use crate::{Language, LanguageBuf};
+
+/// Language.
+///
+/// ```abnf
+/// language = 1*8ALPHA *("-" 1*8(ALPHA / DIGIT))
+/// ```
+#[derive(Validate, StrNewType, PartialEq, Eq, PartialOrd, Ord, Hash)]
+#[automaton(super::grammar::Language)]
+#[newtype(owned(LanguageBuf, derive(PartialEq, Eq, PartialOrd, Ord, Hash)))]
+pub struct Language(str);
 
 impl Lexical for Language {
 	type Error = InvalidLanguage<String>;
@@ -10,10 +21,10 @@ impl Lexical for Language {
 	}
 }
 
-impl LexicalFormOf<crate::LanguageBuf> for Language {
+impl LexicalFormOf<LanguageBuf> for Language {
 	type ValueError = InvalidLanguage<String>;
 
-	fn try_as_value(&self) -> Result<crate::LanguageBuf, Self::ValueError> {
+	fn try_as_value(&self) -> Result<LanguageBuf, Self::ValueError> {
 		self.as_str().parse()
 	}
 }

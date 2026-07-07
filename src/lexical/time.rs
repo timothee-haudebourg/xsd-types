@@ -1,4 +1,5 @@
-use static_regular_grammar::RegularGrammar;
+use static_automata::Validate;
+use str_newtype::StrNewType;
 
 use crate::{utils::byte_index_of, InvalidTimeValue};
 
@@ -24,8 +25,9 @@ use super::{date_time::parse_seconds_decimal, parse_timezone, Lexical, LexicalFo
 /// timezone = ("+" / "-") ((("0" DIGIT / "1" ("0" / "1" / "2" / "3")) ":" minute) / "14:00")
 ///          / %s"Z"
 /// ```
-#[derive(RegularGrammar, PartialEq, Eq, PartialOrd, Ord, Hash)]
-#[grammar(sized(TimeBuf, derive(PartialEq, Eq, PartialOrd, Ord, Hash)))]
+#[derive(Validate, StrNewType, PartialEq, Eq, PartialOrd, Ord, Hash)]
+#[automaton(super::grammar::Time)]
+#[newtype(owned(TimeBuf, derive(PartialEq, Eq, PartialOrd, Ord, Hash)))]
 pub struct Time(str);
 
 impl Time {
