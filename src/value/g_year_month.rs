@@ -1,9 +1,11 @@
 use crate::{
-	format_timezone, seven_property_model_date_time, seven_property_model_eq,
-	seven_property_model_partial_cmp, Datatype, DisplayYear, ParseXsd, XsdValue,
+	format_timezone,
+	lexical::{InvalidGYearMonth, LexicalFormOf},
+	seven_property_model_date_time, seven_property_model_eq, seven_property_model_partial_cmp,
+	Datatype, DisplayYear, ParseXsd, XsdValue,
 };
 use core::fmt;
-use std::{cmp::Ordering, hash::Hash};
+use std::{cmp::Ordering, hash::Hash, str::FromStr};
 
 #[derive(Debug, Clone, Copy)]
 pub struct GYearMonth {
@@ -25,10 +27,35 @@ impl GYearMonth {
 		}
 	}
 
+	/// Returns the year.
+	pub fn year(&self) -> i32 {
+		self.year
+	}
+
+	/// Returns the month, in `1..=12`.
+	pub fn month(&self) -> u8 {
+		self.month
+	}
+
+	/// Returns the timezone offset, if any.
+	pub fn offset(&self) -> Option<time::UtcOffset> {
+		self.offset
+	}
+
 	fn effective_date_time(&self) -> time::PrimitiveDateTime {
 		// `self.month` is guaranteed to be in `1..=12` by `Self::new`.
 		let month = time::Month::try_from(self.month).unwrap();
 		seven_property_model_date_time(Some(self.year), Some(month), None, time::Time::MIDNIGHT)
+	}
+}
+
+impl FromStr for GYearMonth {
+	type Err = InvalidGYearMonth<String>;
+
+	fn from_str(s: &str) -> Result<Self, Self::Err> {
+		let lexical_value = crate::lexical::GYearMonth::new(s)
+			.map_err(|InvalidGYearMonth(s)| InvalidGYearMonth(s.to_owned()))?;
+		Ok(lexical_value.as_value())
 	}
 }
 
@@ -123,5 +150,17 @@ mod tests {
 		let b = GYearMonth::new(2024, 2, None).unwrap();
 
 		assert_eq!(a, b);
+	}
+
+	#[test]
+	fn from_str_roundtrip() {
+		let ym: GYearMonth = "2024-02+05:00".parse().unwrap();
+		assert_eq!(ym.year(), 2024);
+		assert_eq!(ym.month(), 2);
+		assert_eq!(
+			ym.offset(),
+			Some(time::UtcOffset::from_hms(5, 0, 0).unwrap())
+		);
+		assert_eq!(ym.to_string(), "2024-02+05:00");
 	}
 }

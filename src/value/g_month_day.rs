@@ -1,9 +1,11 @@
 use crate::{
-	format_timezone, seven_property_model_date_time, seven_property_model_eq,
-	seven_property_model_partial_cmp, Datatype, ParseXsd, XsdValue,
+	format_timezone,
+	lexical::{InvalidGMonthDay, LexicalFormOf},
+	seven_property_model_date_time, seven_property_model_eq, seven_property_model_partial_cmp,
+	Datatype, ParseXsd, XsdValue,
 };
 use core::fmt;
-use std::{cmp::Ordering, hash::Hash};
+use std::{cmp::Ordering, hash::Hash, str::FromStr};
 
 const MONTH_MAX_LEN: [u8; 12] = [31, 29, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31];
 
@@ -28,10 +30,35 @@ impl GMonthDay {
 		}
 	}
 
+	/// Returns the month, in `1..=12`.
+	pub fn month(&self) -> u8 {
+		self.month
+	}
+
+	/// Returns the day of the month, valid for that month.
+	pub fn day(&self) -> u8 {
+		self.day
+	}
+
+	/// Returns the timezone offset, if any.
+	pub fn offset(&self) -> Option<time::UtcOffset> {
+		self.offset
+	}
+
 	fn effective_date_time(&self) -> time::PrimitiveDateTime {
 		// `self.month` is guaranteed to be in `1..=12` by `Self::new`.
 		let month = time::Month::try_from(self.month).unwrap();
 		seven_property_model_date_time(None, Some(month), Some(self.day), time::Time::MIDNIGHT)
+	}
+}
+
+impl FromStr for GMonthDay {
+	type Err = InvalidGMonthDay<String>;
+
+	fn from_str(s: &str) -> Result<Self, Self::Err> {
+		let lexical_value = crate::lexical::GMonthDay::new(s)
+			.map_err(|InvalidGMonthDay(s)| InvalidGMonthDay(s.to_owned()))?;
+		Ok(lexical_value.as_value())
 	}
 }
 
@@ -111,5 +138,17 @@ mod tests {
 		let b = GMonthDay::new(2, 15, None).unwrap();
 
 		assert_eq!(a, b);
+	}
+
+	#[test]
+	fn from_str_roundtrip() {
+		let d: GMonthDay = "--02-15+05:00".parse().unwrap();
+		assert_eq!(d.month(), 2);
+		assert_eq!(d.day(), 15);
+		assert_eq!(
+			d.offset(),
+			Some(time::UtcOffset::from_hms(5, 0, 0).unwrap())
+		);
+		assert_eq!(d.to_string(), "--02-15+05:00");
 	}
 }

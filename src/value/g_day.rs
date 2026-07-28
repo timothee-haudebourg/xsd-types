@@ -1,9 +1,11 @@
 use crate::{
-	format_timezone, seven_property_model_date_time, seven_property_model_eq,
-	seven_property_model_partial_cmp, Datatype, ParseXsd, XsdValue,
+	format_timezone,
+	lexical::{InvalidGDay, LexicalFormOf},
+	seven_property_model_date_time, seven_property_model_eq, seven_property_model_partial_cmp,
+	Datatype, ParseXsd, XsdValue,
 };
 use core::fmt;
-use std::{cmp::Ordering, hash::Hash};
+use std::{cmp::Ordering, hash::Hash, str::FromStr};
 
 #[derive(Debug, Clone, Copy)]
 pub struct GDay {
@@ -20,8 +22,28 @@ impl GDay {
 		}
 	}
 
+	/// Returns the day of the month, in `1..=31`.
+	pub fn day(&self) -> u8 {
+		self.day
+	}
+
+	/// Returns the timezone offset, if any.
+	pub fn offset(&self) -> Option<time::UtcOffset> {
+		self.offset
+	}
+
 	fn effective_date_time(&self) -> time::PrimitiveDateTime {
 		seven_property_model_date_time(None, None, Some(self.day), time::Time::MIDNIGHT)
+	}
+}
+
+impl FromStr for GDay {
+	type Err = InvalidGDay<String>;
+
+	fn from_str(s: &str) -> Result<Self, Self::Err> {
+		let lexical_value =
+			crate::lexical::GDay::new(s).map_err(|InvalidGDay(s)| InvalidGDay(s.to_owned()))?;
+		Ok(lexical_value.as_value())
 	}
 }
 
@@ -106,5 +128,13 @@ mod tests {
 		assert_eq!(d15_minus11, d16_plus13);
 
 		assert_eq!(d15_minus13.partial_cmp(&d16), None);
+	}
+
+	#[test]
+	fn from_str_roundtrip() {
+		let d: GDay = "---15+05:00".parse().unwrap();
+		assert_eq!(d.day(), 15);
+		assert_eq!(d.offset(), Some(offset(5)));
+		assert_eq!(d.to_string(), "---15+05:00");
 	}
 }
