@@ -120,10 +120,11 @@ impl<'a> Parts<'a> {
 
 		let datetime = time::PrimitiveDateTime::new(date, time);
 
-		Ok(crate::DateTime::new(
+		crate::DateTime::new(
 			datetime,
 			self.timezone.map(|tz| parse_timezone(tz).unwrap()),
-		))
+		)
+		.ok_or(crate::InvalidDateTimeValue)
 	}
 }
 

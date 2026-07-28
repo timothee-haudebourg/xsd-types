@@ -12,19 +12,53 @@ pub struct InvalidDateTimeStampValue;
 
 #[derive(Debug, Clone, Copy)]
 pub struct DateTimeStamp {
-	pub date_time: time::PrimitiveDateTime,
-	pub offset: time::UtcOffset,
+	date_time: time::PrimitiveDateTime,
+	offset: time::UtcOffset,
 }
 
 impl DateTimeStamp {
-	pub fn new(date_time: time::PrimitiveDateTime, offset: time::UtcOffset) -> Self {
-		Self { date_time, offset }
+	/// Creates a new `DateTimeStamp`, or returns `None` if `offset` is
+	/// outside the `-14:00..=+14:00` range permitted by XSD.
+	pub fn new(date_time: time::PrimitiveDateTime, offset: time::UtcOffset) -> Option<Self> {
+		if crate::is_valid_offset(offset) {
+			Some(Self { date_time, offset })
+		} else {
+			None
+		}
+	}
+
+	/// Returns the date and time, ignoring the timezone offset.
+	pub fn date_time(&self) -> time::PrimitiveDateTime {
+		self.date_time
+	}
+
+	/// Returns the date, ignoring the time of day and timezone offset.
+	pub fn date(&self) -> time::Date {
+		self.date_time.date()
+	}
+
+	/// Returns the time of day, ignoring the date and timezone offset.
+	pub fn time(&self) -> time::Time {
+		self.date_time.time()
+	}
+
+	/// Returns the timezone offset.
+	pub fn offset(&self) -> time::UtcOffset {
+		self.offset
+	}
+
+	/// Deconstructs this `DateTimeStamp` into its date/time and timezone
+	/// offset.
+	pub fn into_parts(self) -> (time::PrimitiveDateTime, time::UtcOffset) {
+		(self.date_time, self.offset)
 	}
 
 	/// Returns a `DateTimeStamp` which corresponds to the current time and
 	/// date.
 	pub fn now() -> Self {
-		time::OffsetDateTime::now_utc().into()
+		// `OffsetDateTime::now_utc` always has a zero offset, which is always
+		// within the valid range.
+		time::OffsetDateTime::now_utc().try_into().unwrap()
 	}
 
 	/// Returns a `DateTimeStamp` which corresponds to the current time and
@@ -33,7 +67,11 @@ impl DateTimeStamp {
 		let now = time::OffsetDateTime::now_utc();
 		let ms = now.millisecond();
 		let ns = ms as u32 * 1_000_000;
-		now.replace_nanosecond(ns).unwrap_or(now).into()
+		// Same as `now`: the zero offset is always within the valid range.
+		now.replace_nanosecond(ns)
+			.unwrap_or(now)
+			.try_into()
+			.unwrap()
 	}
 
 	pub fn into_string(self) -> String {
@@ -158,10 +196,12 @@ impl FromStr for DateTimeStamp {
 	}
 }
 
-impl From<time::OffsetDateTime> for DateTimeStamp {
-	fn from(value: time::OffsetDateTime) -> Self {
+impl TryFrom<time::OffsetDateTime> for DateTimeStamp {
+	type Error = crate::InvalidOffset;
+
+	fn try_from(value: time::OffsetDateTime) -> Result<Self, Self::Error> {
 		let date_time = time::PrimitiveDateTime::new(value.date(), value.time());
-		Self::new(date_time, value.offset())
+		Self::new(date_time, value.offset()).ok_or(crate::InvalidOffset)
 	}
 }
 
@@ -172,8 +212,10 @@ impl From<DateTimeStamp> for time::OffsetDateTime {
 }
 
 #[cfg(feature = "chrono")]
-impl From<chrono::DateTime<chrono::FixedOffset>> for DateTimeStamp {
-	fn from(value: chrono::DateTime<chrono::FixedOffset>) -> Self {
+impl TryFrom<chrono::DateTime<chrono::FixedOffset>> for DateTimeStamp {
+	type Error = crate::InvalidOffset;
+
+	fn try_from(value: chrono::DateTime<chrono::FixedOffset>) -> Result<Self, Self::Error> {
 		let offset = time::UtcOffset::from_whole_seconds(value.offset().local_minus_utc()).unwrap();
 		let odt = match value.timestamp_nanos_opt() {
 			Some(t) => time::OffsetDateTime::from_unix_timestamp_nanos(t as i128).unwrap(),
@@ -183,14 +225,16 @@ impl From<chrono::DateTime<chrono::FixedOffset>> for DateTimeStamp {
 			.unwrap(),
 		};
 
-		odt.to_offset(offset).into()
+		odt.to_offset(offset).try_into()
 	}
 }
 
 #[cfg(feature = "chrono")]
 impl From<chrono::DateTime<chrono::Utc>> for DateTimeStamp {
 	fn from(value: chrono::DateTime<chrono::Utc>) -> Self {
-		value.fixed_offset().into()
+		// A `chrono::Utc` timestamp always has a zero offset, which is always
+		// within the valid range.
+		value.fixed_offset().try_into().unwrap()
 	}
 }
 
@@ -247,6 +291,35 @@ impl<'de> serde::Deserialize<'de> for DateTimeStamp {
 
 #[cfg(test)]
 mod tests {
+	#[test]
+	fn new_rejects_out_of_range_offset() {
+		use super::DateTimeStamp;
+
+		let date_time = time::PrimitiveDateTime::new(
+			time::Date::from_calendar_date(2024, time::Month::January, 1).unwrap(),
+			time::Time::MIDNIGHT,
+		);
+		let offset = time::UtcOffset::from_hms(15, 0, 0).unwrap();
+
+		assert!(DateTimeStamp::new(date_time, offset).is_none());
+	}
+
+	#[test]
+	fn date_and_time_accessors() {
+		use super::DateTimeStamp;
+
+		let date = time::Date::from_calendar_date(2024, time::Month::January, 1).unwrap();
+		let time = time::Time::from_hms(12, 30, 0).unwrap();
+		let date_time = time::PrimitiveDateTime::new(date, time);
+		let offset = time::UtcOffset::UTC;
+
+		let dts = DateTimeStamp::new(date_time, offset).unwrap();
+
+		assert_eq!(dts.date(), date);
+		assert_eq!(dts.time(), time);
+		assert_eq!(dts.date_time(), date_time);
+	}
+
 	#[cfg(feature = "chrono")]
 	#[test]
 	fn chrono_fixed_offset_roundtrip() {
@@ -259,7 +332,7 @@ mod tests {
 
 		assert_eq!(chrono.offset().local_minus_utc(), 5 * 3600);
 
-		let back: DateTimeStamp = chrono.into();
+		let back: DateTimeStamp = chrono.try_into().unwrap();
 		assert_eq!(xsd, back);
 	}
 
@@ -270,7 +343,7 @@ mod tests {
 
 		let expected_time =
 			time::OffsetDateTime::from_unix_timestamp_nanos(1726661641326000001).unwrap();
-		let xsd: DateTimeStamp = expected_time.into();
+		let xsd: DateTimeStamp = expected_time.try_into().unwrap();
 		let chrono: chrono::DateTime<chrono::Utc> = xsd.into();
 		let expected_chrono = chrono::DateTime::from_timestamp_millis(1726661641326).unwrap()
 			+ std::time::Duration::from_nanos(1);

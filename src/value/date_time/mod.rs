@@ -17,20 +17,66 @@ pub struct MissingTimezone;
 #[error("invalid datetime value")]
 pub struct InvalidDateTimeValue;
 
+#[derive(Debug, thiserror::Error)]
+#[error("timezone offset out of range")]
+pub struct InvalidOffset;
+
+/// Returns whether `offset` is within the range permitted by the XSD
+/// `timezoneFrag` production (`-14:00` to `+14:00`, inclusive).
+pub(crate) fn is_valid_offset(offset: time::UtcOffset) -> bool {
+	(-14 * 60 * 60..=14 * 60 * 60).contains(&offset.whole_seconds())
+}
+
 #[derive(Debug, Clone, Copy)]
 pub struct DateTime {
-	pub date_time: time::PrimitiveDateTime,
-	pub offset: Option<time::UtcOffset>,
+	date_time: time::PrimitiveDateTime,
+	offset: Option<time::UtcOffset>,
 }
 
 impl DateTime {
-	pub fn new(date_time: time::PrimitiveDateTime, offset: Option<time::UtcOffset>) -> Self {
-		Self { date_time, offset }
+	/// Creates a new `DateTime`, or returns `None` if `offset` is outside
+	/// the `-14:00..=+14:00` range permitted by XSD.
+	pub fn new(
+		date_time: time::PrimitiveDateTime,
+		offset: Option<time::UtcOffset>,
+	) -> Option<Self> {
+		if offset.is_none_or(is_valid_offset) {
+			Some(Self { date_time, offset })
+		} else {
+			None
+		}
+	}
+
+	/// Returns the date and time, ignoring the timezone offset.
+	pub fn date_time(&self) -> time::PrimitiveDateTime {
+		self.date_time
+	}
+
+	/// Returns the date, ignoring the time of day and timezone offset.
+	pub fn date(&self) -> time::Date {
+		self.date_time.date()
+	}
+
+	/// Returns the time of day, ignoring the date and timezone offset.
+	pub fn time(&self) -> time::Time {
+		self.date_time.time()
+	}
+
+	/// Returns the timezone offset, if any.
+	pub fn offset(&self) -> Option<time::UtcOffset> {
+		self.offset
+	}
+
+	/// Deconstructs this `DateTime` into its date/time and timezone offset.
+	pub fn into_parts(self) -> (time::PrimitiveDateTime, Option<time::UtcOffset>) {
+		(self.date_time, self.offset)
 	}
 
 	/// Returns a `DateTime` which corresponds to the current time and date.
 	pub fn now() -> Self {
-		time::OffsetDateTime::now_utc().into()
+		// `OffsetDateTime::now_utc` always has a zero offset, which is always
+		// within the valid range.
+		time::OffsetDateTime::now_utc().try_into().unwrap()
 	}
 
 	/// Returns a `DateTime` which corresponds to the current time and date,
@@ -39,7 +85,11 @@ impl DateTime {
 		let now = time::OffsetDateTime::now_utc();
 		let ms = now.millisecond();
 		let ns = ms as u32 * 1_000_000;
-		now.replace_nanosecond(ns).unwrap_or(now).into()
+		// Same as `now`: the zero offset is always within the valid range.
+		now.replace_nanosecond(ns)
+			.unwrap_or(now)
+			.try_into()
+			.unwrap()
 	}
 
 	pub fn into_string(self) -> String {
@@ -49,7 +99,10 @@ impl DateTime {
 	/// Returns this `DateTime` as a `DateTimeStamp`, using the given offset
 	/// if this `DateTime` has none of its own.
 	fn with_offset(&self, default_offset: time::UtcOffset) -> DateTimeStamp {
-		DateTimeStamp::new(self.date_time, self.offset.unwrap_or(default_offset))
+		// `self.offset`, if present, was already validated when `self` was
+		// constructed, and `default_offset` is always exactly `±14:00`, the
+		// boundary of the valid range, so this is always in range.
+		DateTimeStamp::new(self.date_time, self.offset.unwrap_or(default_offset)).unwrap()
 	}
 
 	/// Returns the earliest date/time with offset represented by this
@@ -289,10 +342,12 @@ impl FromStr for DateTime {
 	}
 }
 
-impl From<time::OffsetDateTime> for DateTime {
-	fn from(value: time::OffsetDateTime) -> Self {
+impl TryFrom<time::OffsetDateTime> for DateTime {
+	type Error = InvalidOffset;
+
+	fn try_from(value: time::OffsetDateTime) -> Result<Self, Self::Error> {
 		let date_time = time::PrimitiveDateTime::new(value.date(), value.time());
-		Self::new(date_time, Some(value.offset()))
+		Self::new(date_time, Some(value.offset())).ok_or(InvalidOffset)
 	}
 }
 
@@ -308,8 +363,10 @@ impl TryFrom<DateTime> for time::OffsetDateTime {
 }
 
 #[cfg(feature = "chrono")]
-impl From<chrono::DateTime<chrono::FixedOffset>> for DateTime {
-	fn from(value: chrono::DateTime<chrono::FixedOffset>) -> Self {
+impl TryFrom<chrono::DateTime<chrono::FixedOffset>> for DateTime {
+	type Error = InvalidOffset;
+
+	fn try_from(value: chrono::DateTime<chrono::FixedOffset>) -> Result<Self, Self::Error> {
 		let offset = time::UtcOffset::from_whole_seconds(value.offset().local_minus_utc()).unwrap();
 		let odt = match value.timestamp_nanos_opt() {
 			Some(t) => time::OffsetDateTime::from_unix_timestamp_nanos(t as i128).unwrap(),
@@ -319,14 +376,16 @@ impl From<chrono::DateTime<chrono::FixedOffset>> for DateTime {
 			.unwrap(),
 		};
 
-		odt.to_offset(offset).into()
+		odt.to_offset(offset).try_into()
 	}
 }
 
 #[cfg(feature = "chrono")]
 impl From<chrono::DateTime<chrono::Utc>> for DateTime {
 	fn from(value: chrono::DateTime<chrono::Utc>) -> Self {
-		value.fixed_offset().into()
+		// A `chrono::Utc` timestamp always has a zero offset, which is always
+		// within the valid range.
+		value.fixed_offset().try_into().unwrap()
 	}
 }
 
@@ -416,6 +475,38 @@ mod tests {
 		assert_eq!(feb_2023.date().day(), 28);
 	}
 
+	#[test]
+	fn new_rejects_out_of_range_offset() {
+		let date_time = time::PrimitiveDateTime::new(
+			time::Date::from_calendar_date(2024, time::Month::January, 1).unwrap(),
+			time::Time::MIDNIGHT,
+		);
+		let offset = time::UtcOffset::from_hms(15, 0, 0).unwrap();
+
+		assert!(DateTime::new(date_time, Some(offset)).is_none());
+	}
+
+	#[test]
+	fn try_from_offset_date_time_rejects_out_of_range_offset() {
+		let offset = time::UtcOffset::from_hms(15, 0, 0).unwrap();
+		let odt = time::OffsetDateTime::now_utc().to_offset(offset);
+
+		assert!(DateTime::try_from(odt).is_err());
+	}
+
+	#[test]
+	fn date_and_time_accessors() {
+		let date = time::Date::from_calendar_date(2024, time::Month::January, 1).unwrap();
+		let time = time::Time::from_hms(12, 30, 0).unwrap();
+		let date_time = time::PrimitiveDateTime::new(date, time);
+
+		let dt = DateTime::new(date_time, None).unwrap();
+
+		assert_eq!(dt.date(), date);
+		assert_eq!(dt.time(), time);
+		assert_eq!(dt.date_time(), date_time);
+	}
+
 	/// Per the same rule, a wholly-absent `year`/`month`/`day` (the `time`
 	/// datatype's case) defaults to `1972-12-31`.
 	#[test]
@@ -441,7 +532,7 @@ mod tests {
 
 		assert_eq!(chrono.offset().local_minus_utc(), 5 * 3600);
 
-		let back: DateTime = chrono.into();
+		let back: DateTime = chrono.try_into().unwrap();
 		assert_eq!(xsd, back);
 	}
 
@@ -450,7 +541,7 @@ mod tests {
 	fn chrono_time_roundtrip() {
 		let expected_time =
 			time::OffsetDateTime::from_unix_timestamp_nanos(1726661641326000001).unwrap();
-		let xsd: DateTime = expected_time.into();
+		let xsd: DateTime = expected_time.try_into().unwrap();
 		let chrono: chrono::DateTime<chrono::Utc> = xsd.try_into().unwrap();
 		let expected_chrono = chrono::DateTime::from_timestamp_millis(1726661641326).unwrap()
 			+ std::time::Duration::from_nanos(1);
@@ -465,7 +556,7 @@ mod tests {
 	fn earliest_latest_with_offset() {
 		let dt: DateTime = "2024-01-01T12:00:00+02:00".parse().unwrap();
 		let offset = time::UtcOffset::from_whole_seconds(2 * 60 * 60).unwrap();
-		let expected = DateTimeStamp::new(dt.date_time, offset);
+		let expected = DateTimeStamp::new(dt.date_time, offset).unwrap();
 
 		// When the offset is known, `earliest` and `latest` both resolve to
 		// that single, unambiguous instant.
@@ -482,8 +573,11 @@ mod tests {
 
 		// The earliest possible instant is obtained with the `+14:00` offset,
 		// the latest with the `-14:00` offset.
-		assert_eq!(dt.earliest(), DateTimeStamp::new(dt.date_time, east));
-		assert_eq!(dt.latest(), DateTimeStamp::new(dt.date_time, west));
+		assert_eq!(
+			dt.earliest(),
+			DateTimeStamp::new(dt.date_time, east).unwrap()
+		);
+		assert_eq!(dt.latest(), DateTimeStamp::new(dt.date_time, west).unwrap());
 
 		// The two bounds must be 28 hours apart (the full `-14:00`..=`+14:00`
 		// timezone range), with `latest` after `earliest`.

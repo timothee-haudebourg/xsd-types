@@ -87,10 +87,8 @@ impl<'a> Parts<'a> {
 		)
 		.map_err(|_| crate::InvalidTimeValue)?;
 
-		Ok(crate::Time::new(
-			time,
-			self.timezone.map(|tz| parse_timezone(tz).unwrap()),
-		))
+		crate::Time::new(time, self.timezone.map(|tz| parse_timezone(tz).unwrap()))
+			.ok_or(crate::InvalidTimeValue)
 	}
 }
 

@@ -1,5 +1,5 @@
 use crate::{
-	format_timezone,
+	format_timezone, is_valid_offset,
 	lexical::{InvalidGMonth, LexicalFormOf},
 	seven_property_model_date_time, seven_property_model_eq, seven_property_model_partial_cmp,
 	Datatype, ParseXsd, XsdValue,
@@ -15,7 +15,7 @@ pub struct GMonth {
 
 impl GMonth {
 	pub fn new(month: u8, offset: Option<time::UtcOffset>) -> Option<Self> {
-		if (1..=12).contains(&month) {
+		if (1..=12).contains(&month) && offset.is_none_or(is_valid_offset) {
 			Some(Self { month, offset })
 		} else {
 			None
@@ -30,6 +30,11 @@ impl GMonth {
 	/// Returns the timezone offset, if any.
 	pub fn offset(&self) -> Option<time::UtcOffset> {
 		self.offset
+	}
+
+	/// Deconstructs this `GMonth` into its month and timezone offset.
+	pub fn into_parts(self) -> (u8, Option<time::UtcOffset>) {
+		(self.month, self.offset)
 	}
 
 	fn effective_date_time(&self) -> time::PrimitiveDateTime {
@@ -150,5 +155,11 @@ mod tests {
 			Some(time::UtcOffset::from_hms(5, 0, 0).unwrap())
 		);
 		assert_eq!(m.to_string(), "--02+05:00");
+	}
+
+	#[test]
+	fn new_rejects_out_of_range_offset() {
+		let offset = time::UtcOffset::from_hms(15, 0, 0).unwrap();
+		assert!(GMonth::new(2, Some(offset)).is_none());
 	}
 }

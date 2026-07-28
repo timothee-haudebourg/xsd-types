@@ -1,5 +1,5 @@
 use crate::{
-	format_timezone,
+	format_timezone, is_valid_offset,
 	lexical::{InvalidGYearMonth, LexicalFormOf},
 	seven_property_model_date_time, seven_property_model_eq, seven_property_model_partial_cmp,
 	Datatype, DisplayYear, ParseXsd, XsdValue,
@@ -16,7 +16,7 @@ pub struct GYearMonth {
 
 impl GYearMonth {
 	pub fn new(year: i32, month: u8, offset: Option<time::UtcOffset>) -> Option<Self> {
-		if (1..=12).contains(&month) {
+		if (1..=12).contains(&month) && offset.is_none_or(is_valid_offset) {
 			Some(Self {
 				year,
 				month,
@@ -40,6 +40,12 @@ impl GYearMonth {
 	/// Returns the timezone offset, if any.
 	pub fn offset(&self) -> Option<time::UtcOffset> {
 		self.offset
+	}
+
+	/// Deconstructs this `GYearMonth` into its year, month and timezone
+	/// offset.
+	pub fn into_parts(self) -> (i32, u8, Option<time::UtcOffset>) {
+		(self.year, self.month, self.offset)
 	}
 
 	fn effective_date_time(&self) -> time::PrimitiveDateTime {
@@ -162,5 +168,19 @@ mod tests {
 			Some(time::UtcOffset::from_hms(5, 0, 0).unwrap())
 		);
 		assert_eq!(ym.to_string(), "2024-02+05:00");
+	}
+
+	#[test]
+	fn new_rejects_out_of_range_offset() {
+		let offset = time::UtcOffset::from_hms(15, 0, 0).unwrap();
+		assert!(GYearMonth::new(2024, 2, Some(offset)).is_none());
+	}
+
+	#[test]
+	fn into_parts_roundtrip() {
+		let offset = time::UtcOffset::from_hms(5, 0, 0).unwrap();
+		let ym = GYearMonth::new(2024, 2, Some(offset)).unwrap();
+
+		assert_eq!(ym.into_parts(), (2024, 2, Some(offset)));
 	}
 }

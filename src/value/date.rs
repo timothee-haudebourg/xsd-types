@@ -1,5 +1,5 @@
 use crate::{
-	format_timezone,
+	format_timezone, is_valid_offset,
 	lexical::{InvalidDate, LexicalFormOf},
 	seven_property_model_eq, seven_property_model_partial_cmp, Datatype, DisplayYear, ParseXsd,
 	XsdValue,
@@ -13,13 +13,34 @@ pub struct InvalidDateValue;
 
 #[derive(Debug, Clone, Copy)]
 pub struct Date {
-	pub date: time::Date,
-	pub offset: Option<time::UtcOffset>,
+	date: time::Date,
+	offset: Option<time::UtcOffset>,
 }
 
 impl Date {
-	pub fn new(date: time::Date, offset: Option<time::UtcOffset>) -> Self {
-		Self { date, offset }
+	/// Creates a new `Date`, or returns `None` if `offset` is outside the
+	/// `-14:00..=+14:00` range permitted by XSD.
+	pub fn new(date: time::Date, offset: Option<time::UtcOffset>) -> Option<Self> {
+		if offset.is_none_or(is_valid_offset) {
+			Some(Self { date, offset })
+		} else {
+			None
+		}
+	}
+
+	/// Returns the date, without its timezone offset.
+	pub fn date(&self) -> time::Date {
+		self.date
+	}
+
+	/// Returns the timezone offset, if any.
+	pub fn offset(&self) -> Option<time::UtcOffset> {
+		self.offset
+	}
+
+	/// Deconstructs this `Date` into its date and timezone offset.
+	pub fn into_parts(self) -> (time::Date, Option<time::UtcOffset>) {
+		(self.date, self.offset)
 	}
 
 	fn effective_date_time(&self) -> time::PrimitiveDateTime {
@@ -104,6 +125,23 @@ impl fmt::Display for Date {
 #[cfg(test)]
 mod tests {
 	use super::Date;
+
+	#[test]
+	fn new_rejects_out_of_range_offset() {
+		let date = time::Date::from_calendar_date(2024, time::Month::January, 1).unwrap();
+		let offset = time::UtcOffset::from_hms(15, 0, 0).unwrap();
+
+		assert!(Date::new(date, Some(offset)).is_none());
+	}
+
+	#[test]
+	fn into_parts_roundtrip() {
+		let date = time::Date::from_calendar_date(2024, time::Month::January, 1).unwrap();
+		let offset = time::UtcOffset::from_hms(2, 0, 0).unwrap();
+		let d = Date::new(date, Some(offset)).unwrap();
+
+		assert_eq!(d.into_parts(), (date, Some(offset)));
+	}
 
 	#[test]
 	fn ord_without_offset_is_direct() {

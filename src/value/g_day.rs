@@ -1,5 +1,5 @@
 use crate::{
-	format_timezone,
+	format_timezone, is_valid_offset,
 	lexical::{InvalidGDay, LexicalFormOf},
 	seven_property_model_date_time, seven_property_model_eq, seven_property_model_partial_cmp,
 	Datatype, ParseXsd, XsdValue,
@@ -15,7 +15,7 @@ pub struct GDay {
 
 impl GDay {
 	pub fn new(day: u8, offset: Option<time::UtcOffset>) -> Option<Self> {
-		if (1..=31).contains(&day) {
+		if (1..=31).contains(&day) && offset.is_none_or(is_valid_offset) {
 			Some(Self { day, offset })
 		} else {
 			None
@@ -30,6 +30,11 @@ impl GDay {
 	/// Returns the timezone offset, if any.
 	pub fn offset(&self) -> Option<time::UtcOffset> {
 		self.offset
+	}
+
+	/// Deconstructs this `GDay` into its day and timezone offset.
+	pub fn into_parts(self) -> (u8, Option<time::UtcOffset>) {
+		(self.day, self.offset)
 	}
 
 	fn effective_date_time(&self) -> time::PrimitiveDateTime {
@@ -136,5 +141,10 @@ mod tests {
 		assert_eq!(d.day(), 15);
 		assert_eq!(d.offset(), Some(offset(5)));
 		assert_eq!(d.to_string(), "---15+05:00");
+	}
+
+	#[test]
+	fn new_rejects_out_of_range_offset() {
+		assert!(GDay::new(15, Some(offset(15))).is_none());
 	}
 }

@@ -62,10 +62,13 @@ impl<'a> Parts<'a> {
 	}
 
 	fn to_g_year_month(&self) -> crate::GYear {
+		// The offset comes from the grammar-validated lexical form, so it is
+		// always within the range `GYear::new` requires.
 		crate::GYear::new(
 			self.year.parse().unwrap(),
 			self.timezone.map(|tz| parse_timezone(tz).unwrap()),
 		)
+		.unwrap()
 	}
 }
 

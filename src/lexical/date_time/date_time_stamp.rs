@@ -114,10 +114,8 @@ impl<'a> Parts<'a> {
 
 		let datetime = time::PrimitiveDateTime::new(date, time);
 
-		Ok(crate::DateTimeStamp::new(
-			datetime,
-			parse_timezone(self.timezone),
-		))
+		crate::DateTimeStamp::new(datetime, parse_timezone(self.timezone))
+			.ok_or(crate::InvalidDateTimeStampValue)
 	}
 }
 

@@ -89,7 +89,7 @@ impl<'a> Parts<'a> {
 			None => None,
 		};
 
-		Ok(crate::Date::new(date, offset))
+		crate::Date::new(date, offset).ok_or(crate::InvalidDateValue)
 	}
 }
 

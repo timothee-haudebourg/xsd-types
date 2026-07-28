@@ -1,5 +1,5 @@
 use crate::{
-	format_timezone,
+	format_timezone, is_valid_offset,
 	lexical::{InvalidGYear, LexicalFormOf},
 	seven_property_model_date_time, seven_property_model_eq, seven_property_model_partial_cmp,
 	Datatype, DisplayYear, ParseXsd, XsdValue,
@@ -14,8 +14,14 @@ pub struct GYear {
 }
 
 impl GYear {
-	pub fn new(year: i32, offset: Option<time::UtcOffset>) -> Self {
-		Self { year, offset }
+	/// Creates a new `GYear`, or returns `None` if `offset` is outside the
+	/// `-14:00..=+14:00` range permitted by XSD.
+	pub fn new(year: i32, offset: Option<time::UtcOffset>) -> Option<Self> {
+		if offset.is_none_or(is_valid_offset) {
+			Some(Self { year, offset })
+		} else {
+			None
+		}
 	}
 
 	/// Returns the year.
@@ -26,6 +32,11 @@ impl GYear {
 	/// Returns the timezone offset, if any.
 	pub fn offset(&self) -> Option<time::UtcOffset> {
 		self.offset
+	}
+
+	/// Deconstructs this `GYear` into its year and timezone offset.
+	pub fn into_parts(self) -> (i32, Option<time::UtcOffset>) {
+		(self.year, self.offset)
 	}
 
 	fn effective_date_time(&self) -> time::PrimitiveDateTime {
@@ -107,8 +118,8 @@ mod tests {
 
 	#[test]
 	fn ord_without_offset_is_direct() {
-		let a = GYear::new(2023, None);
-		let b = GYear::new(2024, None);
+		let a = GYear::new(2023, None).unwrap();
+		let b = GYear::new(2024, None).unwrap();
 
 		assert!(a < b);
 	}
@@ -118,8 +129,8 @@ mod tests {
 	// always totally ordered, even with extreme offsets.
 	#[test]
 	fn ord_is_always_definite() {
-		let a = GYear::new(2023, None);
-		let b = GYear::new(2024, Some(time::UtcOffset::from_hms(14, 0, 0).unwrap()));
+		let a = GYear::new(2023, None).unwrap();
+		let b = GYear::new(2024, Some(time::UtcOffset::from_hms(14, 0, 0).unwrap())).unwrap();
 
 		assert_eq!(a.cmp(&b), std::cmp::Ordering::Less);
 		assert_eq!(a.partial_cmp(&b), Some(std::cmp::Ordering::Less));
@@ -127,10 +138,16 @@ mod tests {
 
 	#[test]
 	fn eq_ignores_representation() {
-		let a = GYear::new(2023, None);
-		let b = GYear::new(2023, None);
+		let a = GYear::new(2023, None).unwrap();
+		let b = GYear::new(2023, None).unwrap();
 
 		assert_eq!(a, b);
+	}
+
+	#[test]
+	fn new_rejects_out_of_range_offset() {
+		let offset = time::UtcOffset::from_hms(15, 0, 0).unwrap();
+		assert!(GYear::new(2023, Some(offset)).is_none());
 	}
 
 	#[test]
