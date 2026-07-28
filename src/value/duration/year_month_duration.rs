@@ -26,7 +26,7 @@ impl YearMonthDuration {
 
 impl XsdValue for YearMonthDuration {
 	fn datatype(&self) -> Datatype {
-		Datatype::Duration(DurationDatatype::Duration)
+		Datatype::Duration(DurationDatatype::YearMonthDuration)
 	}
 }
 

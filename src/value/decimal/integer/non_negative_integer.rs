@@ -87,20 +87,16 @@ impl NonNegativeInteger {
 	}
 
 	pub fn non_negative_integer_type(&self) -> NonNegativeIntegerDatatype {
-		if self.0 > BigInt::zero() {
-			if self.0 <= *U8_MAX {
-				UnsignedShortDatatype::UnsignedByte.into()
-			} else if self.0 <= *U16_MAX {
-				UnsignedShortDatatype::UnsignedShort.into()
-			} else if self.0 <= *U32_MAX {
-				UnsignedIntDatatype::UnsignedInt.into()
-			} else if self.0 <= *U64_MAX {
-				UnsignedLongDatatype::UnsignedLong.into()
-			} else {
-				NonNegativeIntegerDatatype::PositiveInteger
-			}
+		if self.0 <= *U8_MAX {
+			UnsignedShortDatatype::UnsignedByte.into()
+		} else if self.0 <= *U16_MAX {
+			UnsignedShortDatatype::UnsignedShort.into()
+		} else if self.0 <= *U32_MAX {
+			UnsignedIntDatatype::UnsignedInt.into()
+		} else if self.0 <= *U64_MAX {
+			UnsignedLongDatatype::UnsignedLong.into()
 		} else {
-			NonNegativeIntegerDatatype::NonNegativeInteger
+			NonNegativeIntegerDatatype::PositiveInteger
 		}
 	}
 
@@ -517,3 +513,21 @@ impl_integer_arithmetic!(
 		usize
 	}
 );
+
+#[cfg(test)]
+mod tests {
+	use super::*;
+
+	#[test]
+	fn zero_is_unsigned_byte() {
+		assert_eq!(
+			NonNegativeInteger::zero().non_negative_integer_type(),
+			UnsignedShortDatatype::UnsignedByte.into()
+		);
+
+		assert_eq!(
+			Integer::zero().integer_type(),
+			UnsignedShortDatatype::UnsignedByte.into()
+		);
+	}
+}

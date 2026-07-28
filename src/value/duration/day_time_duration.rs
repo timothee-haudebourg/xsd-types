@@ -36,7 +36,7 @@ impl DayTimeDuration {
 
 impl XsdValue for DayTimeDuration {
 	fn datatype(&self) -> Datatype {
-		Datatype::Duration(DurationDatatype::Duration)
+		Datatype::Duration(DurationDatatype::DayTimeDuration)
 	}
 }
 

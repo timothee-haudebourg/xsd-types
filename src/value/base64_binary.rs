@@ -167,6 +167,7 @@ impl LexicalFormOf<Base64BinaryBuf> for lexical::Base64Binary {
 }
 
 #[derive(Debug, PartialEq, Eq, PartialOrd, Ord, Hash)]
+#[repr(transparent)]
 pub struct Base64Binary([u8]);
 
 impl Base64Binary {

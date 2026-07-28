@@ -86,7 +86,7 @@ impl NonPositiveInteger {
 
 	#[inline(always)]
 	fn non_positive_integer_type(&self) -> NonPositiveIntegerDatatype {
-		if self.0 > BigInt::zero() {
+		if self.0 < BigInt::zero() {
 			NonPositiveIntegerDatatype::NegativeInteger
 		} else {
 			NonPositiveIntegerDatatype::NonPositiveInteger
@@ -231,7 +231,7 @@ macro_rules! try_into {
 try_into!(u8, u16, u32, u64, usize, i8, i16, i32, i64, isize);
 
 #[derive(Debug, thiserror::Error)]
-#[error("integer {0} is negative")]
+#[error("integer {0} is positive")]
 pub struct IntegerIsPositive(Integer);
 
 impl TryFrom<Integer> for NonPositiveInteger {

@@ -90,6 +90,15 @@ impl Hash for DateTime {
 
 impl PartialOrd for DateTime {
 	fn partial_cmp(&self, other: &Self) -> Option<Ordering> {
+		if self.offset.is_none() && other.offset.is_none() {
+			// Neither side has a timezone offset: per the XSD order relation,
+			// the `+14:00`/`-14:00` imputed-bounds algorithm only applies
+			// when *exactly one* side is missing an offset. When both are
+			// missing, they are compared directly, as if both had the same
+			// (unspecified) offset.
+			return Some(self.date_time.cmp(&other.date_time));
+		}
+
 		match (
 			self.earliest().cmp(&other.latest()),
 			self.latest().cmp(&other.earliest()),
@@ -383,6 +392,30 @@ mod tests {
 		let earliest = dt.earliest().to_offset_date_time();
 		let latest = dt.latest().to_offset_date_time();
 		assert_eq!(latest - earliest, time::Duration::hours(28));
+	}
+
+	/// When neither side has a timezone offset, the imputed `+14:00`/
+	/// `-14:00` bounds algorithm must not be used: the two values are
+	/// compared directly, as if both had the same (unspecified) offset.
+	/// See: <https://www.w3.org/TR/xmlschema11-2/#dt-dateTime>.
+	#[test]
+	fn ord_without_offset_is_direct() {
+		let a: DateTime = "2024-01-01T12:00:00".parse().unwrap();
+		let b: DateTime = "2024-01-01T13:00:00".parse().unwrap();
+
+		assert!(a < b);
+		assert!(b > a);
+		assert_eq!(a.partial_cmp(&a), Some(std::cmp::Ordering::Equal));
+	}
+
+	/// When exactly one side has a timezone offset, the imputed bounds
+	/// algorithm still applies, and can yield an incomparable result.
+	#[test]
+	fn ord_with_one_offset_can_be_incomparable() {
+		let a: DateTime = "2024-01-01T12:00:00".parse().unwrap();
+		let b: DateTime = "2024-01-01T13:00:00+00:00".parse().unwrap();
+
+		assert_eq!(a.partial_cmp(&b), None);
 	}
 
 	#[test]
