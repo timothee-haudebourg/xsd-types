@@ -10,26 +10,30 @@ pub use year_month_duration::{InvalidYearMonthDuration, YearMonthDuration, YearM
 
 /// Duration.
 ///
+/// This is the `durationLexicalRep` production of the XSD 1.1
+/// Datatypes specification:
+/// <https://www.w3.org/TR/xmlschema11-2/#nt-durationRep>.
+///
 /// ```abnf
-/// duration = [ "-" ] %s"P" ((year-month [ day-time ]) / day-time)
+/// durationLexicalRep = [ "-" ] %s"P" ((duYearMonthFrag [ duDayTimeFrag ]) / duDayTimeFrag)
 ///
-/// year-month = (year [ month ]) / month
+/// duYearMonthFrag = (duYearFrag [ duMonthFrag ]) / duMonthFrag
 ///
-/// year = 1*DIGIT %s"Y"
+/// duYearFrag = 1*DIGIT %s"Y"
 ///
-/// month = 1*DIGIT %s"M"
+/// duMonthFrag = 1*DIGIT %s"M"
 ///
-/// day-time = (day [ time ]) / time
+/// duDayTimeFrag = (duDayFrag [ duTimeFrag ]) / duTimeFrag
 ///
-/// day = 1*DIGIT %s"D"
+/// duDayFrag = 1*DIGIT %s"D"
 ///
-/// time = %s"T" ((hour [ minute ] [ second ]) / (minute [ second ]) / second)
+/// duTimeFrag = %s"T" ((duHourFrag [ duMinuteFrag ] [ duSecondFrag ]) / (duMinuteFrag [ duSecondFrag ]) / duSecondFrag)
 ///
-/// hour = 1*DIGIT %s"H"
+/// duHourFrag = 1*DIGIT %s"H"
 ///
-/// minute = 1*DIGIT %s"M"
+/// duMinuteFrag = 1*DIGIT %s"M"
 ///
-/// second = ((1*DIGIT ["." *DIGIT] ) / "." 1*DIGIT) %s"S"
+/// duSecondFrag = ((1*DIGIT ["." *DIGIT]) / "." 1*DIGIT) %s"S"
 /// ```
 #[derive(Validate, StrNewType, PartialEq, Eq, PartialOrd, Ord, Hash)]
 #[automaton(super::grammar::Duration)]

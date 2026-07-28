@@ -4,14 +4,18 @@ use str_newtype::StrNewType;
 
 /// Year Month Duration.
 ///
+/// This is the `yearMonthDurationLexicalRep` production of the XSD 1.1
+/// Datatypes specification:
+/// <https://www.w3.org/TR/xmlschema11-2/#nt-yearMonthDurationRep>.
+///
 /// ```abnf
-/// duration = [ "-" ] %s"P" year-month
+/// yearMonthDurationLexicalRep = [ "-" ] %s"P" duYearMonthFrag
 ///
-/// year-month = (year [ month ]) / month
+/// duYearMonthFrag = (duYearFrag [ duMonthFrag ]) / duMonthFrag
 ///
-/// year = 1*DIGIT %s"Y"
+/// duYearFrag = 1*DIGIT %s"Y"
 ///
-/// month = 1*DIGIT %s"M"
+/// duMonthFrag = 1*DIGIT %s"M"
 /// ```
 #[derive(Validate, StrNewType, PartialEq, Eq, PartialOrd, Ord, Hash)]
 #[automaton(super::super::grammar::YearMonthDuration)]

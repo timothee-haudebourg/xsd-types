@@ -7,25 +7,12 @@ use super::{Lexical, LexicalFormOf};
 
 /// GYearMonth.
 ///
+/// This is the `gYearMonthLexicalRep` production of the XSD 1.1
+/// Datatypes specification:
+/// <https://www.w3.org/TR/xmlschema11-2/#nt-gYearMonthRep>.
+///
 /// ```abnf
-/// g-year-month = year "-" month [timezone]
-///
-/// year = [ "-" ] year-number
-///
-/// year-number = *3DIGIT NZDIGIT
-///             / *2DIGIT NZDIGIT DIGIT
-///             / *1DIGIT NZDIGIT 2DIGIT
-///             / NZDIGIT 3*DIGIT
-///
-/// month = "0" NZDIGIT
-///       / "1" ( "0" / "1" / "2" )
-///
-/// minute = ("0" / "1" / "2" / "3" / "4" / "5") DIGIT
-///
-/// timezone = ("+" / "-") ((("0" DIGIT / "1" ("0" / "1" / "2" / "3")) ":" minute) / "14:00")
-///          / %s"Z"
-///
-/// NZDIGIT = "1" / "2" / "3" / "4" / "5" / "6" / "7" / "8" / "9"
+/// gYearMonthLexicalRep = yearFrag "-" monthFrag [ timezoneFrag ]
 /// ```
 #[derive(Validate, StrNewType, PartialEq, Eq, PartialOrd, Ord, Hash)]
 #[automaton(super::grammar::GYearMonth)]

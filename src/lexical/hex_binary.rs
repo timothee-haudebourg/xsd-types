@@ -1,46 +1,45 @@
 use crate::lexical::lexical_form;
-
-use std::borrow::{Borrow, ToOwned};
+use static_automata::Validate;
 use std::cmp::Ordering;
-use std::fmt;
 use std::hash::{Hash, Hasher};
+use str_newtype::StrNewType;
+
+use crate::lexical::Lexical;
+
+/// Hexadecimal string.
+///
+/// This is the `hexBinary` production of the XSD 1.1 Datatypes
+/// specification: <https://www.w3.org/TR/xmlschema11-2/#nt-hexBinary>.
+///
+/// ```abnf
+/// hexBinary = *hexOctet
+///
+/// hexOctet = hexDigit hexDigit
+///
+/// hexDigit = DIGIT / %x41-46 / %x61-66 ; 0-9, A-F, a-f
+/// ```
+#[derive(Validate, StrNewType)]
+#[automaton(super::grammar::HexBinary)]
+#[newtype(owned(HexBinaryBuf, derive(PartialEq, Eq)))]
+pub struct HexBinary(str);
+
+impl Lexical for HexBinary {
+	type Error = InvalidHexBinary<String>;
+
+	fn parse(value: &str) -> Result<&Self, Self::Error> {
+		Self::new(value).map_err(|_| InvalidHexBinary(value.to_owned()))
+	}
+}
 
 lexical_form! {
-	/// Hexadecimal string.
-	///
-	/// See: <https://www.w3.org/TR/xmlschema-2/#hexBinary>
 	ty: HexBinary,
-
-	/// Owned hexadecimal string.
-	///
-	/// See: <https://www.w3.org/TR/xmlschema-2/#hexBinary>
 	buffer: HexBinaryBuf,
-
-	/// Creates a new hexadecimal string from a string.
-	///
-	/// If the input string is ot a [valid XSD hexadecimal string](https://www.w3.org/TR/xmlschema-2/#hexBinary),
-	/// an [`InvalidHexBinary`] error is returned.
-	new,
-
-	/// Creates a new hexadecimal string from a string without checking it.
-	///
-	/// # Safety
-	///
-	/// The input string must be a [valid XSD hexadecimal string](https://www.w3.org/TR/xmlschema-2/#hexBinary).
-	new_unchecked,
-
 	value: crate::HexBinaryBuf,
 	error: InvalidHexBinary,
-	as_ref: as_hex_binary,
 	parent_forms: {}
 }
 
 impl HexBinary {
-	#[inline(always)]
-	fn as_canonical_str(&self) -> &str {
-		self.as_str()
-	}
-
 	#[inline(always)]
 	pub fn value(&self) -> crate::HexBinaryBuf {
 		crate::HexBinaryBuf::decode(self.as_bytes()).unwrap()
@@ -49,7 +48,7 @@ impl HexBinary {
 
 impl PartialEq for HexBinary {
 	fn eq(&self, other: &Self) -> bool {
-		self.as_canonical_str() == other.as_canonical_str()
+		self.as_str() == other.as_str()
 	}
 }
 
@@ -57,13 +56,13 @@ impl Eq for HexBinary {}
 
 impl Hash for HexBinary {
 	fn hash<H: Hasher>(&self, h: &mut H) {
-		self.as_canonical_str().hash(h)
+		self.as_str().hash(h)
 	}
 }
 
 impl Ord for HexBinary {
 	fn cmp(&self, other: &Self) -> Ordering {
-		self.as_canonical_str().cmp(other.as_canonical_str())
+		self.as_str().cmp(other.as_str())
 	}
 }
 
@@ -75,7 +74,7 @@ impl PartialOrd for HexBinary {
 
 impl Default for HexBinaryBuf {
 	fn default() -> Self {
-		unsafe { Self::new_unchecked(Vec::new()) }
+		unsafe { Self::new_unchecked(String::new()) }
 	}
 }
 
@@ -91,31 +90,42 @@ impl Ord for HexBinaryBuf {
 	}
 }
 
-fn check_bytes(s: &[u8]) -> bool {
-	check(s.iter().copied())
-}
+#[cfg(test)]
+mod tests {
+	use super::*;
 
-fn check<C: Iterator<Item = u8>>(mut chars: C) -> bool {
-	enum State {
-		Data,
-		Padding,
+	#[test]
+	fn parse_hex_digits() {
+		HexBinary::new("1FaB").unwrap();
 	}
 
-	let mut state = State::Data;
+	#[test]
+	fn parse_empty() {
+		HexBinary::new("").unwrap();
+	}
 
-	loop {
-		state = match state {
-			State::Data => match chars.next() {
-				Some(b'A'..=b'Z' | b'a'..=b'z' | b'0'..=b'9' | b'+' | b'/') => State::Data,
-				Some(b'=') => State::Padding,
-				None => break true,
-				_ => break false,
-			},
-			State::Padding => match chars.next() {
-				Some(b'=') => State::Padding,
-				None => break true,
-				_ => break false,
-			},
-		}
+	#[test]
+	fn parse_odd_length() {
+		// An odd number of hex digits is not a valid `hexBinary`.
+		HexBinary::new("1").unwrap_err();
+	}
+
+	#[test]
+	fn parse_non_hex_letter() {
+		// `g` is not a hex digit.
+		HexBinary::new("g0").unwrap_err();
+	}
+
+	#[test]
+	fn parse_base64_alphabet_rejected() {
+		// This is a valid base64 string, but not a valid hex string (`+` and
+		// `/` are not hex digits, and `z` is out of the hex digit range).
+		HexBinary::new("+/z=").unwrap_err();
+	}
+
+	#[test]
+	fn value_roundtrip() {
+		let hex = HexBinary::new("4D616E").unwrap();
+		assert_eq!(hex.value().as_bytes(), b"Man");
 	}
 }

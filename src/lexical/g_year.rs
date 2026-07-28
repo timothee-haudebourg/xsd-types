@@ -7,22 +7,11 @@ use super::{Lexical, LexicalFormOf};
 
 /// GYear.
 ///
+/// This is the `gYearLexicalRep` production of the XSD 1.1 Datatypes
+/// specification: <https://www.w3.org/TR/xmlschema11-2/#nt-gYearRep>.
+///
 /// ```abnf
-/// g-year = year [timezone]
-///
-/// year = [ "-" ] year-number
-///
-/// year-number = *3DIGIT NZDIGIT
-///             / *2DIGIT NZDIGIT DIGIT
-///             / *1DIGIT NZDIGIT 2DIGIT
-///             / NZDIGIT 3*DIGIT
-///
-/// minute = ("0" / "1" / "2" / "3" / "4" / "5") DIGIT
-///
-/// timezone = ("+" / "-") ((("0" DIGIT / "1" ("0" / "1" / "2" / "3")) ":" minute) / "14:00")
-///          / %s"Z"
-///
-/// NZDIGIT = "1" / "2" / "3" / "4" / "5" / "6" / "7" / "8" / "9"
+/// gYearLexicalRep = yearFrag [ timezoneFrag ]
 /// ```
 #[derive(Validate, StrNewType, PartialEq, Eq, PartialOrd, Ord, Hash)]
 #[automaton(super::grammar::GYear)]
@@ -99,5 +88,22 @@ mod tests {
 			let value = lexical_repr.try_as_value().unwrap();
 			assert_eq!(value.to_string().as_str(), input)
 		}
+	}
+
+	/// `yearFrag` requires at least 4 digits, with a leading `0` allowed
+	/// only to reach exactly 4 digits (year `0000`, i.e. 1 BCE). See:
+	/// <https://www.w3.org/TR/xmlschema11-2/#nt-yrFrag>.
+	#[test]
+	fn year_zero_accepted() {
+		assert!(GYear::new("0000").is_ok());
+	}
+
+	/// A year fragment shorter than 4 digits is not a valid `yearFrag`,
+	/// even though it starts with a nonzero digit.
+	#[test]
+	fn short_year_rejected() {
+		assert!(GYear::new("5").is_err());
+		assert!(GYear::new("05").is_err());
+		assert!(GYear::new("005").is_err());
 	}
 }

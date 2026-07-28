@@ -7,23 +7,13 @@ use super::{date_time::parse_seconds_decimal, parse_timezone, Lexical, LexicalFo
 
 /// Time.
 ///
+/// This is the `timeLexicalRep` production of the XSD 1.1 Datatypes
+/// specification: <https://www.w3.org/TR/xmlschema11-2/#nt-timeRep>.
+///
 /// ```abnf
-/// xsd-time = time [timezone]
+/// timeLexicalRep = primitiveTimeFrag [ timezoneFrag ]
 ///
-/// time = hour ":" minute ":" second ["." fraction]
-///      / "24:00:00" ["." 1*"0"]
-///
-/// hour = ("0" / "1") DIGIT
-///      / "2" ("0" / "1" / "2" / "3")
-///
-/// minute = ("0" / "1" / "2" / "3" / "4" / "5") DIGIT
-///
-/// second = ("0" / "1" / "2" / "3" / "4" / "5") DIGIT
-///
-/// fraction = 1*DIGIT
-///
-/// timezone = ("+" / "-") ((("0" DIGIT / "1" ("0" / "1" / "2" / "3")) ":" minute) / "14:00")
-///          / %s"Z"
+/// primitiveTimeFrag = (hourFrag ":" minuteFrag ":" secondFrag) / endOfDayFrag
 /// ```
 #[derive(Validate, StrNewType, PartialEq, Eq, PartialOrd, Ord, Hash)]
 #[automaton(super::grammar::Time)]

@@ -11,100 +11,82 @@ impl Date {
 			0u32 => match token {
 				'-' => 1u32,
 				'0' => 2u32,
-				'1'..='3' => 3u32,
-				'4'..='9' => 4u32,
+				'1'..='9' => 3u32,
 				_ => return false,
 			},
 			1u32 => match token {
 				'0' => 2u32,
-				'1'..='4' => 3u32,
-				'5'..='9' => 4u32,
+				'1'..='9' => 3u32,
 				_ => return false,
 			},
 			2u32 => match token {
-				'0' => 5u32,
-				'1'..='4' => 6u32,
-				'5'..='9' => 7u32,
+				'0'..='9' => 4u32,
 				_ => return false,
 			},
 			3u32 => match token {
-				'-' => 8u32,
-				'0'..='4' => 9u32,
-				'5'..='9' => 7u32,
+				'0'..='9' => 5u32,
 				_ => return false,
 			},
 			4u32 => match token {
-				'-' => 8u32,
-				'0' => 10u32,
-				'1'..='9' => 7u32,
+				'0'..='9' => 27u32,
 				_ => return false,
 			},
 			5u32 => match token {
-				'0' => 13u32,
-				'1'..='9' => 33u32,
+				'0'..='9' => 6u32,
 				_ => return false,
 			},
 			6u32 => match token {
-				'-' => 8u32,
-				'0'..='9' => 33u32,
-				'5'..='9' => 35u32,
+				'0'..='9' => 7u32,
 				_ => return false,
 			},
 			7u32 => match token {
 				'-' => 8u32,
-				'0' => 13u32,
-				'1'..='9' => 14u32,
+				'0'..='9' => 7u32,
 				_ => return false,
 			},
 			8u32 => match token {
-				'0' => 11u32,
-				'1' => 12u32,
+				'0' => 9u32,
+				'1' => 10u32,
 				_ => return false,
 			},
 			9u32 => match token {
-				'-' => 8u32,
-				'0'..='4' => 32u32,
-				'5'..='9' => 34u32,
+				'1'..='9' => 11u32,
 				_ => return false,
 			},
 			10u32 => match token {
-				'0' => 13u32,
-				'1'..='9' => 14u32,
+				'0'..='2' => 11u32,
 				_ => return false,
 			},
 			11u32 => match token {
-				'1'..='9' => 16u32,
+				'-' => 12u32,
 				_ => return false,
 			},
 			12u32 => match token {
-				'0'..='2' => 16u32,
+				'0' => 13u32,
+				'1'..='2' => 14u32,
+				'3' => 15u32,
 				_ => return false,
 			},
 			13u32 => match token {
-				'1'..='9' => 15u32,
+				'1'..='9' => 16u32,
 				_ => return false,
 			},
 			14u32 => match token {
-				'-' => 8u32,
-				'1'..='9' => 15u32,
+				'0'..='9' => 16u32,
 				_ => return false,
 			},
 			15u32 => match token {
-				'-' => 8u32,
+				'0'..='1' => 16u32,
 				_ => return false,
 			},
 			16u32 => match token {
-				'-' => 17u32,
+				'+' | '-' => 17u32,
+				'Z' => 18u32,
 				_ => return false,
 			},
 			17u32 => match token {
-				'0' => 18u32,
-				'1'..='2' => 19u32,
-				'3' => 20u32,
-				_ => return false,
-			},
-			18u32 => match token {
-				'1'..='9' => 21u32,
+				'0' => 19u32,
+				'1' => 20u32,
 				_ => return false,
 			},
 			19u32 => match token {
@@ -112,71 +94,40 @@ impl Date {
 				_ => return false,
 			},
 			20u32 => match token {
-				'0'..='1' => 21u32,
+				'0'..='3' => 21u32,
+				'4' => 22u32,
 				_ => return false,
 			},
 			21u32 => match token {
-				'+' | '-' => 22u32,
-				'Z' => 23u32,
+				':' => 23u32,
 				_ => return false,
 			},
 			22u32 => match token {
-				'0' => 24u32,
-				'1' => 25u32,
+				':' => 24u32,
+				_ => return false,
+			},
+			23u32 => match token {
+				'0'..='5' => 26u32,
 				_ => return false,
 			},
 			24u32 => match token {
-				'0'..='9' => 26u32,
+				'0' => 25u32,
 				_ => return false,
 			},
 			25u32 => match token {
-				'0'..='3' => 26u32,
-				'4' => 27u32,
+				'0' => 18u32,
 				_ => return false,
 			},
 			26u32 => match token {
-				':' => 28u32,
+				'0'..='9' => 18u32,
 				_ => return false,
 			},
 			27u32 => match token {
-				':' => 29u32,
+				'0'..='9' => 28u32,
 				_ => return false,
 			},
 			28u32 => match token {
-				'0'..='5' => 31u32,
-				_ => return false,
-			},
-			29u32 => match token {
-				'0' => 30u32,
-				_ => return false,
-			},
-			30u32 => match token {
-				'0' => 23u32,
-				_ => return false,
-			},
-			31u32 => match token {
-				'0'..='9' => 23u32,
-				_ => return false,
-			},
-			32u32 => match token {
 				'-' => 8u32,
-				'0'..='9' => 34u32,
-				'6'..='9' => 15u32,
-				_ => return false,
-			},
-			33u32 => match token {
-				'-' => 8u32,
-				'0'..='9' => 15u32,
-				_ => return false,
-			},
-			34u32 => match token {
-				'-' => 8u32,
-				'0'..='9' => 34u32,
-				_ => return false,
-			},
-			35u32 => match token {
-				'-' => 8u32,
-				'0'..='9' => 15u32,
 				_ => return false,
 			},
 			_ => return false,
@@ -184,7 +135,7 @@ impl Date {
 		true
 	}
 	pub const fn is_accepting(&self) -> bool {
-		matches!(self.state, 21u32 | 23u32)
+		matches!(self.state, 16u32 | 18u32)
 	}
 	pub const fn validate_str(s: &str) -> bool {
 		Self::validate_bytes(s.as_bytes())
@@ -218,212 +169,198 @@ impl DateTime {
 			0u32 => match token {
 				'-' => 1u32,
 				'0' => 2u32,
-				'1'..='3' => 3u32,
-				'4'..='9' => 4u32,
+				'1'..='9' => 3u32,
 				_ => return false,
 			},
 			1u32 => match token {
 				'0' => 2u32,
-				'1'..='4' => 3u32,
-				'5'..='9' => 4u32,
+				'1'..='9' => 3u32,
 				_ => return false,
 			},
 			2u32 => match token {
-				'0' => 5u32,
-				'1'..='4' => 6u32,
-				'5'..='9' => 7u32,
+				'0'..='9' => 4u32,
 				_ => return false,
 			},
 			3u32 => match token {
-				'-' => 8u32,
-				'0'..='4' => 9u32,
-				'5'..='9' => 7u32,
+				'0'..='9' => 5u32,
 				_ => return false,
 			},
 			4u32 => match token {
-				'-' => 8u32,
-				'0' => 10u32,
-				'1'..='9' => 7u32,
+				'0'..='9' => 48u32,
 				_ => return false,
 			},
 			5u32 => match token {
-				'0' => 13u32,
-				'1'..='9' => 54u32,
+				'0'..='9' => 6u32,
 				_ => return false,
 			},
 			6u32 => match token {
-				'-' => 8u32,
-				'0'..='9' => 54u32,
-				'5'..='9' => 56u32,
+				'0'..='9' => 7u32,
 				_ => return false,
 			},
 			7u32 => match token {
 				'-' => 8u32,
-				'0' => 13u32,
-				'1'..='9' => 14u32,
+				'0'..='9' => 7u32,
 				_ => return false,
 			},
 			8u32 => match token {
-				'0' => 11u32,
-				'1' => 12u32,
+				'0' => 9u32,
+				'1' => 10u32,
 				_ => return false,
 			},
 			9u32 => match token {
-				'-' => 8u32,
-				'0'..='4' => 53u32,
-				'5'..='9' => 54u32,
+				'1'..='9' => 11u32,
 				_ => return false,
 			},
 			10u32 => match token {
-				'0' => 13u32,
-				'1'..='9' => 14u32,
+				'0'..='2' => 11u32,
 				_ => return false,
 			},
 			11u32 => match token {
-				'1'..='9' => 16u32,
+				'-' => 12u32,
 				_ => return false,
 			},
 			12u32 => match token {
-				'0'..='2' => 16u32,
+				'0' => 13u32,
+				'1'..='2' => 14u32,
+				'3' => 15u32,
 				_ => return false,
 			},
 			13u32 => match token {
-				'1'..='9' => 15u32,
+				'1'..='9' => 16u32,
 				_ => return false,
 			},
 			14u32 => match token {
-				'-' => 8u32,
-				'1'..='9' => 15u32,
+				'0'..='9' => 16u32,
 				_ => return false,
 			},
 			15u32 => match token {
-				'-' => 8u32,
+				'0'..='1' => 16u32,
 				_ => return false,
 			},
 			16u32 => match token {
-				'-' => 17u32,
+				'T' => 17u32,
 				_ => return false,
 			},
 			17u32 => match token {
-				'0' => 18u32,
-				'1'..='2' => 19u32,
-				'3' => 20u32,
+				'0'..='1' => 18u32,
+				'2' => 19u32,
 				_ => return false,
 			},
 			18u32 => match token {
-				'1'..='9' => 21u32,
+				'0'..='9' => 20u32,
 				_ => return false,
 			},
 			19u32 => match token {
-				'0'..='9' => 21u32,
+				'0'..='3' => 20u32,
+				'4' => 21u32,
 				_ => return false,
 			},
 			20u32 => match token {
-				'0'..='1' => 21u32,
+				':' => 22u32,
 				_ => return false,
 			},
 			21u32 => match token {
-				'T' => 22u32,
+				':' => 23u32,
 				_ => return false,
 			},
 			22u32 => match token {
-				'0'..='1' => 23u32,
-				'2' => 24u32,
+				'0'..='5' => 41u32,
 				_ => return false,
 			},
 			23u32 => match token {
-				'0'..='9' => 25u32,
+				'0' => 24u32,
 				_ => return false,
 			},
 			24u32 => match token {
-				'0'..='3' => 25u32,
-				'4' => 26u32,
+				'0' => 25u32,
 				_ => return false,
 			},
 			25u32 => match token {
-				':' => 27u32,
+				':' => 26u32,
 				_ => return false,
 			},
 			26u32 => match token {
-				':' => 28u32,
+				'0' => 27u32,
 				_ => return false,
 			},
 			27u32 => match token {
-				'0'..='5' => 46u32,
+				'0' => 28u32,
 				_ => return false,
 			},
 			28u32 => match token {
-				'0' => 29u32,
+				'+' | '-' => 29u32,
+				'.' => 30u32,
+				'Z' => 31u32,
 				_ => return false,
 			},
 			29u32 => match token {
-				'0' => 30u32,
+				'0' => 32u32,
+				'1' => 33u32,
 				_ => return false,
 			},
 			30u32 => match token {
-				':' => 31u32,
-				_ => return false,
-			},
-			31u32 => match token {
-				'0' => 32u32,
+				'0' => 34u32,
 				_ => return false,
 			},
 			32u32 => match token {
-				'0' => 33u32,
+				'0'..='9' => 35u32,
 				_ => return false,
 			},
 			33u32 => match token {
-				'+' | '-' => 34u32,
-				'.' => 35u32,
-				'Z' => 36u32,
+				'0'..='3' => 35u32,
+				'4' => 36u32,
 				_ => return false,
 			},
 			34u32 => match token {
-				'0' => 37u32,
-				'1' => 38u32,
+				'+' | '-' => 29u32,
+				'0' => 34u32,
+				'Z' => 31u32,
 				_ => return false,
 			},
 			35u32 => match token {
-				'0' => 39u32,
+				':' => 37u32,
+				_ => return false,
+			},
+			36u32 => match token {
+				':' => 38u32,
 				_ => return false,
 			},
 			37u32 => match token {
-				'0'..='9' => 40u32,
+				'0'..='5' => 40u32,
 				_ => return false,
 			},
 			38u32 => match token {
-				'0'..='3' => 40u32,
-				'4' => 41u32,
+				'0' => 39u32,
 				_ => return false,
 			},
 			39u32 => match token {
-				'+' | '-' => 34u32,
-				'0' => 39u32,
-				'Z' => 36u32,
+				'0' => 31u32,
 				_ => return false,
 			},
 			40u32 => match token {
-				':' => 42u32,
+				'0'..='9' => 31u32,
 				_ => return false,
 			},
 			41u32 => match token {
-				':' => 43u32,
+				'0'..='9' => 42u32,
 				_ => return false,
 			},
 			42u32 => match token {
-				'0'..='5' => 45u32,
+				':' => 43u32,
 				_ => return false,
 			},
 			43u32 => match token {
-				'0' => 44u32,
+				'0'..='5' => 44u32,
 				_ => return false,
 			},
 			44u32 => match token {
-				'0' => 36u32,
+				'0'..='9' => 45u32,
 				_ => return false,
 			},
 			45u32 => match token {
-				'0'..='9' => 36u32,
+				'+' | '-' => 29u32,
+				'.' => 46u32,
+				'Z' => 31u32,
 				_ => return false,
 			},
 			46u32 => match token {
@@ -431,52 +368,17 @@ impl DateTime {
 				_ => return false,
 			},
 			47u32 => match token {
-				':' => 48u32,
+				'+' | '-' => 29u32,
+				'0'..='9' => 47u32,
+				'Z' => 31u32,
 				_ => return false,
 			},
 			48u32 => match token {
-				'0'..='5' => 49u32,
+				'0'..='9' => 49u32,
 				_ => return false,
 			},
 			49u32 => match token {
-				'0'..='9' => 50u32,
-				_ => return false,
-			},
-			50u32 => match token {
-				'+' | '-' => 34u32,
-				'.' => 51u32,
-				'Z' => 36u32,
-				_ => return false,
-			},
-			51u32 => match token {
-				'0'..='9' => 52u32,
-				_ => return false,
-			},
-			52u32 => match token {
-				'+' | '-' => 34u32,
-				'0'..='9' => 52u32,
-				'Z' => 36u32,
-				_ => return false,
-			},
-			53u32 => match token {
 				'-' => 8u32,
-				'0'..='9' => 55u32,
-				'6'..='9' => 15u32,
-				_ => return false,
-			},
-			54u32 => match token {
-				'-' => 8u32,
-				'0'..='9' => 15u32,
-				_ => return false,
-			},
-			55u32 => match token {
-				'-' => 8u32,
-				'0'..='9' => 55u32,
-				_ => return false,
-			},
-			56u32 => match token {
-				'-' => 8u32,
-				'0'..='9' => 15u32,
 				_ => return false,
 			},
 			_ => return false,
@@ -484,7 +386,7 @@ impl DateTime {
 		true
 	}
 	pub const fn is_accepting(&self) -> bool {
-		matches!(self.state, 33u32 | 36u32 | 39u32 | 50u32 | 52u32)
+		matches!(self.state, 28u32 | 31u32 | 34u32 | 45u32 | 47u32)
 	}
 	pub const fn validate_str(s: &str) -> bool {
 		Self::validate_bytes(s.as_bytes())
@@ -518,212 +420,198 @@ impl DateTimeStamp {
 			0u32 => match token {
 				'-' => 1u32,
 				'0' => 2u32,
-				'1'..='3' => 3u32,
-				'4'..='9' => 4u32,
+				'1'..='9' => 3u32,
 				_ => return false,
 			},
 			1u32 => match token {
 				'0' => 2u32,
-				'1'..='4' => 3u32,
-				'5'..='9' => 4u32,
+				'1'..='9' => 3u32,
 				_ => return false,
 			},
 			2u32 => match token {
-				'0' => 5u32,
-				'1'..='4' => 6u32,
-				'5'..='9' => 7u32,
+				'0'..='9' => 4u32,
 				_ => return false,
 			},
 			3u32 => match token {
-				'-' => 8u32,
-				'0'..='4' => 9u32,
-				'5'..='9' => 7u32,
+				'0'..='9' => 5u32,
 				_ => return false,
 			},
 			4u32 => match token {
-				'-' => 8u32,
-				'0' => 10u32,
-				'1'..='9' => 7u32,
+				'0'..='9' => 48u32,
 				_ => return false,
 			},
 			5u32 => match token {
-				'0' => 13u32,
-				'1'..='9' => 54u32,
+				'0'..='9' => 6u32,
 				_ => return false,
 			},
 			6u32 => match token {
-				'-' => 8u32,
-				'0'..='9' => 54u32,
-				'5'..='9' => 56u32,
+				'0'..='9' => 7u32,
 				_ => return false,
 			},
 			7u32 => match token {
 				'-' => 8u32,
-				'0' => 13u32,
-				'1'..='9' => 14u32,
+				'0'..='9' => 7u32,
 				_ => return false,
 			},
 			8u32 => match token {
-				'0' => 11u32,
-				'1' => 12u32,
+				'0' => 9u32,
+				'1' => 10u32,
 				_ => return false,
 			},
 			9u32 => match token {
-				'-' => 8u32,
-				'0'..='4' => 53u32,
-				'5'..='9' => 54u32,
+				'1'..='9' => 11u32,
 				_ => return false,
 			},
 			10u32 => match token {
-				'0' => 13u32,
-				'1'..='9' => 14u32,
+				'0'..='2' => 11u32,
 				_ => return false,
 			},
 			11u32 => match token {
-				'1'..='9' => 16u32,
+				'-' => 12u32,
 				_ => return false,
 			},
 			12u32 => match token {
-				'0'..='2' => 16u32,
+				'0' => 13u32,
+				'1'..='2' => 14u32,
+				'3' => 15u32,
 				_ => return false,
 			},
 			13u32 => match token {
-				'1'..='9' => 15u32,
+				'1'..='9' => 16u32,
 				_ => return false,
 			},
 			14u32 => match token {
-				'-' => 8u32,
-				'1'..='9' => 15u32,
+				'0'..='9' => 16u32,
 				_ => return false,
 			},
 			15u32 => match token {
-				'-' => 8u32,
+				'0'..='1' => 16u32,
 				_ => return false,
 			},
 			16u32 => match token {
-				'-' => 17u32,
+				'T' => 17u32,
 				_ => return false,
 			},
 			17u32 => match token {
-				'0' => 18u32,
-				'1'..='2' => 19u32,
-				'3' => 20u32,
+				'0'..='1' => 18u32,
+				'2' => 19u32,
 				_ => return false,
 			},
 			18u32 => match token {
-				'1'..='9' => 21u32,
+				'0'..='9' => 20u32,
 				_ => return false,
 			},
 			19u32 => match token {
-				'0'..='9' => 21u32,
+				'0'..='3' => 20u32,
+				'4' => 21u32,
 				_ => return false,
 			},
 			20u32 => match token {
-				'0'..='1' => 21u32,
+				':' => 22u32,
 				_ => return false,
 			},
 			21u32 => match token {
-				'T' => 22u32,
+				':' => 23u32,
 				_ => return false,
 			},
 			22u32 => match token {
-				'0'..='1' => 23u32,
-				'2' => 24u32,
+				'0'..='5' => 41u32,
 				_ => return false,
 			},
 			23u32 => match token {
-				'0'..='9' => 25u32,
+				'0' => 24u32,
 				_ => return false,
 			},
 			24u32 => match token {
-				'0'..='3' => 25u32,
-				'4' => 26u32,
+				'0' => 25u32,
 				_ => return false,
 			},
 			25u32 => match token {
-				':' => 27u32,
+				':' => 26u32,
 				_ => return false,
 			},
 			26u32 => match token {
-				':' => 28u32,
+				'0' => 27u32,
 				_ => return false,
 			},
 			27u32 => match token {
-				'0'..='5' => 46u32,
+				'0' => 28u32,
 				_ => return false,
 			},
 			28u32 => match token {
-				'0' => 29u32,
+				'+' | '-' => 29u32,
+				'.' => 30u32,
+				'Z' => 31u32,
 				_ => return false,
 			},
 			29u32 => match token {
-				'0' => 30u32,
+				'0' => 32u32,
+				'1' => 33u32,
 				_ => return false,
 			},
 			30u32 => match token {
-				':' => 31u32,
-				_ => return false,
-			},
-			31u32 => match token {
-				'0' => 32u32,
+				'0' => 34u32,
 				_ => return false,
 			},
 			32u32 => match token {
-				'0' => 33u32,
+				'0'..='9' => 35u32,
 				_ => return false,
 			},
 			33u32 => match token {
-				'+' | '-' => 34u32,
-				'.' => 35u32,
-				'Z' => 36u32,
+				'0'..='3' => 35u32,
+				'4' => 36u32,
 				_ => return false,
 			},
 			34u32 => match token {
-				'0' => 37u32,
-				'1' => 38u32,
+				'+' | '-' => 29u32,
+				'0' => 34u32,
+				'Z' => 31u32,
 				_ => return false,
 			},
 			35u32 => match token {
-				'0' => 39u32,
+				':' => 37u32,
+				_ => return false,
+			},
+			36u32 => match token {
+				':' => 38u32,
 				_ => return false,
 			},
 			37u32 => match token {
-				'0'..='9' => 40u32,
+				'0'..='5' => 40u32,
 				_ => return false,
 			},
 			38u32 => match token {
-				'0'..='3' => 40u32,
-				'4' => 41u32,
+				'0' => 39u32,
 				_ => return false,
 			},
 			39u32 => match token {
-				'+' | '-' => 34u32,
-				'0' => 39u32,
-				'Z' => 36u32,
+				'0' => 31u32,
 				_ => return false,
 			},
 			40u32 => match token {
-				':' => 42u32,
+				'0'..='9' => 31u32,
 				_ => return false,
 			},
 			41u32 => match token {
-				':' => 43u32,
+				'0'..='9' => 42u32,
 				_ => return false,
 			},
 			42u32 => match token {
-				'0'..='5' => 45u32,
+				':' => 43u32,
 				_ => return false,
 			},
 			43u32 => match token {
-				'0' => 44u32,
+				'0'..='5' => 44u32,
 				_ => return false,
 			},
 			44u32 => match token {
-				'0' => 36u32,
+				'0'..='9' => 45u32,
 				_ => return false,
 			},
 			45u32 => match token {
-				'0'..='9' => 36u32,
+				'+' | '-' => 29u32,
+				'.' => 46u32,
+				'Z' => 31u32,
 				_ => return false,
 			},
 			46u32 => match token {
@@ -731,52 +619,17 @@ impl DateTimeStamp {
 				_ => return false,
 			},
 			47u32 => match token {
-				':' => 48u32,
+				'+' | '-' => 29u32,
+				'0'..='9' => 47u32,
+				'Z' => 31u32,
 				_ => return false,
 			},
 			48u32 => match token {
-				'0'..='5' => 49u32,
+				'0'..='9' => 49u32,
 				_ => return false,
 			},
 			49u32 => match token {
-				'0'..='9' => 50u32,
-				_ => return false,
-			},
-			50u32 => match token {
-				'+' | '-' => 34u32,
-				'.' => 51u32,
-				'Z' => 36u32,
-				_ => return false,
-			},
-			51u32 => match token {
-				'0'..='9' => 52u32,
-				_ => return false,
-			},
-			52u32 => match token {
-				'+' | '-' => 34u32,
-				'0'..='9' => 52u32,
-				'Z' => 36u32,
-				_ => return false,
-			},
-			53u32 => match token {
 				'-' => 8u32,
-				'0'..='9' => 55u32,
-				'6'..='9' => 15u32,
-				_ => return false,
-			},
-			54u32 => match token {
-				'-' => 8u32,
-				'0'..='9' => 15u32,
-				_ => return false,
-			},
-			55u32 => match token {
-				'-' => 8u32,
-				'0'..='9' => 55u32,
-				_ => return false,
-			},
-			56u32 => match token {
-				'-' => 8u32,
-				'0'..='9' => 15u32,
 				_ => return false,
 			},
 			_ => return false,
@@ -784,7 +637,7 @@ impl DateTimeStamp {
 		true
 	}
 	pub const fn is_accepting(&self) -> bool {
-		matches!(self.state, 36u32)
+		matches!(self.state, 31u32)
 	}
 	pub const fn validate_str(s: &str) -> bool {
 		Self::validate_bytes(s.as_bytes())
@@ -1317,143 +1170,85 @@ impl GYear {
 			0u32 => match token {
 				'-' => 1u32,
 				'0' => 2u32,
-				'1'..='3' => 3u32,
-				'4'..='9' => 4u32,
+				'1'..='9' => 3u32,
 				_ => return false,
 			},
 			1u32 => match token {
 				'0' => 2u32,
-				'1'..='4' => 3u32,
-				'5'..='9' => 4u32,
+				'1'..='9' => 3u32,
 				_ => return false,
 			},
 			2u32 => match token {
-				'0' => 5u32,
-				'1'..='4' => 6u32,
-				'5'..='9' => 7u32,
+				'0'..='9' => 4u32,
 				_ => return false,
 			},
 			3u32 => match token {
-				'+' | '-' => 8u32,
-				'0'..='4' => 9u32,
-				'5'..='9' => 7u32,
-				'Z' => 10u32,
+				'0'..='9' => 5u32,
 				_ => return false,
 			},
 			4u32 => match token {
-				'+' | '-' => 8u32,
-				'0' => 11u32,
-				'1'..='9' => 7u32,
-				'Z' => 10u32,
+				'0'..='9' => 18u32,
 				_ => return false,
 			},
 			5u32 => match token {
-				'0' => 14u32,
-				'1'..='9' => 24u32,
+				'0'..='9' => 6u32,
 				_ => return false,
 			},
 			6u32 => match token {
-				'+' | '-' => 8u32,
-				'0'..='9' => 24u32,
-				'5'..='9' => 26u32,
-				'Z' => 10u32,
+				'0'..='9' => 7u32,
 				_ => return false,
 			},
 			7u32 => match token {
 				'+' | '-' => 8u32,
-				'0' => 14u32,
-				'1'..='9' => 15u32,
-				'Z' => 10u32,
+				'0'..='9' => 7u32,
+				'Z' => 9u32,
 				_ => return false,
 			},
 			8u32 => match token {
-				'0' => 12u32,
-				'1' => 13u32,
+				'0' => 10u32,
+				'1' => 11u32,
 				_ => return false,
 			},
-			9u32 => match token {
-				'+' | '-' => 8u32,
-				'0'..='4' => 23u32,
-				'5'..='9' => 25u32,
-				'Z' => 10u32,
+			10u32 => match token {
+				'0'..='9' => 12u32,
 				_ => return false,
 			},
 			11u32 => match token {
-				'0' => 14u32,
-				'1'..='9' => 15u32,
+				'0'..='3' => 12u32,
+				'4' => 13u32,
 				_ => return false,
 			},
 			12u32 => match token {
-				'0'..='9' => 17u32,
+				':' => 14u32,
 				_ => return false,
 			},
 			13u32 => match token {
-				'0'..='3' => 17u32,
-				'4' => 18u32,
+				':' => 15u32,
 				_ => return false,
 			},
 			14u32 => match token {
-				'1'..='9' => 16u32,
+				'0'..='5' => 17u32,
 				_ => return false,
 			},
 			15u32 => match token {
-				'+' | '-' => 8u32,
-				'1'..='9' => 16u32,
-				'Z' => 10u32,
+				'0' => 16u32,
 				_ => return false,
 			},
 			16u32 => match token {
-				'+' | '-' => 8u32,
-				'Z' => 10u32,
+				'0' => 9u32,
 				_ => return false,
 			},
 			17u32 => match token {
-				':' => 19u32,
+				'0'..='9' => 9u32,
 				_ => return false,
 			},
 			18u32 => match token {
-				':' => 20u32,
+				'0'..='9' => 19u32,
 				_ => return false,
 			},
 			19u32 => match token {
-				'0'..='5' => 22u32,
-				_ => return false,
-			},
-			20u32 => match token {
-				'0' => 21u32,
-				_ => return false,
-			},
-			21u32 => match token {
-				'0' => 10u32,
-				_ => return false,
-			},
-			22u32 => match token {
-				'0'..='9' => 10u32,
-				_ => return false,
-			},
-			23u32 => match token {
 				'+' | '-' => 8u32,
-				'0'..='9' => 25u32,
-				'6'..='9' => 16u32,
-				'Z' => 10u32,
-				_ => return false,
-			},
-			24u32 => match token {
-				'+' | '-' => 8u32,
-				'0'..='9' => 16u32,
-				'Z' => 10u32,
-				_ => return false,
-			},
-			25u32 => match token {
-				'+' | '-' => 8u32,
-				'0'..='9' => 25u32,
-				'Z' => 10u32,
-				_ => return false,
-			},
-			26u32 => match token {
-				'+' | '-' => 8u32,
-				'0'..='9' => 16u32,
-				'Z' => 10u32,
+				'Z' => 9u32,
 				_ => return false,
 			},
 			_ => return false,
@@ -1461,15 +1256,7 @@ impl GYear {
 		true
 	}
 	pub const fn is_accepting(&self) -> bool {
-		matches!(
-			self.state,
-			3u32 | 4u32
-				| 6u32 | 7u32
-				| 9u32 | 10u32
-				| 15u32 | 16u32
-				| 23u32 | 24u32
-				| 25u32 | 26u32
-		)
+		matches!(self.state, 7u32 | 9u32 | 19u32)
 	}
 	pub const fn validate_str(s: &str) -> bool {
 		Self::validate_bytes(s.as_bytes())
@@ -1503,150 +1290,101 @@ impl GYearMonth {
 			0u32 => match token {
 				'-' => 1u32,
 				'0' => 2u32,
-				'1'..='3' => 3u32,
-				'4'..='9' => 4u32,
+				'1'..='9' => 3u32,
 				_ => return false,
 			},
 			1u32 => match token {
 				'0' => 2u32,
-				'1'..='4' => 3u32,
-				'5'..='9' => 4u32,
+				'1'..='9' => 3u32,
 				_ => return false,
 			},
 			2u32 => match token {
-				'0' => 5u32,
-				'1'..='4' => 6u32,
-				'5'..='9' => 7u32,
+				'0'..='9' => 4u32,
 				_ => return false,
 			},
 			3u32 => match token {
-				'-' => 8u32,
-				'0'..='4' => 9u32,
-				'5'..='9' => 7u32,
+				'0'..='9' => 5u32,
 				_ => return false,
 			},
 			4u32 => match token {
-				'-' => 8u32,
-				'0' => 10u32,
-				'1'..='9' => 7u32,
+				'0'..='9' => 22u32,
 				_ => return false,
 			},
 			5u32 => match token {
-				'0' => 13u32,
-				'1'..='9' => 28u32,
+				'0'..='9' => 6u32,
 				_ => return false,
 			},
 			6u32 => match token {
-				'-' => 8u32,
-				'0'..='9' => 28u32,
-				'5'..='9' => 30u32,
+				'0'..='9' => 7u32,
 				_ => return false,
 			},
 			7u32 => match token {
 				'-' => 8u32,
-				'0' => 13u32,
-				'1'..='9' => 14u32,
+				'0'..='9' => 7u32,
 				_ => return false,
 			},
 			8u32 => match token {
-				'0' => 11u32,
-				'1' => 12u32,
+				'0' => 9u32,
+				'1' => 10u32,
 				_ => return false,
 			},
 			9u32 => match token {
-				'-' => 8u32,
-				'0'..='4' => 27u32,
-				'5'..='9' => 28u32,
+				'1'..='9' => 11u32,
 				_ => return false,
 			},
 			10u32 => match token {
-				'0' => 13u32,
-				'1'..='9' => 14u32,
+				'0'..='2' => 11u32,
 				_ => return false,
 			},
 			11u32 => match token {
-				'1'..='9' => 16u32,
+				'+' | '-' => 12u32,
+				'Z' => 13u32,
 				_ => return false,
 			},
 			12u32 => match token {
-				'0'..='2' => 16u32,
-				_ => return false,
-			},
-			13u32 => match token {
-				'1'..='9' => 15u32,
+				'0' => 14u32,
+				'1' => 15u32,
 				_ => return false,
 			},
 			14u32 => match token {
-				'-' => 8u32,
-				'1'..='9' => 15u32,
+				'0'..='9' => 16u32,
 				_ => return false,
 			},
 			15u32 => match token {
-				'-' => 8u32,
+				'0'..='3' => 16u32,
+				'4' => 17u32,
 				_ => return false,
 			},
 			16u32 => match token {
-				'+' | '-' => 17u32,
-				'Z' => 18u32,
+				':' => 18u32,
 				_ => return false,
 			},
 			17u32 => match token {
-				'0' => 19u32,
-				'1' => 20u32,
+				':' => 19u32,
+				_ => return false,
+			},
+			18u32 => match token {
+				'0'..='5' => 21u32,
 				_ => return false,
 			},
 			19u32 => match token {
-				'0'..='9' => 21u32,
+				'0' => 20u32,
 				_ => return false,
 			},
 			20u32 => match token {
-				'0'..='3' => 21u32,
-				'4' => 22u32,
+				'0' => 13u32,
 				_ => return false,
 			},
 			21u32 => match token {
-				':' => 23u32,
+				'0'..='9' => 13u32,
 				_ => return false,
 			},
 			22u32 => match token {
-				':' => 24u32,
+				'0'..='9' => 23u32,
 				_ => return false,
 			},
 			23u32 => match token {
-				'0'..='5' => 26u32,
-				_ => return false,
-			},
-			24u32 => match token {
-				'0' => 25u32,
-				_ => return false,
-			},
-			25u32 => match token {
-				'0' => 18u32,
-				_ => return false,
-			},
-			26u32 => match token {
-				'0'..='9' => 18u32,
-				_ => return false,
-			},
-			27u32 => match token {
 				'-' => 8u32,
-				'0'..='9' => 29u32,
-				'6'..='9' => 15u32,
-				_ => return false,
-			},
-			28u32 => match token {
-				'-' => 8u32,
-				'0'..='9' => 15u32,
-				_ => return false,
-			},
-			29u32 => match token {
-				'-' => 8u32,
-				'0'..='9' => 29u32,
-				_ => return false,
-			},
-			30u32 => match token {
-				'-' => 8u32,
-				'0'..='9' => 15u32,
 				_ => return false,
 			},
 			_ => return false,
@@ -1654,7 +1392,7 @@ impl GYearMonth {
 		true
 	}
 	pub const fn is_accepting(&self) -> bool {
-		matches!(self.state, 16u32 | 18u32)
+		matches!(self.state, 11u32 | 13u32)
 	}
 	pub const fn validate_str(s: &str) -> bool {
 		Self::validate_bytes(s.as_bytes())
@@ -2065,6 +1803,817 @@ impl QName {
 	}
 	pub const fn is_accepting(&self) -> bool {
 		matches!(self.state, 1u32 | 3u32)
+	}
+	pub const fn validate_str(s: &str) -> bool {
+		Self::validate_bytes(s.as_bytes())
+	}
+	pub const fn validate_bytes(bytes: &[u8]) -> bool {
+		let mut i = 0;
+		let mut automaton = Self::new();
+		while i < bytes.len() {
+			match ::static_automata::decode_utf8_char(bytes, i) {
+				Ok((c, len)) => {
+					if !automaton.push(c) {
+						return false;
+					}
+					i += len;
+				}
+				Err(_) => return false,
+			}
+		}
+		automaton.is_accepting()
+	}
+}
+pub struct Boolean {
+	state: u32,
+}
+impl Boolean {
+	pub const fn new() -> Self {
+		Self { state: 0u32 }
+	}
+	pub const fn push(&mut self, token: char) -> bool {
+		self.state = match self.state {
+			0u32 => match token {
+				'0'..='1' => 1u32,
+				'f' => 2u32,
+				't' => 3u32,
+				_ => return false,
+			},
+			2u32 => match token {
+				'a' => 4u32,
+				_ => return false,
+			},
+			3u32 => match token {
+				'r' => 5u32,
+				_ => return false,
+			},
+			4u32 => match token {
+				'l' => 7u32,
+				_ => return false,
+			},
+			5u32 => match token {
+				'u' => 6u32,
+				_ => return false,
+			},
+			6u32 => match token {
+				'e' => 1u32,
+				_ => return false,
+			},
+			7u32 => match token {
+				's' => 6u32,
+				_ => return false,
+			},
+			_ => return false,
+		};
+		true
+	}
+	pub const fn is_accepting(&self) -> bool {
+		matches!(self.state, 1u32)
+	}
+	pub const fn validate_str(s: &str) -> bool {
+		Self::validate_bytes(s.as_bytes())
+	}
+	pub const fn validate_bytes(bytes: &[u8]) -> bool {
+		let mut i = 0;
+		let mut automaton = Self::new();
+		while i < bytes.len() {
+			match ::static_automata::decode_utf8_char(bytes, i) {
+				Ok((c, len)) => {
+					if !automaton.push(c) {
+						return false;
+					}
+					i += len;
+				}
+				Err(_) => return false,
+			}
+		}
+		automaton.is_accepting()
+	}
+}
+pub struct HexBinary {
+	state: u32,
+}
+impl HexBinary {
+	pub const fn new() -> Self {
+		Self { state: 0u32 }
+	}
+	pub const fn push(&mut self, token: char) -> bool {
+		self.state = match self.state {
+			0u32 => match token {
+				'0'..='9' | 'A'..='F' | 'a'..='f' => 1u32,
+				_ => return false,
+			},
+			1u32 => match token {
+				'0'..='9' | 'A'..='F' | 'a'..='f' => 0u32,
+				_ => return false,
+			},
+			_ => return false,
+		};
+		true
+	}
+	pub const fn is_accepting(&self) -> bool {
+		matches!(self.state, 0u32)
+	}
+	pub const fn validate_str(s: &str) -> bool {
+		Self::validate_bytes(s.as_bytes())
+	}
+	pub const fn validate_bytes(bytes: &[u8]) -> bool {
+		let mut i = 0;
+		let mut automaton = Self::new();
+		while i < bytes.len() {
+			match ::static_automata::decode_utf8_char(bytes, i) {
+				Ok((c, len)) => {
+					if !automaton.push(c) {
+						return false;
+					}
+					i += len;
+				}
+				Err(_) => return false,
+			}
+		}
+		automaton.is_accepting()
+	}
+}
+pub struct Base64Binary {
+	state: u32,
+}
+impl Base64Binary {
+	pub const fn new() -> Self {
+		Self { state: 0u32 }
+	}
+	pub const fn push(&mut self, token: char) -> bool {
+		self.state = match self.state {
+			0u32 => match token {
+				'+' | '/'..='9' | 'A'..='Z' | 'a'..='z' => 1u32,
+				_ => return false,
+			},
+			1u32 => match token {
+				' ' => 2u32,
+				'+' | '/'..='9' | 'B'..='P' | 'R'..='Z' | 'a'..='f' | 'h'..='v' | 'x'..='z' => 3u32,
+				'A' | 'Q' | 'g' | 'w' => 4u32,
+				_ => return false,
+			},
+			2u32 => match token {
+				'+' | '/'..='9' | 'B'..='P' | 'R'..='Z' | 'a'..='f' | 'h'..='v' | 'x'..='z' => 3u32,
+				'A' | 'Q' | 'g' | 'w' => 4u32,
+				_ => return false,
+			},
+			3u32 => match token {
+				' ' => 5u32,
+				'+'
+				| '/'
+				| '1'..='3'
+				| '5'..='7'
+				| '9'
+				| 'B'..='D'
+				| 'F'..='H'
+				| 'J'..='L'
+				| 'N'..='P'
+				| 'R'..='T'
+				| 'V'..='X'
+				| 'Z'
+				| 'a'..='b'
+				| 'd'..='f'
+				| 'h'..='j'
+				| 'l'..='n'
+				| 'p'..='r'
+				| 't'..='v'
+				| 'x'..='z' => 6u32,
+				'0' | '4' | '8' | 'A' | 'E' | 'I' | 'M' | 'Q' | 'U' | 'Y' | 'c' | 'g' | 'k'
+				| 'o' | 's' | 'w' => 7u32,
+				_ => return false,
+			},
+			4u32 => match token {
+				' ' => 8u32,
+				'+'
+				| '/'
+				| '1'..='3'
+				| '5'..='7'
+				| '9'
+				| 'B'..='D'
+				| 'F'..='H'
+				| 'J'..='L'
+				| 'N'..='P'
+				| 'R'..='T'
+				| 'V'..='X'
+				| 'Z'
+				| 'a'..='b'
+				| 'd'..='f'
+				| 'h'..='j'
+				| 'l'..='n'
+				| 'p'..='r'
+				| 't'..='v'
+				| 'x'..='z' => 6u32,
+				'0' | '4' | '8' | 'A' | 'E' | 'I' | 'M' | 'Q' | 'U' | 'Y' | 'c' | 'g' | 'k'
+				| 'o' | 's' | 'w' => 7u32,
+				'=' => 9u32,
+				_ => return false,
+			},
+			5u32 => match token {
+				'+'
+				| '/'
+				| '1'..='3'
+				| '5'..='7'
+				| '9'
+				| 'B'..='D'
+				| 'F'..='H'
+				| 'J'..='L'
+				| 'N'..='P'
+				| 'R'..='T'
+				| 'V'..='X'
+				| 'Z'
+				| 'a'..='b'
+				| 'd'..='f'
+				| 'h'..='j'
+				| 'l'..='n'
+				| 'p'..='r'
+				| 't'..='v'
+				| 'x'..='z' => 6u32,
+				'0' | '4' | '8' | 'A' | 'E' | 'I' | 'M' | 'Q' | 'U' | 'Y' | 'c' | 'g' | 'k'
+				| 'o' | 's' | 'w' => 7u32,
+				_ => return false,
+			},
+			6u32 => match token {
+				' ' => 10u32,
+				'+' | '/'..='9' | 'A'..='Z' | 'a'..='z' => 11u32,
+				_ => return false,
+			},
+			7u32 => match token {
+				' ' => 12u32,
+				'+' | '/'..='9' | 'A'..='Z' | 'a'..='z' => 11u32,
+				'=' => 13u32,
+				_ => return false,
+			},
+			8u32 => match token {
+				'+'
+				| '/'
+				| '1'..='3'
+				| '5'..='7'
+				| '9'
+				| 'B'..='D'
+				| 'F'..='H'
+				| 'J'..='L'
+				| 'N'..='P'
+				| 'R'..='T'
+				| 'V'..='X'
+				| 'Z'
+				| 'a'..='b'
+				| 'd'..='f'
+				| 'h'..='j'
+				| 'l'..='n'
+				| 'p'..='r'
+				| 't'..='v'
+				| 'x'..='z' => 6u32,
+				'0' | '4' | '8' | 'A' | 'E' | 'I' | 'M' | 'Q' | 'U' | 'Y' | 'c' | 'g' | 'k'
+				| 'o' | 's' | 'w' => 7u32,
+				'=' => 9u32,
+				_ => return false,
+			},
+			9u32 => match token {
+				' ' => 15u32,
+				'=' => 13u32,
+				_ => return false,
+			},
+			10u32 => match token {
+				'+' | '/'..='9' | 'A'..='Z' | 'a'..='z' => 11u32,
+				_ => return false,
+			},
+			11u32 => match token {
+				' ' => 14u32,
+				'+' | '/'..='9' | 'A'..='Z' | 'a'..='z' => 1u32,
+				_ => return false,
+			},
+			12u32 => match token {
+				'+' | '/'..='9' | 'A'..='Z' | 'a'..='z' => 11u32,
+				'=' => 13u32,
+				_ => return false,
+			},
+			14u32 => match token {
+				'+' | '/'..='9' | 'A'..='Z' | 'a'..='z' => 1u32,
+				_ => return false,
+			},
+			15u32 => match token {
+				'=' => 13u32,
+				_ => return false,
+			},
+			_ => return false,
+		};
+		true
+	}
+	pub const fn is_accepting(&self) -> bool {
+		matches!(self.state, 0u32 | 11u32 | 13u32)
+	}
+	pub const fn validate_str(s: &str) -> bool {
+		Self::validate_bytes(s.as_bytes())
+	}
+	pub const fn validate_bytes(bytes: &[u8]) -> bool {
+		let mut i = 0;
+		let mut automaton = Self::new();
+		while i < bytes.len() {
+			match ::static_automata::decode_utf8_char(bytes, i) {
+				Ok((c, len)) => {
+					if !automaton.push(c) {
+						return false;
+					}
+					i += len;
+				}
+				Err(_) => return false,
+			}
+		}
+		automaton.is_accepting()
+	}
+}
+pub struct Decimal {
+	state: u32,
+}
+impl Decimal {
+	pub const fn new() -> Self {
+		Self { state: 0u32 }
+	}
+	pub const fn push(&mut self, token: char) -> bool {
+		self.state = match self.state {
+			0u32 => match token {
+				'+' | '-' => 1u32,
+				'.' => 2u32,
+				'0'..='9' => 3u32,
+				_ => return false,
+			},
+			1u32 => match token {
+				'.' => 2u32,
+				'0'..='9' => 3u32,
+				_ => return false,
+			},
+			2u32 => match token {
+				'0'..='9' => 4u32,
+				_ => return false,
+			},
+			3u32 => match token {
+				'.' => 4u32,
+				'0'..='9' => 3u32,
+				_ => return false,
+			},
+			4u32 => match token {
+				'0'..='9' => 4u32,
+				_ => return false,
+			},
+			_ => return false,
+		};
+		true
+	}
+	pub const fn is_accepting(&self) -> bool {
+		matches!(self.state, 3u32 | 4u32)
+	}
+	pub const fn validate_str(s: &str) -> bool {
+		Self::validate_bytes(s.as_bytes())
+	}
+	pub const fn validate_bytes(bytes: &[u8]) -> bool {
+		let mut i = 0;
+		let mut automaton = Self::new();
+		while i < bytes.len() {
+			match ::static_automata::decode_utf8_char(bytes, i) {
+				Ok((c, len)) => {
+					if !automaton.push(c) {
+						return false;
+					}
+					i += len;
+				}
+				Err(_) => return false,
+			}
+		}
+		automaton.is_accepting()
+	}
+}
+pub struct Integer {
+	state: u32,
+}
+impl Integer {
+	pub const fn new() -> Self {
+		Self { state: 0u32 }
+	}
+	pub const fn push(&mut self, token: char) -> bool {
+		self.state = match self.state {
+			0u32 => match token {
+				'+' | '-' => 1u32,
+				'0'..='9' => 2u32,
+				_ => return false,
+			},
+			1u32 => match token {
+				'0'..='9' => 2u32,
+				_ => return false,
+			},
+			2u32 => match token {
+				'0'..='9' => 2u32,
+				_ => return false,
+			},
+			_ => return false,
+		};
+		true
+	}
+	pub const fn is_accepting(&self) -> bool {
+		matches!(self.state, 2u32)
+	}
+	pub const fn validate_str(s: &str) -> bool {
+		Self::validate_bytes(s.as_bytes())
+	}
+	pub const fn validate_bytes(bytes: &[u8]) -> bool {
+		let mut i = 0;
+		let mut automaton = Self::new();
+		while i < bytes.len() {
+			match ::static_automata::decode_utf8_char(bytes, i) {
+				Ok((c, len)) => {
+					if !automaton.push(c) {
+						return false;
+					}
+					i += len;
+				}
+				Err(_) => return false,
+			}
+		}
+		automaton.is_accepting()
+	}
+}
+pub struct NonNegativeInteger {
+	state: u32,
+}
+impl NonNegativeInteger {
+	pub const fn new() -> Self {
+		Self { state: 0u32 }
+	}
+	pub const fn push(&mut self, token: char) -> bool {
+		self.state = match self.state {
+			0u32 => match token {
+				'+' => 1u32,
+				'-' => 2u32,
+				'0'..='9' => 3u32,
+				_ => return false,
+			},
+			1u32 => match token {
+				'0'..='9' => 3u32,
+				_ => return false,
+			},
+			2u32 => match token {
+				'0' => 4u32,
+				_ => return false,
+			},
+			3u32 => match token {
+				'0'..='9' => 3u32,
+				_ => return false,
+			},
+			4u32 => match token {
+				'0' => 4u32,
+				_ => return false,
+			},
+			_ => return false,
+		};
+		true
+	}
+	pub const fn is_accepting(&self) -> bool {
+		matches!(self.state, 3u32 | 4u32)
+	}
+	pub const fn validate_str(s: &str) -> bool {
+		Self::validate_bytes(s.as_bytes())
+	}
+	pub const fn validate_bytes(bytes: &[u8]) -> bool {
+		let mut i = 0;
+		let mut automaton = Self::new();
+		while i < bytes.len() {
+			match ::static_automata::decode_utf8_char(bytes, i) {
+				Ok((c, len)) => {
+					if !automaton.push(c) {
+						return false;
+					}
+					i += len;
+				}
+				Err(_) => return false,
+			}
+		}
+		automaton.is_accepting()
+	}
+}
+pub struct PositiveInteger {
+	state: u32,
+}
+impl PositiveInteger {
+	pub const fn new() -> Self {
+		Self { state: 0u32 }
+	}
+	pub const fn push(&mut self, token: char) -> bool {
+		self.state = match self.state {
+			0u32 => match token {
+				'+' | '0' => 1u32,
+				'1'..='9' => 2u32,
+				_ => return false,
+			},
+			1u32 => match token {
+				'0' => 1u32,
+				'1'..='9' => 2u32,
+				_ => return false,
+			},
+			2u32 => match token {
+				'0'..='9' => 2u32,
+				_ => return false,
+			},
+			_ => return false,
+		};
+		true
+	}
+	pub const fn is_accepting(&self) -> bool {
+		matches!(self.state, 2u32)
+	}
+	pub const fn validate_str(s: &str) -> bool {
+		Self::validate_bytes(s.as_bytes())
+	}
+	pub const fn validate_bytes(bytes: &[u8]) -> bool {
+		let mut i = 0;
+		let mut automaton = Self::new();
+		while i < bytes.len() {
+			match ::static_automata::decode_utf8_char(bytes, i) {
+				Ok((c, len)) => {
+					if !automaton.push(c) {
+						return false;
+					}
+					i += len;
+				}
+				Err(_) => return false,
+			}
+		}
+		automaton.is_accepting()
+	}
+}
+pub struct NonPositiveInteger {
+	state: u32,
+}
+impl NonPositiveInteger {
+	pub const fn new() -> Self {
+		Self { state: 0u32 }
+	}
+	pub const fn push(&mut self, token: char) -> bool {
+		self.state = match self.state {
+			0u32 => match token {
+				'+' => 1u32,
+				'-' => 2u32,
+				'0' => 3u32,
+				_ => return false,
+			},
+			1u32 => match token {
+				'0' => 3u32,
+				_ => return false,
+			},
+			2u32 => match token {
+				'0'..='9' => 4u32,
+				_ => return false,
+			},
+			3u32 => match token {
+				'0' => 3u32,
+				_ => return false,
+			},
+			4u32 => match token {
+				'0'..='9' => 4u32,
+				_ => return false,
+			},
+			_ => return false,
+		};
+		true
+	}
+	pub const fn is_accepting(&self) -> bool {
+		matches!(self.state, 3u32 | 4u32)
+	}
+	pub const fn validate_str(s: &str) -> bool {
+		Self::validate_bytes(s.as_bytes())
+	}
+	pub const fn validate_bytes(bytes: &[u8]) -> bool {
+		let mut i = 0;
+		let mut automaton = Self::new();
+		while i < bytes.len() {
+			match ::static_automata::decode_utf8_char(bytes, i) {
+				Ok((c, len)) => {
+					if !automaton.push(c) {
+						return false;
+					}
+					i += len;
+				}
+				Err(_) => return false,
+			}
+		}
+		automaton.is_accepting()
+	}
+}
+pub struct NegativeInteger {
+	state: u32,
+}
+impl NegativeInteger {
+	pub const fn new() -> Self {
+		Self { state: 0u32 }
+	}
+	pub const fn push(&mut self, token: char) -> bool {
+		self.state = match self.state {
+			0u32 => match token {
+				'-' => 1u32,
+				_ => return false,
+			},
+			1u32 => match token {
+				'0' => 1u32,
+				'1'..='9' => 2u32,
+				_ => return false,
+			},
+			2u32 => match token {
+				'0'..='9' => 2u32,
+				_ => return false,
+			},
+			_ => return false,
+		};
+		true
+	}
+	pub const fn is_accepting(&self) -> bool {
+		matches!(self.state, 2u32)
+	}
+	pub const fn validate_str(s: &str) -> bool {
+		Self::validate_bytes(s.as_bytes())
+	}
+	pub const fn validate_bytes(bytes: &[u8]) -> bool {
+		let mut i = 0;
+		let mut automaton = Self::new();
+		while i < bytes.len() {
+			match ::static_automata::decode_utf8_char(bytes, i) {
+				Ok((c, len)) => {
+					if !automaton.push(c) {
+						return false;
+					}
+					i += len;
+				}
+				Err(_) => return false,
+			}
+		}
+		automaton.is_accepting()
+	}
+}
+pub struct Float {
+	state: u32,
+}
+impl Float {
+	pub const fn new() -> Self {
+		Self { state: 0u32 }
+	}
+	pub const fn push(&mut self, token: char) -> bool {
+		self.state = match self.state {
+			0u32 => match token {
+				'+' | '-' => 1u32,
+				'.' => 2u32,
+				'0'..='9' => 3u32,
+				'I' => 4u32,
+				'N' => 5u32,
+				_ => return false,
+			},
+			1u32 => match token {
+				'.' => 2u32,
+				'0'..='9' => 3u32,
+				'I' => 4u32,
+				_ => return false,
+			},
+			2u32 => match token {
+				'0'..='9' => 6u32,
+				_ => return false,
+			},
+			3u32 => match token {
+				'.' => 6u32,
+				'0'..='9' => 3u32,
+				'E' | 'e' => 7u32,
+				_ => return false,
+			},
+			4u32 => match token {
+				'N' => 8u32,
+				_ => return false,
+			},
+			5u32 => match token {
+				'a' => 9u32,
+				_ => return false,
+			},
+			6u32 => match token {
+				'0'..='9' => 6u32,
+				'E' | 'e' => 7u32,
+				_ => return false,
+			},
+			7u32 => match token {
+				'+' | '-' => 11u32,
+				'0'..='9' => 12u32,
+				_ => return false,
+			},
+			8u32 => match token {
+				'F' => 10u32,
+				_ => return false,
+			},
+			9u32 => match token {
+				'N' => 10u32,
+				_ => return false,
+			},
+			11u32 => match token {
+				'0'..='9' => 12u32,
+				_ => return false,
+			},
+			12u32 => match token {
+				'0'..='9' => 12u32,
+				_ => return false,
+			},
+			_ => return false,
+		};
+		true
+	}
+	pub const fn is_accepting(&self) -> bool {
+		matches!(self.state, 3u32 | 6u32 | 10u32 | 12u32)
+	}
+	pub const fn validate_str(s: &str) -> bool {
+		Self::validate_bytes(s.as_bytes())
+	}
+	pub const fn validate_bytes(bytes: &[u8]) -> bool {
+		let mut i = 0;
+		let mut automaton = Self::new();
+		while i < bytes.len() {
+			match ::static_automata::decode_utf8_char(bytes, i) {
+				Ok((c, len)) => {
+					if !automaton.push(c) {
+						return false;
+					}
+					i += len;
+				}
+				Err(_) => return false,
+			}
+		}
+		automaton.is_accepting()
+	}
+}
+pub struct Double {
+	state: u32,
+}
+impl Double {
+	pub const fn new() -> Self {
+		Self { state: 0u32 }
+	}
+	pub const fn push(&mut self, token: char) -> bool {
+		self.state = match self.state {
+			0u32 => match token {
+				'+' | '-' => 1u32,
+				'.' => 2u32,
+				'0'..='9' => 3u32,
+				'I' => 4u32,
+				'N' => 5u32,
+				_ => return false,
+			},
+			1u32 => match token {
+				'.' => 2u32,
+				'0'..='9' => 3u32,
+				'I' => 4u32,
+				_ => return false,
+			},
+			2u32 => match token {
+				'0'..='9' => 6u32,
+				_ => return false,
+			},
+			3u32 => match token {
+				'.' => 6u32,
+				'0'..='9' => 3u32,
+				'E' | 'e' => 7u32,
+				_ => return false,
+			},
+			4u32 => match token {
+				'N' => 8u32,
+				_ => return false,
+			},
+			5u32 => match token {
+				'a' => 9u32,
+				_ => return false,
+			},
+			6u32 => match token {
+				'0'..='9' => 6u32,
+				'E' | 'e' => 7u32,
+				_ => return false,
+			},
+			7u32 => match token {
+				'+' | '-' => 11u32,
+				'0'..='9' => 12u32,
+				_ => return false,
+			},
+			8u32 => match token {
+				'F' => 10u32,
+				_ => return false,
+			},
+			9u32 => match token {
+				'N' => 10u32,
+				_ => return false,
+			},
+			11u32 => match token {
+				'0'..='9' => 12u32,
+				_ => return false,
+			},
+			12u32 => match token {
+				'0'..='9' => 12u32,
+				_ => return false,
+			},
+			_ => return false,
+		};
+		true
+	}
+	pub const fn is_accepting(&self) -> bool {
+		matches!(self.state, 3u32 | 6u32 | 10u32 | 12u32)
 	}
 	pub const fn validate_str(s: &str) -> bool {
 		Self::validate_bytes(s.as_bytes())

@@ -7,41 +7,15 @@ use super::{Lexical, LexicalFormOf};
 
 /// Date and time with required timezone offset.
 ///
+/// This is the `dateTimeStampLexicalRep` production of the XSD 1.1
+/// Datatypes specification:
+/// <https://www.w3.org/TR/xmlschema11-2/#nt-dateTimeStampRep>.
+///
 /// ```abnf
-/// date-time = year "-" month "-" day %s"T" time timezone
+/// dateTimeStampLexicalRep = yearFrag "-" monthFrag "-" dayFrag %s"T" primitiveTimeFrag timezoneFrag
 ///
-/// time = hour ":" minute ":" second ["." fraction]
-///      / "24:00:00" ["." 1*"0"]
-///
-/// year = [ "-" ] year-number
-///
-/// year-number = *3DIGIT NZDIGIT
-///             / *2DIGIT NZDIGIT DIGIT
-///             / *1DIGIT NZDIGIT 2DIGIT
-///             / NZDIGIT 3*DIGIT
-///
-/// month = "0" NZDIGIT
-///       / "1" ( "0" / "1" / "2" )
-///
-/// day = "0" NZDIGIT
-///     / ("1" / "2") DIGIT
-///     / "3" ("0" / "1")
-///
-/// hour = ("0" / "1") DIGIT
-///      / "2" ("0" / "1" / "2" / "3")
-///
-/// minute = ("0" / "1" / "2" / "3" / "4" / "5") DIGIT
-///
-/// second = ("0" / "1" / "2" / "3" / "4" / "5") DIGIT
-///
-/// fraction = 1*DIGIT
-///
-/// timezone = ("+" / "-") ((("0" DIGIT / "1" ("0" / "1" / "2" / "3")) ":" minute) / "14:00")
-///          / %s"Z"
-///
-/// NZDIGIT = "1" / "2" / "3" / "4" / "5" / "6" / "7" / "8" / "9"
+/// primitiveTimeFrag = (hourFrag ":" minuteFrag ":" secondFrag) / endOfDayFrag
 /// ```
-///
 #[derive(Validate, StrNewType, PartialEq, Eq, PartialOrd, Ord, Hash)]
 #[automaton(super::super::grammar::DateTimeStamp)]
 #[newtype(owned(DateTimeStampBuf, derive(PartialEq, Eq, PartialOrd, Ord, Hash)))]

@@ -7,22 +7,12 @@ use super::{Lexical, LexicalFormOf};
 
 /// GMonthDay.
 ///
+/// This is the `gMonthDayLexicalRep` production of the XSD 1.1
+/// Datatypes specification:
+/// <https://www.w3.org/TR/xmlschema11-2/#nt-gMonthDayRep>.
+///
 /// ```abnf
-/// g-month-day = "--" month "-" day [timezone]
-///
-/// month = "0" NZDIGIT
-///       / "1" ( "0" / "1" / "2" )
-///
-/// day = "0" NZDIGIT
-///     / ("1" / "2") DIGIT
-///     / "3" ("0" / "1")
-///
-/// minute = ("0" / "1" / "2" / "3" / "4" / "5") DIGIT
-///
-/// timezone = ("+" / "-") ((("0" DIGIT / "1" ("0" / "1" / "2" / "3")) ":" minute) / "14:00")
-///          / %s"Z"
-///
-/// NZDIGIT = "1" / "2" / "3" / "4" / "5" / "6" / "7" / "8" / "9"
+/// gMonthDayLexicalRep = "--" monthFrag "-" dayFrag [ timezoneFrag ]
 /// ```
 #[derive(Validate, StrNewType, PartialEq, Eq, PartialOrd, Ord, Hash)]
 #[automaton(super::grammar::GMonthDay)]

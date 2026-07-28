@@ -1,57 +1,63 @@
 use super::{lexical_form, Decimal, Float, FloatBuf, Integer, Overflow};
-use std::borrow::{Borrow, ToOwned};
-use std::fmt;
+use crate::lexical::Lexical;
+use static_automata::Validate;
 use std::hash::Hash;
+use str_newtype::StrNewType;
+
+/// Double number.
+///
+/// This is the `doubleRep` production of the XSD 1.1 Datatypes
+/// specification: <https://www.w3.org/TR/xmlschema11-2/#nt-doubleRep>.
+/// It is identical to the `floatRep` production used by [`Float`]; only
+/// the value spaces (precision) of `float` and `double` differ.
+///
+/// ```abnf
+/// doubleRep = noDecimalPtNumeral / decimalPtNumeral / scientificNotationNumeral / numericalSpecialRep
+///
+/// scientificNotationNumeral = [ ("+" / "-") ] (unsignedNoDecimalPtNumeral / unsignedDecimalPtNumeral) "e" noDecimalPtNumeral
+///
+/// numericalSpecialRep = %s"+INF" / %s"INF" / %s"-INF" / %s"NaN"
+/// ```
+#[derive(Validate, StrNewType)]
+#[automaton(crate::lexical::grammar::Double)]
+#[newtype(owned(DoubleBuf, derive(PartialEq, Eq)))]
+pub struct Double(str);
+
+impl Lexical for Double {
+	type Error = InvalidDouble<String>;
+
+	fn parse(value: &str) -> Result<&Self, Self::Error> {
+		Self::new(value).map_err(|_| InvalidDouble(value.to_owned()))
+	}
+}
 
 lexical_form! {
-	/// Double number.
-	///
-	/// See: <https://www.w3.org/TR/xmlschema-2/#double>
 	ty: Double,
-
-	/// Owned double number.
-	///
-	/// See: <https://www.w3.org/TR/xmlschema-2/#double>
 	buffer: DoubleBuf,
-
-	/// Creates a new double from a string.
-	///
-	/// If the input string is ot a [valid XSD double](https://www.w3.org/TR/xmlschema-2/#double),
-	/// an [`InvalidDouble`] error is returned.
-	new,
-
-	/// Creates a new double from a string without checking it.
-	///
-	/// # Safety
-	///
-	/// The input string must be a [valid XSD double](https://www.w3.org/TR/xmlschema-2/#double).
-	new_unchecked,
-
 	value: crate::Double,
 	error: InvalidDouble,
-	as_ref: as_double,
 	parent_forms: {}
 }
 
-pub const NAN: &Double = unsafe { Double::new_unchecked_from_slice(b"NaN") };
-pub const POSITIVE_INFINITY: &Double = unsafe { Double::new_unchecked_from_slice(b"INF") };
-pub const NEGATIVE_INFINITY: &Double = unsafe { Double::new_unchecked_from_slice(b"-INF") };
+pub const NAN: &Double = unsafe { Double::new_unchecked_from_bytes(b"NaN") };
+pub const POSITIVE_INFINITY: &Double = unsafe { Double::new_unchecked_from_bytes(b"INF") };
+pub const NEGATIVE_INFINITY: &Double = unsafe { Double::new_unchecked_from_bytes(b"-INF") };
 
 impl Double {
 	pub fn is_infinite(&self) -> bool {
-		matches!(&self.0, b"INF" | b"-INF")
+		matches!(self.as_str(), "INF" | "+INF" | "-INF")
 	}
 
 	pub fn is_finite(&self) -> bool {
-		!matches!(&self.0, b"INF" | b"-INF" | b"NaN")
+		!matches!(self.as_str(), "INF" | "+INF" | "-INF" | "NaN")
 	}
 
 	pub fn is_nan(&self) -> bool {
-		&self.0 == b"NaN"
+		self.as_str() == "NaN"
 	}
 
 	fn exponent_separator_index(&self) -> Option<usize> {
-		for (i, c) in self.0.iter().enumerate() {
+		for (i, c) in self.0.as_bytes().iter().enumerate() {
 			if matches!(c, b'e' | b'E') {
 				return Some(i);
 			}
@@ -63,8 +69,8 @@ impl Double {
 	pub fn mantissa(&self) -> Option<&Decimal> {
 		if self.is_finite() {
 			Some(match self.exponent_separator_index() {
-				Some(e) => unsafe { Decimal::new_unchecked(&self[..e]) },
-				None => unsafe { Decimal::new_unchecked(self) },
+				Some(e) => unsafe { Decimal::new_unchecked(&self.0[..e]) },
+				None => unsafe { Decimal::new_unchecked(&self.0) },
 			})
 		} else {
 			None
@@ -74,7 +80,7 @@ impl Double {
 	pub fn exponent(&self) -> Option<&Integer> {
 		if self.is_finite() {
 			self.exponent_separator_index()
-				.map(|e| unsafe { Integer::new_unchecked(&self[(e + 1)..]) })
+				.map(|e| unsafe { Integer::new_unchecked(&self.0[(e + 1)..]) })
 		} else {
 			None
 		}
@@ -197,7 +203,7 @@ impl From<f64> for DoubleBuf {
 impl<'a> From<&'a Decimal> for &'a Double {
 	#[inline(always)]
 	fn from(d: &'a Decimal) -> Self {
-		unsafe { Double::new_unchecked(d) }
+		unsafe { Double::new_unchecked(d.as_str()) }
 	}
 }
 
@@ -215,73 +221,6 @@ impl DoubleBuf {
 	#[inline(always)]
 	pub fn negative_infinity() -> Self {
 		NEGATIVE_INFINITY.to_owned()
-	}
-}
-
-fn check_bytes(s: &[u8]) -> bool {
-	s == b"INF" || s == b"-INF" || s == b"NaN" || check_normal(s.iter().cloned())
-}
-
-fn check_normal<C: Iterator<Item = u8>>(mut chars: C) -> bool {
-	enum State {
-		Initial,
-		NonEmptyInteger,
-		Integer,
-		NonEmptyDecimal,
-		Decimal,
-		ExponentSign,
-		NonEmptyExponent,
-		Exponent,
-	}
-
-	let mut state = State::Initial;
-
-	loop {
-		state = match state {
-			State::Initial => match chars.next() {
-				Some(b'+') => State::NonEmptyInteger,
-				Some(b'-') => State::NonEmptyInteger,
-				Some(b'.') => State::NonEmptyDecimal,
-				Some(b'0'..=b'9') => State::Integer,
-				_ => break false,
-			},
-			State::NonEmptyInteger => match chars.next() {
-				Some(b'0'..=b'9') => State::Integer,
-				Some(b'.') => State::Decimal,
-				_ => break false,
-			},
-			State::Integer => match chars.next() {
-				Some(b'0'..=b'9') => State::Integer,
-				Some(b'.') => State::Decimal,
-				Some(b'e' | b'E') => State::ExponentSign,
-				Some(_) => break false,
-				None => break true,
-			},
-			State::NonEmptyDecimal => match chars.next() {
-				Some(b'0'..=b'9') => State::Decimal,
-				_ => break false,
-			},
-			State::Decimal => match chars.next() {
-				Some(b'0'..=b'9') => State::Decimal,
-				Some(b'e' | b'E') => State::ExponentSign,
-				Some(_) => break false,
-				None => break true,
-			},
-			State::ExponentSign => match chars.next() {
-				Some(b'+' | b'-') => State::NonEmptyExponent,
-				Some(b'0'..=b'9') => State::Exponent,
-				_ => break false,
-			},
-			State::NonEmptyExponent => match chars.next() {
-				Some(b'0'..=b'9') => State::Exponent,
-				_ => break false,
-			},
-			State::Exponent => match chars.next() {
-				Some(b'0'..=b'9') => State::Exponent,
-				Some(_) => break false,
-				None => break true,
-			},
-		}
 	}
 }
 
@@ -411,5 +350,11 @@ mod tests {
 	#[test]
 	fn format_01() {
 		assert_eq!(DoubleBuf::from(1.0e10f64).to_string(), "1.0e10")
+	}
+
+	#[test]
+	fn parse_signed_empty_rejected() {
+		Double::new("+.").unwrap_err();
+		Double::new("-.e5").unwrap_err();
 	}
 }

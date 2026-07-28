@@ -7,19 +7,11 @@ use super::{Lexical, LexicalFormOf};
 
 /// GDay.
 ///
+/// This is the `gDayLexicalRep` production of the XSD 1.1 Datatypes
+/// specification: <https://www.w3.org/TR/xmlschema11-2/#nt-gDayRep>.
+///
 /// ```abnf
-/// g-day = "---" day [timezone]
-///
-/// day = "0" NZDIGIT
-///     / ("1" / "2") DIGIT
-///     / "3" ("0" / "1")
-///
-/// minute = ("0" / "1" / "2" / "3" / "4" / "5") DIGIT
-///
-/// timezone = ("+" / "-") ((("0" DIGIT / "1" ("0" / "1" / "2" / "3")) ":" minute) / "14:00")
-///          / %s"Z"
-///
-/// NZDIGIT = "1" / "2" / "3" / "4" / "5" / "6" / "7" / "8" / "9"
+/// gDayLexicalRep = "---" dayFrag [ timezoneFrag ]
 /// ```
 #[derive(Validate, StrNewType, PartialEq, Eq, PartialOrd, Ord, Hash)]
 #[automaton(super::grammar::GDay)]

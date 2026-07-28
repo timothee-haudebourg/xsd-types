@@ -1,39 +1,42 @@
-use crate::lexical::{lexical_form, Decimal, DecimalBuf, Integer, IntegerBuf, NonNegativeInteger};
+use crate::lexical::{
+	lexical_form, Decimal, DecimalBuf, Integer, IntegerBuf, Lexical, NonNegativeInteger,
+};
 
 use super::{NonNegativeIntegerBuf, Overflow};
-use std::borrow::{Borrow, ToOwned};
+use static_automata::Validate;
 use std::cmp::Ordering;
-use std::fmt;
 use std::hash::{Hash, Hasher};
 use std::str::FromStr;
+use str_newtype::StrNewType;
+
+/// Positive integer number.
+///
+/// `positiveInteger` has no numbered grammar production of its own in
+/// the XSD 1.1 Datatypes specification: it is defined by restricting
+/// [`NonNegativeInteger`]'s lexical space with a `minInclusive` of 1.
+/// See: <https://www.w3.org/TR/xmlschema11-2/#positiveInteger>.
+///
+/// ```abnf
+/// positiveInteger = [ "+" ] *"0" NZDIGIT *DIGIT
+/// ```
+#[derive(Validate, StrNewType)]
+#[automaton(crate::lexical::grammar::PositiveInteger)]
+#[newtype(owned(PositiveIntegerBuf, derive(PartialEq, Eq)))]
+pub struct PositiveInteger(str);
+
+impl Lexical for PositiveInteger {
+	type Error = InvalidPositiveInteger<String>;
+
+	fn parse(value: &str) -> Result<&Self, Self::Error> {
+		Self::new(value).map_err(|_| InvalidPositiveInteger(value.to_owned()))
+	}
+}
 
 lexical_form! {
-	/// Positive integer number.
-	///
-	/// See: <https://www.w3.org/TR/xmlschema-2/#positiveInteger>
 	ty: PositiveInteger,
-
-	/// Owned positive integer number.
-	///
-	/// See: <https://www.w3.org/TR/xmlschema-2/#positiveInteger>
 	buffer: PositiveIntegerBuf,
-
-	/// Creates a new positive integer from a string.
-	///
-	/// If the input string is ot a [valid XSD positive integer](https://www.w3.org/TR/xmlschema-2/#positiveInteger),
-	/// an [`InvalidPositiveInteger`] error is returned.
-	new,
-
-	/// Creates a new positive integer from a string without checking it.
-	///
-	/// # Safety
-	///
-	/// The input string must be a [valid XSD positive integer](https://www.w3.org/TR/xmlschema-2/#positiveInteger).
-	new_unchecked,
-
 	value: crate::PositiveInteger,
 	error: InvalidPositiveInteger,
-	as_ref: as_positive_integer,
 	parent_forms: {
 		as_non_negative_integer: NonNegativeInteger, NonNegativeIntegerBuf,
 		as_integer: Integer, IntegerBuf,
@@ -45,7 +48,7 @@ impl PositiveInteger {
 	/// Returns the canonical form of `self` (without leading zeros).
 	pub fn canonical(&self) -> &Self {
 		let mut last_zero = 0;
-		for (i, c) in self.0.iter().enumerate() {
+		for (i, c) in self.0.as_bytes().iter().enumerate() {
 			match c {
 				b'+' => (),
 				b'0' => last_zero = i,
@@ -152,38 +155,4 @@ number_conversion! {
 	i128,
 	usize,
 	isize
-}
-
-fn check_bytes(s: &[u8]) -> bool {
-	check(s.iter().copied())
-}
-
-fn check<C: Iterator<Item = u8>>(mut chars: C) -> bool {
-	enum State {
-		Initial,
-		NonEmptyInteger,
-		Integer,
-	}
-
-	let mut state = State::Initial;
-
-	loop {
-		state = match state {
-			State::Initial => match chars.next() {
-				Some(b'+' | b'0') => State::NonEmptyInteger,
-				Some(b'1'..=b'9') => State::Integer,
-				_ => break false,
-			},
-			State::NonEmptyInteger => match chars.next() {
-				Some(b'0') => State::NonEmptyInteger,
-				Some(b'1'..=b'9') => State::Integer,
-				_ => break false,
-			},
-			State::Integer => match chars.next() {
-				Some(b'0'..=b'9') => State::Integer,
-				Some(_) => break false,
-				None => break true,
-			},
-		}
-	}
 }

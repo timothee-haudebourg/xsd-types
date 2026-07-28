@@ -1,43 +1,46 @@
-use crate::lexical::lexical_form;
+use crate::lexical::{lexical_form, Lexical};
 
 use super::{Decimal, DecimalBuf, Integer, IntegerBuf, NonNegativeInteger, Overflow, Sign};
-use std::borrow::{Borrow, ToOwned};
+use static_automata::Validate;
 use std::cmp::Ordering;
-use std::fmt;
 use std::hash::{Hash, Hasher};
 use std::str::FromStr;
+use str_newtype::StrNewType;
 
 mod negative_integer;
 
 pub use negative_integer::*;
 
+/// Non positive integer number.
+///
+/// `nonPositiveInteger` has no numbered grammar production of its own
+/// in the XSD 1.1 Datatypes specification: it is defined by
+/// restricting [`Integer`]'s lexical space with a `maxInclusive` of 0.
+/// See: <https://www.w3.org/TR/xmlschema11-2/#nonPositiveInteger>.
+///
+/// ```abnf
+/// nonPositiveInteger = "+" 1*"0"
+///                     / 1*"0"
+///                     / "-" 1*DIGIT
+/// ```
+#[derive(Validate, StrNewType)]
+#[automaton(crate::lexical::grammar::NonPositiveInteger)]
+#[newtype(owned(NonPositiveIntegerBuf, derive(PartialEq, Eq)))]
+pub struct NonPositiveInteger(str);
+
+impl Lexical for NonPositiveInteger {
+	type Error = InvalidNonPositiveInteger<String>;
+
+	fn parse(value: &str) -> Result<&Self, Self::Error> {
+		Self::new(value).map_err(|_| InvalidNonPositiveInteger(value.to_owned()))
+	}
+}
+
 lexical_form! {
-	/// Non positive integer number.
-	///
-	/// See: <https://www.w3.org/TR/xmlschema-2/#nonPositiveInteger>
 	ty: NonPositiveInteger,
-
-	/// Owned non positive integer number.
-	///
-	/// See: <https://www.w3.org/TR/xmlschema-2/#nonPositiveInteger>
 	buffer: NonPositiveIntegerBuf,
-
-	/// Creates a new non positive integer from a string.
-	///
-	/// If the input string is ot a [valid XSD non positive integer](https://www.w3.org/TR/xmlschema-2/#nonPositiveInteger),
-	/// an [`InvalidNonPositiveInteger`] error is returned.
-	new,
-
-	/// Creates a new non positive integer from a string without checking it.
-	///
-	/// # Safety
-	///
-	/// The input string must be a [valid XSD non positive integer](https://www.w3.org/TR/xmlschema-2/#nonPositiveInteger).
-	new_unchecked,
-
 	value: crate::NonPositiveInteger,
 	error: InvalidNonPositiveInteger,
-	as_ref: as_non_positive_integer,
 	parent_forms: {
 		as_integer: Integer, IntegerBuf,
 		as_decimal: Decimal, DecimalBuf
@@ -48,9 +51,9 @@ impl NonPositiveInteger {
 	/// Returns `true` if `self` is negative
 	/// and `false` is the number is zero.
 	pub fn is_negative(&self) -> bool {
-		for c in &self.0 {
+		for c in self.0.as_bytes() {
 			match c {
-				b'-' | b'0' => (),
+				b'+' | b'-' | b'0' => (),
 				_ => return true,
 			}
 		}
@@ -61,8 +64,8 @@ impl NonPositiveInteger {
 	/// Returns `true` if `self` is zero
 	/// and `false` otherwise.
 	pub fn is_zero(&self) -> bool {
-		for c in &self.0 {
-			if !matches!(c, b'-' | b'0') {
+		for c in self.0.as_bytes() {
+			if !matches!(c, b'+' | b'-' | b'0') {
 				return false;
 			}
 		}
@@ -71,9 +74,9 @@ impl NonPositiveInteger {
 	}
 
 	pub fn sign(&self) -> Sign {
-		for c in &self.0 {
+		for c in self.0.as_bytes() {
 			match c {
-				b'-' | b'0' => (),
+				b'+' | b'-' | b'0' => (),
 				_ => return Sign::Negative,
 			}
 		}
@@ -86,7 +89,7 @@ impl NonPositiveInteger {
 	/// The returned integer is in canonical form (without leading zeros).
 	pub fn abs(&self) -> &NonNegativeInteger {
 		let mut last_zero = 0;
-		for (i, c) in self.0.iter().enumerate() {
+		for (i, c) in self.0.as_bytes().iter().enumerate() {
 			match c {
 				b'+' | b'-' => (),
 				b'0' => last_zero = i,
@@ -234,40 +237,37 @@ number_conversion! {
 	isize
 }
 
-fn check_bytes(s: &[u8]) -> bool {
-	check(s.iter().copied())
-}
+#[cfg(test)]
+mod tests {
+	use super::*;
 
-fn check<C: Iterator<Item = u8>>(mut chars: C) -> bool {
-	enum State {
-		Initial,
-		NonEmptyInteger,
-		Integer,
-		Zero,
+	#[test]
+	fn parse_zero_variants() {
+		// `0` and `+0` are valid (if unusual, for the latter) lexical
+		// representations of `0`, which is itself non-positive.
+		NonPositiveInteger::new("0").unwrap();
+		NonPositiveInteger::new("+0").unwrap();
+		NonPositiveInteger::new("+000").unwrap();
 	}
 
-	let mut state = State::Initial;
+	#[test]
+	fn parse_positive_nonzero_rejected() {
+		NonPositiveInteger::new("+1").unwrap_err();
+	}
 
-	loop {
-		state = match state {
-			State::Initial => match chars.next() {
-				Some(b'-') => State::NonEmptyInteger,
-				Some(b'+' | b'0') => State::Zero,
-				_ => break false,
-			},
-			State::NonEmptyInteger => match chars.next() {
-				Some(b'0'..=b'9') => State::Integer,
-				_ => break false,
-			},
-			State::Integer => match chars.next() {
-				Some(b'0'..=b'9') => State::Integer,
-				Some(_) => break false,
-				None => break true,
-			},
-			State::Zero => match chars.next() {
-				Some(b'0') => State::Zero,
-				_ => break false,
-			},
-		}
+	#[test]
+	fn positive_zero_is_zero() {
+		let n = NonPositiveInteger::new("+0").unwrap();
+		assert!(n.is_zero());
+		assert!(!n.is_negative());
+		assert_eq!(n.sign(), Sign::Zero);
+	}
+
+	#[test]
+	fn positive_zero_equals_zero() {
+		assert_eq!(
+			NonPositiveInteger::new("+0").unwrap(),
+			NonPositiveInteger::new("0").unwrap()
+		);
 	}
 }

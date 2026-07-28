@@ -7,29 +7,11 @@ use super::{Lexical, LexicalFormOf};
 
 /// Date.
 ///
+/// This is the `dateLexicalRep` production of the XSD 1.1 Datatypes
+/// specification: <https://www.w3.org/TR/xmlschema11-2/#nt-dateRep>.
+///
 /// ```abnf
-/// date = year "-" month "-" day [timezone]
-///
-/// year = [ "-" ] year-number
-///
-/// year-number = *3DIGIT NZDIGIT
-///             / *2DIGIT NZDIGIT DIGIT
-///             / *1DIGIT NZDIGIT 2DIGIT
-///             / NZDIGIT 3*DIGIT
-///
-/// month = "0" NZDIGIT
-///       / "1" ( "0" / "1" / "2" )
-///
-/// day = "0" NZDIGIT
-///     / ("1" / "2") DIGIT
-///     / "3" ("0" / "1")
-///
-/// minute = ("0" / "1" / "2" / "3" / "4" / "5") DIGIT
-///
-/// timezone = ("+" / "-") ((("0" DIGIT / "1" ("0" / "1" / "2" / "3")) ":" minute) / "14:00")
-///          / %s"Z"
-///
-/// NZDIGIT = "1" / "2" / "3" / "4" / "5" / "6" / "7" / "8" / "9"
+/// dateLexicalRep = yearFrag "-" monthFrag "-" dayFrag [ timezoneFrag ]
 /// ```
 #[derive(Validate, StrNewType, PartialEq, Eq, PartialOrd, Ord, Hash)]
 #[automaton(super::grammar::Date)]
@@ -135,6 +117,23 @@ mod tests {
 			let value = lexical_repr.try_as_value().unwrap();
 			assert_eq!(value.to_string().as_str(), input)
 		}
+	}
+
+	/// `yearFrag` requires at least 4 digits, with a leading `0` allowed
+	/// only to reach exactly 4 digits (year `0000`, i.e. 1 BCE). See:
+	/// <https://www.w3.org/TR/xmlschema11-2/#nt-yrFrag>.
+	#[test]
+	fn year_zero_accepted() {
+		assert!(Date::new("0000-01-01").is_ok());
+	}
+
+	/// A year fragment shorter than 4 digits is not a valid `yearFrag`,
+	/// even though it starts with a nonzero digit.
+	#[test]
+	fn short_year_rejected() {
+		assert!(Date::new("5-01-01").is_err());
+		assert!(Date::new("05-01-01").is_err());
+		assert!(Date::new("005-01-01").is_err());
 	}
 
 	/// Years outside of `-9999..=9999` require the `large-dates` feature of

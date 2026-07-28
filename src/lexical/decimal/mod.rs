@@ -1,8 +1,9 @@
 use super::lexical_form;
-use std::borrow::{Borrow, ToOwned};
+use crate::lexical::Lexical;
+use static_automata::Validate;
 use std::cmp::Ordering;
-use std::fmt;
 use std::hash::{Hash, Hasher};
+use str_newtype::StrNewType;
 
 /// Numeric sign.
 #[derive(Clone, Copy, PartialEq, Eq, Hash, PartialOrd, Ord, Debug)]
@@ -33,33 +34,40 @@ mod integer;
 
 pub use integer::*;
 
+/// Decimal number.
+///
+/// This is the `decimalLexicalRep` production of the XSD 1.1 Datatypes
+/// specification: <https://www.w3.org/TR/xmlschema11-2/#nt-decimalRep>.
+///
+/// ```abnf
+/// decimalLexicalRep = decimalPtNumeral / noDecimalPtNumeral
+///
+/// decimalPtNumeral = [ ("+" / "-") ] unsignedDecimalPtNumeral
+///
+/// unsignedDecimalPtNumeral = (unsignedNoDecimalPtNumeral "." [ 1*DIGIT ]) / ("." 1*DIGIT)
+///
+/// noDecimalPtNumeral = [ ("+" / "-") ] unsignedNoDecimalPtNumeral
+///
+/// unsignedNoDecimalPtNumeral = 1*DIGIT
+/// ```
+#[derive(Validate, StrNewType)]
+#[automaton(crate::lexical::grammar::Decimal)]
+#[newtype(owned(DecimalBuf, derive(PartialEq, Eq)))]
+pub struct Decimal(str);
+
+impl Lexical for Decimal {
+	type Error = InvalidDecimal<String>;
+
+	fn parse(value: &str) -> Result<&Self, Self::Error> {
+		Self::new(value).map_err(|_| InvalidDecimal(value.to_owned()))
+	}
+}
+
 lexical_form! {
-	/// Decimal number.
-	///
-	/// See: <https://www.w3.org/TR/xmlschema-2/#decimal>
 	ty: Decimal,
-
-	/// Owned decimal number.
-	///
-	/// See: <https://www.w3.org/TR/xmlschema-2/#decimal>
 	buffer: DecimalBuf,
-
-	/// Creates a new decimal from a string.
-	///
-	/// If the input string is ot a [valid XSD decimal](https://www.w3.org/TR/xmlschema-2/#decimal),
-	/// an [`InvalidDecimal`] error is returned.
-	new,
-
-	/// Creates a new decimal from a string without checking it.
-	///
-	/// # Safety
-	///
-	/// The input string must be a [valid XSD decimal](https://www.w3.org/TR/xmlschema-2/#decimal).
-	new_unchecked,
-
 	value: crate::Decimal,
 	error: InvalidDecimal,
-	as_ref: as_decimal,
 	parent_forms: {}
 }
 
@@ -68,7 +76,7 @@ impl Decimal {
 	/// and `false` is the number is zero or negative.
 	pub fn is_positive(&self) -> bool {
 		let mut sign_positive = true;
-		for c in &self.0 {
+		for c in self.0.as_bytes() {
 			match c {
 				b'+' | b'0' | b'.' => (),
 				b'-' => sign_positive = false,
@@ -83,7 +91,7 @@ impl Decimal {
 	/// and `false` is the number is zero or positive.
 	pub fn is_negative(&self) -> bool {
 		let mut sign_negative = true;
-		for c in &self.0 {
+		for c in self.0.as_bytes() {
 			match c {
 				b'-' | b'0' | b'.' => (),
 				b'+' => sign_negative = false,
@@ -97,7 +105,7 @@ impl Decimal {
 	/// Returns `true` if `self` is zero
 	/// and `false` otherwise.
 	pub fn is_zero(&self) -> bool {
-		for c in &self.0 {
+		for c in self.0.as_bytes() {
 			if !matches!(c, b'+' | b'-' | b'0' | b'.') {
 				return false;
 			}
@@ -108,7 +116,7 @@ impl Decimal {
 
 	pub fn sign(&self) -> Sign {
 		let mut sign_positive = true;
-		for c in &self.0 {
+		for c in self.0.as_bytes() {
 			match c {
 				b'+' | b'0' | b'.' => (),
 				b'-' => sign_positive = false,
@@ -400,54 +408,6 @@ impl AsRef<str> for FractionalPart {
 	}
 }
 
-fn check_bytes(s: &[u8]) -> bool {
-	check(s.iter().copied())
-}
-
-fn check<C: Iterator<Item = u8>>(mut chars: C) -> bool {
-	enum State {
-		Initial,
-		NonEmptyInteger,
-		Integer,
-		NonEmptyDecimal,
-		Decimal,
-	}
-
-	let mut state = State::Initial;
-
-	loop {
-		state = match state {
-			State::Initial => match chars.next() {
-				Some(b'+') => State::NonEmptyInteger,
-				Some(b'-') => State::NonEmptyInteger,
-				Some(b'.') => State::NonEmptyDecimal,
-				Some(b'0'..=b'9') => State::Integer,
-				_ => break false,
-			},
-			State::NonEmptyInteger => match chars.next() {
-				Some(b'0'..=b'9') => State::Integer,
-				Some(b'.') => State::Decimal,
-				_ => break false,
-			},
-			State::Integer => match chars.next() {
-				Some(b'0'..=b'9') => State::Integer,
-				Some(b'.') => State::Decimal,
-				Some(_) => break false,
-				None => break true,
-			},
-			State::NonEmptyDecimal => match chars.next() {
-				Some(b'0'..=b'9') => State::Decimal,
-				_ => break false,
-			},
-			State::Decimal => match chars.next() {
-				Some(b'0'..=b'9') => State::Decimal,
-				Some(_) => break false,
-				None => break true,
-			},
-		}
-	}
-}
-
 #[cfg(test)]
 mod tests {
 	use super::*;
@@ -499,6 +459,14 @@ mod tests {
 	#[test]
 	fn parse_09() {
 		Decimal::new("0.").unwrap();
+	}
+
+	#[test]
+	fn parse_signed_empty_rejected() {
+		// A sign alone, or a sign followed only by a decimal point with no
+		// digits at all, is not a valid decimal.
+		Decimal::new("+.").unwrap_err();
+		Decimal::new("-.").unwrap_err();
 	}
 
 	#[test]

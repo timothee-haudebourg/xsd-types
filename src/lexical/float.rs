@@ -1,57 +1,63 @@
 use super::{lexical_form, Decimal, Integer, NonNegativeInteger, NonPositiveInteger, Overflow};
-use std::borrow::{Borrow, ToOwned};
-use std::fmt;
+use crate::lexical::Lexical;
+use static_automata::Validate;
 use std::hash::Hash;
+use str_newtype::StrNewType;
+
+/// Float number.
+///
+/// This is the `floatRep` production of the XSD 1.1 Datatypes
+/// specification: <https://www.w3.org/TR/xmlschema11-2/#nt-floatRep>.
+/// It is identical to the `doubleRep` production used by [`Double`](crate::lexical::Double);
+/// only the value spaces (precision) of `float` and `double` differ.
+///
+/// ```abnf
+/// floatRep = noDecimalPtNumeral / decimalPtNumeral / scientificNotationNumeral / numericalSpecialRep
+///
+/// scientificNotationNumeral = [ ("+" / "-") ] (unsignedNoDecimalPtNumeral / unsignedDecimalPtNumeral) "e" noDecimalPtNumeral
+///
+/// numericalSpecialRep = %s"+INF" / %s"INF" / %s"-INF" / %s"NaN"
+/// ```
+#[derive(Validate, StrNewType)]
+#[automaton(crate::lexical::grammar::Float)]
+#[newtype(owned(FloatBuf, derive(PartialEq, Eq)))]
+pub struct Float(str);
+
+impl Lexical for Float {
+	type Error = InvalidFloat<String>;
+
+	fn parse(value: &str) -> Result<&Self, Self::Error> {
+		Self::new(value).map_err(|_| InvalidFloat(value.to_owned()))
+	}
+}
 
 lexical_form! {
-	/// Float number.
-	///
-	/// See: <https://www.w3.org/TR/xmlschema-2/#float>
 	ty: Float,
-
-	/// Owned float number.
-	///
-	/// See: <https://www.w3.org/TR/xmlschema-2/#float>
 	buffer: FloatBuf,
-
-	/// Creates a new float from a string.
-	///
-	/// If the input string is ot a [valid XSD float](https://www.w3.org/TR/xmlschema-2/#float),
-	/// an [`InvalidFloat`] error is returned.
-	new,
-
-	/// Creates a new float from a string without checking it.
-	///
-	/// # Safety
-	///
-	/// The input string must be a [valid XSD float](https://www.w3.org/TR/xmlschema-2/#float).
-	new_unchecked,
-
 	value: crate::Float,
 	error: InvalidFloat,
-	as_ref: as_float,
 	parent_forms: {}
 }
 
-pub const NAN: &Float = unsafe { Float::new_unchecked_from_slice(b"NaN") };
-pub const POSITIVE_INFINITY: &Float = unsafe { Float::new_unchecked_from_slice(b"INF") };
-pub const NEGATIVE_INFINITY: &Float = unsafe { Float::new_unchecked_from_slice(b"-INF") };
+pub const NAN: &Float = unsafe { Float::new_unchecked_from_bytes(b"NaN") };
+pub const POSITIVE_INFINITY: &Float = unsafe { Float::new_unchecked_from_bytes(b"INF") };
+pub const NEGATIVE_INFINITY: &Float = unsafe { Float::new_unchecked_from_bytes(b"-INF") };
 
 impl Float {
 	pub fn is_infinite(&self) -> bool {
-		matches!(&self.0, b"INF" | b"-INF")
+		matches!(self.as_str(), "INF" | "+INF" | "-INF")
 	}
 
 	pub fn is_finite(&self) -> bool {
-		!matches!(&self.0, b"INF" | b"-INF" | b"NaN")
+		!matches!(self.as_str(), "INF" | "+INF" | "-INF" | "NaN")
 	}
 
 	pub fn is_nan(&self) -> bool {
-		&self.0 == b"NaN"
+		self.as_str() == "NaN"
 	}
 
 	fn exponent_separator_index(&self) -> Option<usize> {
-		for (i, c) in self.0.iter().enumerate() {
+		for (i, c) in self.0.as_bytes().iter().enumerate() {
 			if matches!(c, b'e' | b'E') {
 				return Some(i);
 			}
@@ -63,8 +69,8 @@ impl Float {
 	pub fn mantissa(&self) -> Option<&Decimal> {
 		if self.is_finite() {
 			Some(match self.exponent_separator_index() {
-				Some(e) => unsafe { Decimal::new_unchecked(&self[..e]) },
-				None => unsafe { Decimal::new_unchecked(self) },
+				Some(e) => unsafe { Decimal::new_unchecked(&self.0[..e]) },
+				None => unsafe { Decimal::new_unchecked(&self.0) },
 			})
 		} else {
 			None
@@ -74,7 +80,7 @@ impl Float {
 	pub fn exponent(&self) -> Option<&Integer> {
 		if self.is_finite() {
 			self.exponent_separator_index()
-				.map(|e| unsafe { Integer::new_unchecked(&self[(e + 1)..]) })
+				.map(|e| unsafe { Integer::new_unchecked(&self.0[(e + 1)..]) })
 		} else {
 			None
 		}
@@ -185,21 +191,21 @@ impl From<f64> for FloatBuf {
 impl<'a> From<&'a Integer> for &'a Float {
 	#[inline(always)]
 	fn from(d: &'a Integer) -> Self {
-		unsafe { Float::new_unchecked(d) }
+		unsafe { Float::new_unchecked(d.as_str()) }
 	}
 }
 
 impl<'a> From<&'a NonNegativeInteger> for &'a Float {
 	#[inline(always)]
 	fn from(d: &'a NonNegativeInteger) -> Self {
-		unsafe { Float::new_unchecked(d) }
+		unsafe { Float::new_unchecked(d.as_str()) }
 	}
 }
 
 impl<'a> From<&'a NonPositiveInteger> for &'a Float {
 	#[inline(always)]
 	fn from(d: &'a NonPositiveInteger) -> Self {
-		unsafe { Float::new_unchecked(d) }
+		unsafe { Float::new_unchecked(d.as_str()) }
 	}
 }
 
@@ -217,73 +223,6 @@ impl FloatBuf {
 	#[inline(always)]
 	pub fn negative_infinity() -> Self {
 		NEGATIVE_INFINITY.to_owned()
-	}
-}
-
-fn check_bytes(s: &[u8]) -> bool {
-	s == b"INF" || s == b"-INF" || s == b"NaN" || check_normal(s.iter().cloned())
-}
-
-fn check_normal<C: Iterator<Item = u8>>(mut chars: C) -> bool {
-	enum State {
-		Initial,
-		NonEmptyInteger,
-		Integer,
-		NonEmptyDecimal,
-		Decimal,
-		ExponentSign,
-		NonEmptyExponent,
-		Exponent,
-	}
-
-	let mut state = State::Initial;
-
-	loop {
-		state = match state {
-			State::Initial => match chars.next() {
-				Some(b'+') => State::NonEmptyInteger,
-				Some(b'-') => State::NonEmptyInteger,
-				Some(b'.') => State::NonEmptyDecimal,
-				Some(b'0'..=b'9') => State::Integer,
-				_ => break false,
-			},
-			State::NonEmptyInteger => match chars.next() {
-				Some(b'0'..=b'9') => State::Integer,
-				Some(b'.') => State::Decimal,
-				_ => break false,
-			},
-			State::Integer => match chars.next() {
-				Some(b'0'..=b'9') => State::Integer,
-				Some(b'.') => State::Decimal,
-				Some(b'e' | b'E') => State::ExponentSign,
-				Some(_) => break false,
-				None => break true,
-			},
-			State::NonEmptyDecimal => match chars.next() {
-				Some(b'0'..=b'9') => State::Decimal,
-				_ => break false,
-			},
-			State::Decimal => match chars.next() {
-				Some(b'0'..=b'9') => State::Decimal,
-				Some(b'e' | b'E') => State::ExponentSign,
-				Some(_) => break false,
-				None => break true,
-			},
-			State::ExponentSign => match chars.next() {
-				Some(b'+' | b'-') => State::NonEmptyExponent,
-				Some(b'0'..=b'9') => State::Exponent,
-				_ => break false,
-			},
-			State::NonEmptyExponent => match chars.next() {
-				Some(b'0'..=b'9') => State::Exponent,
-				_ => break false,
-			},
-			State::Exponent => match chars.next() {
-				Some(b'0'..=b'9') => State::Exponent,
-				Some(_) => break false,
-				None => break true,
-			},
-		}
 	}
 }
 
@@ -413,5 +352,11 @@ mod tests {
 	#[test]
 	fn format_01() {
 		assert_eq!(FloatBuf::from(1.0e10f32).to_string(), "1.0e10")
+	}
+
+	#[test]
+	fn parse_signed_empty_rejected() {
+		Float::new("+.").unwrap_err();
+		Float::new("-.e5").unwrap_err();
 	}
 }

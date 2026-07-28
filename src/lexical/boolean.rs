@@ -1,42 +1,43 @@
-use super::lexical_form;
-use std::borrow::{Borrow, ToOwned};
+use crate::lexical::lexical_form;
+use static_automata::Validate;
 use std::cmp::Ordering;
-use std::fmt;
 use std::hash::{Hash, Hasher};
+use str_newtype::StrNewType;
+
+use crate::lexical::Lexical;
+
+/// Boolean.
+///
+/// This is the `booleanRep` production of the XSD 1.1 Datatypes
+/// specification: <https://www.w3.org/TR/xmlschema11-2/#nt-booleanRep>.
+///
+/// ```abnf
+/// booleanRep = %s"true" / %s"false" / "0" / "1"
+/// ```
+#[derive(Validate, StrNewType)]
+#[automaton(super::grammar::Boolean)]
+#[newtype(owned(BooleanBuf, derive(PartialEq, Eq)))]
+pub struct Boolean(str);
+
+impl Lexical for Boolean {
+	type Error = InvalidBoolean<String>;
+
+	fn parse(value: &str) -> Result<&Self, Self::Error> {
+		Self::new(value).map_err(|_| InvalidBoolean(value.to_owned()))
+	}
+}
 
 lexical_form! {
-	/// Boolean.
-	///
-	/// See: <https://www.w3.org/TR/xmlschema-2/#boolean>
 	ty: Boolean,
-
-	/// Owned boolean.
-	///
-	/// See: <https://www.w3.org/TR/xmlschema-2/#boolean>
 	buffer: BooleanBuf,
-
-	/// Creates a new boolean from a string.
-	///
-	/// If the input string is ot a [valid XSD boolean](https://www.w3.org/TR/xmlschema-2/#boolean),
-	/// an [`InvalidBoolean`] error is returned.
-	new,
-
-	/// Creates a new boolean from a string without checking it.
-	///
-	/// # Safety
-	///
-	/// The input string must be a [valid XSD boolean](https://www.w3.org/TR/xmlschema-2/#boolean).
-	new_unchecked,
-
 	value: crate::Boolean,
 	error: InvalidBoolean,
-	as_ref: as_boolean,
 	parent_forms: {}
 }
 
 impl Boolean {
 	pub fn value(&self) -> crate::Boolean {
-		crate::Boolean(matches!(&self.0, b"true" | b"1"))
+		crate::Boolean(matches!(self.as_str(), "true" | "1"))
 	}
 }
 
@@ -69,9 +70,9 @@ impl PartialOrd for Boolean {
 impl From<bool> for BooleanBuf {
 	fn from(b: bool) -> Self {
 		if b {
-			unsafe { BooleanBuf::new_unchecked(vec![b't', b'r', b'u', b'e']) }
+			unsafe { BooleanBuf::new_unchecked("true".to_string()) }
 		} else {
-			unsafe { BooleanBuf::new_unchecked(vec![b'f', b'a', b'l', b's', b'e']) }
+			unsafe { BooleanBuf::new_unchecked("false".to_string()) }
 		}
 	}
 }
@@ -98,8 +99,4 @@ impl From<BooleanBuf> for bool {
 	fn from(b: BooleanBuf) -> bool {
 		b.value().into()
 	}
-}
-
-fn check_bytes(s: &[u8]) -> bool {
-	matches!(s, b"true" | b"false" | b"0" | b"1")
 }

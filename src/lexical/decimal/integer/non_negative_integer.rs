@@ -1,43 +1,45 @@
-use crate::lexical::lexical_form;
+use crate::lexical::{lexical_form, Lexical};
 
 use super::{Decimal, DecimalBuf, Integer, IntegerBuf, Overflow, Sign};
-use std::borrow::{Borrow, ToOwned};
+use static_automata::Validate;
 use std::cmp::Ordering;
-use std::fmt;
 use std::hash::{Hash, Hasher};
 use std::str::FromStr;
+use str_newtype::StrNewType;
 
 mod positive_integer;
 
 pub use positive_integer::*;
 
+/// Non negative integer number.
+///
+/// `nonNegativeInteger` has no numbered grammar production of its own
+/// in the XSD 1.1 Datatypes specification: it is defined by
+/// restricting [`Integer`]'s lexical space with a `minInclusive` of 0.
+/// See: <https://www.w3.org/TR/xmlschema11-2/#nonNegativeInteger>.
+///
+/// ```abnf
+/// nonNegativeInteger = "-" 1*"0"
+///                     / [ "+" ] 1*DIGIT
+/// ```
+#[derive(Validate, StrNewType)]
+#[automaton(crate::lexical::grammar::NonNegativeInteger)]
+#[newtype(owned(NonNegativeIntegerBuf, derive(PartialEq, Eq)))]
+pub struct NonNegativeInteger(str);
+
+impl Lexical for NonNegativeInteger {
+	type Error = InvalidNonNegativeInteger<String>;
+
+	fn parse(value: &str) -> Result<&Self, Self::Error> {
+		Self::new(value).map_err(|_| InvalidNonNegativeInteger(value.to_owned()))
+	}
+}
+
 lexical_form! {
-	/// Non negative integer number.
-	///
-	/// See: <https://www.w3.org/TR/xmlschema-2/#nonNegativeInteger>
 	ty: NonNegativeInteger,
-
-	/// Owned non negative integer number.
-	///
-	/// See: <https://www.w3.org/TR/xmlschema-2/#nonNegativeInteger>
 	buffer: NonNegativeIntegerBuf,
-
-	/// Creates a new non negative integer from a string.
-	///
-	/// If the input string is ot a [valid XSD non negative integer](https://www.w3.org/TR/xmlschema-2/#nonNegativeInteger),
-	/// an [`InvalidNonNegativeInteger`] error is returned.
-	new,
-
-	/// Creates a new non negative integer from a string without checking it.
-	///
-	/// # Safety
-	///
-	/// The input string must be a [valid XSD non negative integer](https://www.w3.org/TR/xmlschema-2/#nonNegativeInteger).
-	new_unchecked,
-
 	value: crate::NonNegativeInteger,
 	error: InvalidNonNegativeInteger,
-	as_ref: as_non_negative_integer,
 	parent_forms: {
 		as_integer: Integer, IntegerBuf,
 		as_decimal: Decimal, DecimalBuf
@@ -48,9 +50,9 @@ impl NonNegativeInteger {
 	/// Returns `true` if `self` is positive
 	/// and `false` is the number is zero.
 	pub fn is_positive(&self) -> bool {
-		for c in &self.0 {
+		for c in self.0.as_bytes() {
 			match c {
-				b'+' | b'0' => (),
+				b'+' | b'-' | b'0' => (),
 				_ => return true,
 			}
 		}
@@ -61,8 +63,8 @@ impl NonNegativeInteger {
 	/// Returns `true` if `self` is zero
 	/// and `false` otherwise.
 	pub fn is_zero(&self) -> bool {
-		for c in &self.0 {
-			if !matches!(c, b'+' | b'0') {
+		for c in self.0.as_bytes() {
+			if !matches!(c, b'+' | b'-' | b'0') {
 				return false;
 			}
 		}
@@ -71,9 +73,9 @@ impl NonNegativeInteger {
 	}
 
 	pub fn sign(&self) -> Sign {
-		for c in &self.0 {
+		for c in self.0.as_bytes() {
 			match c {
-				b'+' | b'0' => (),
+				b'+' | b'-' | b'0' => (),
 				_ => return Sign::Positive,
 			}
 		}
@@ -82,11 +84,16 @@ impl NonNegativeInteger {
 	}
 
 	/// Returns the canonical form of `self` (without leading zeros).
+	///
+	/// The only valid lexical representation involving a leading `-` sign is
+	/// a string of zeros (e.g. `-0`), since the represented value can never
+	/// be negative. Such forms are canonicalized to `0`, just like their
+	/// unsigned or `+`-prefixed counterparts.
 	pub fn canonical(&self) -> &Self {
 		let mut last_zero = 0;
-		for (i, c) in self.0.iter().enumerate() {
+		for (i, c) in self.0.as_bytes().iter().enumerate() {
 			match c {
-				b'+' => (),
+				b'+' | b'-' => (),
 				b'0' => last_zero = i,
 				_ => return unsafe { Self::new_unchecked(&self.0[i..]) },
 			}
@@ -231,41 +238,44 @@ number_conversion! {
 	isize
 }
 
-fn check_bytes(s: &[u8]) -> bool {
-	check(s.iter().copied())
-}
+#[cfg(test)]
+mod tests {
+	use super::*;
 
-fn check<C: Iterator<Item = u8>>(mut chars: C) -> bool {
-	enum State {
-		Initial,
-		NonEmptyInteger,
-		Integer,
-		Zero,
+	#[test]
+	fn parse_negative_zero() {
+		// `-0` is a valid (if unusual) lexical representation of `0`, which
+		// is itself non-negative.
+		NonNegativeInteger::new("-0").unwrap();
+		NonNegativeInteger::new("-000").unwrap();
 	}
 
-	let mut state = State::Initial;
+	#[test]
+	fn parse_negative_nonzero_rejected() {
+		NonNegativeInteger::new("-1").unwrap_err();
+	}
 
-	loop {
-		state = match state {
-			State::Initial => match chars.next() {
-				Some(b'+') => State::NonEmptyInteger,
-				Some(b'-') => State::Zero,
-				Some(b'0'..=b'9') => State::Integer,
-				_ => break false,
-			},
-			State::NonEmptyInteger => match chars.next() {
-				Some(b'0'..=b'9') => State::Integer,
-				_ => break false,
-			},
-			State::Integer => match chars.next() {
-				Some(b'0'..=b'9') => State::Integer,
-				Some(_) => break false,
-				None => break true,
-			},
-			State::Zero => match chars.next() {
-				Some(b'0') => State::Zero,
-				_ => break false,
-			},
-		}
+	#[test]
+	fn negative_zero_is_zero() {
+		let n = NonNegativeInteger::new("-0").unwrap();
+		assert!(n.is_zero());
+		assert!(!n.is_positive());
+		assert_eq!(n.sign(), Sign::Zero);
+	}
+
+	#[test]
+	fn negative_zero_canonical_form() {
+		assert_eq!(
+			NonNegativeInteger::new("-00").unwrap().canonical().as_str(),
+			"0"
+		);
+	}
+
+	#[test]
+	fn negative_zero_equals_zero() {
+		assert_eq!(
+			NonNegativeInteger::new("-0").unwrap(),
+			NonNegativeInteger::new("0").unwrap()
+		);
 	}
 }

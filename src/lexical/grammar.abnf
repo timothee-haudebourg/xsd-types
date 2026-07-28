@@ -1,88 +1,198 @@
-; Shared calendar/clock components, used by `date`, `date-time`,
-; `date-time-stamp`, `xsd-time`, `g-day`, `g-month`, `g-month-day`, `g-year`
-; and `g-year-month`.
-year        = [ "-" ] year-number
-year-number = *3DIGIT NZDIGIT
-            / *2DIGIT NZDIGIT DIGIT
-            / *1DIGIT NZDIGIT 2DIGIT
-            / NZDIGIT 3*DIGIT
+; ABNF grammar for the lexical representations handled by this module,
+; transcribed from the numbered grammar productions of the "W3C XML
+; Schema Definition Language (XSD) 1.1 Part 2: Datatypes" specification:
+; <https://www.w3.org/TR/xmlschema11-2/>.
+;
+; Every production below is documented with a link back to its anchor
+; in the spec. A few extra helper productions (documented as such) are
+; introduced for convenience; they have no corresponding numbered
+; production in the spec. The spec itself also repeats some productions
+; verbatim in different sections instead of naming them once; in those
+; cases we introduce a single named helper production as well.
 
-month = "0" NZDIGIT
-      / "1" ( "0" / "1" / "2" )
+; --- D.1.1 Numerical special representations ---
 
-day = "0" NZDIGIT
-    / ("1" / "2") DIGIT
-    / "3" ("0" / "1")
+; <https://www.w3.org/TR/xmlschema11-2/#nt-digit>
+digit = DIGIT
 
-hour = ("0" / "1") DIGIT
-     / "2" ("0" / "1" / "2" / "3")
-
-minute = ("0" / "1" / "2" / "3" / "4" / "5") DIGIT
-
-second = ("0" / "1" / "2" / "3" / "4" / "5") DIGIT
-
-fraction = 1*DIGIT
-
-time = hour ":" minute ":" second ["." fraction]
-     / "24:00:00" ["." 1*"0"]
-
-timezone = ("+" / "-") ((("0" DIGIT / "1" ("0" / "1" / "2" / "3")) ":" minute) / "14:00")
-         / %s"Z"
-
+; Not a spec production: the spec repeats the `[1-9]` character class
+; literally wherever a nonzero digit is required. This helper avoids
+; repeating that alternation.
 NZDIGIT = "1" / "2" / "3" / "4" / "5" / "6" / "7" / "8" / "9"
 
-; `date`
-date = year "-" month "-" day [timezone]
+; Not a spec production: the spec repeats `('+' | '-')` literally
+; wherever an optional numeric sign is required. This helper avoids
+; repeating that alternation.
+numeric-sign = "+" / "-"
 
-; `date-time`
-date-time = year "-" month "-" day %s"T" time [timezone]
+; <https://www.w3.org/TR/xmlschema11-2/#nt-unsNoDecNuml>
+unsignedNoDecimalPtNumeral = 1*digit
 
-; `date-time-stamp`
-date-time-stamp = year "-" month "-" day %s"T" time timezone
+; <https://www.w3.org/TR/xmlschema11-2/#nt-noDecNuml>
+noDecimalPtNumeral = [ numeric-sign ] unsignedNoDecimalPtNumeral
 
-; `xsd-time`
-xsd-time = time [timezone]
+; <https://www.w3.org/TR/xmlschema11-2/#nt-fracFrag>
+fracFrag = 1*digit
 
-; `g-day`
-g-day = "---" day [timezone]
+; <https://www.w3.org/TR/xmlschema11-2/#nt-unsDecNuml>
+unsignedDecimalPtNumeral = (unsignedNoDecimalPtNumeral "." [ fracFrag ]) / ("." fracFrag)
 
-; `g-month`
-g-month = "--" month [timezone]
+; <https://www.w3.org/TR/xmlschema11-2/#nt-decNuml>
+decimalPtNumeral = [ numeric-sign ] unsignedDecimalPtNumeral
 
-; `g-month-day`
-g-month-day = "--" month "-" day [timezone]
+; <https://www.w3.org/TR/xmlschema11-2/#nt-unsSciNuml>
+unsignedScientificNotationNumeral = (unsignedNoDecimalPtNumeral / unsignedDecimalPtNumeral) "e" noDecimalPtNumeral
 
-; `g-year`
-g-year = year [timezone]
+; <https://www.w3.org/TR/xmlschema11-2/#nt-sciNuml>
+scientificNotationNumeral = [ numeric-sign ] unsignedScientificNotationNumeral
 
-; `g-year-month`
-g-year-month = year "-" month [timezone]
+; <https://www.w3.org/TR/xmlschema11-2/#nt-minNumSpecReps>
+minimalNumericalSpecialRep = %s"INF" / %s"-INF" / %s"NaN"
 
-; Duration components. Named with a `dur-` prefix to avoid colliding with
-; the calendar/clock components above, which use different grammars for
-; the same names (e.g. `dur-year` is a number of years, not a calendar
-; year).
-dur-year   = 1*DIGIT %s"Y"
-dur-month  = 1*DIGIT %s"M"
-dur-day    = 1*DIGIT %s"D"
-dur-hour   = 1*DIGIT %s"H"
-dur-minute = 1*DIGIT %s"M"
-dur-second = ((1*DIGIT ["." *DIGIT]) / "." 1*DIGIT) %s"S"
+; <https://www.w3.org/TR/xmlschema11-2/#nt-numSpecReps>
+numericalSpecialRep = %s"+INF" / minimalNumericalSpecialRep
 
-year-month = (dur-year [ dur-month ]) / dur-month
-day-time   = (dur-day [ dur-time ]) / dur-time
-dur-time   = %s"T" ((dur-hour [ dur-minute ] [ dur-second ]) / (dur-minute [ dur-second ]) / dur-second)
+; --- 3.3.2 boolean ---
 
-; `duration`
-duration = [ "-" ] %s"P" ((year-month [ day-time ]) / day-time)
+; <https://www.w3.org/TR/xmlschema11-2/#nt-booleanRep>
+booleanRep = %s"true" / %s"false" / "0" / "1"
 
-; `day-time-duration`
-day-time-duration = [ "-" ] %s"P" day-time
+; --- 3.3.4 float, 3.3.5 double ---
+; <https://www.w3.org/TR/xmlschema11-2/#nt-floatRep>
+; <https://www.w3.org/TR/xmlschema11-2/#nt-doubleRep>
+; `float` and `double` share this exact lexical grammar in the spec
+; (given under two different production names); only their value
+; spaces (precision) differ.
+floatRep = noDecimalPtNumeral / decimalPtNumeral / scientificNotationNumeral / numericalSpecialRep
 
-; `year-month-duration`
-year-month-duration = [ "-" ] %s"P" year-month
+; --- D.2.1 duration fragments ---
 
-; `QName`
+; <https://www.w3.org/TR/xmlschema11-2/#nt-duYrFrag>
+duYearFrag = unsignedNoDecimalPtNumeral %s"Y"
+
+; <https://www.w3.org/TR/xmlschema11-2/#nt-duMoFrag>
+duMonthFrag = unsignedNoDecimalPtNumeral %s"M"
+
+; <https://www.w3.org/TR/xmlschema11-2/#nt-duDaFrag>
+duDayFrag = unsignedNoDecimalPtNumeral %s"D"
+
+; <https://www.w3.org/TR/xmlschema11-2/#nt-duHrFrag>
+duHourFrag = unsignedNoDecimalPtNumeral %s"H"
+
+; <https://www.w3.org/TR/xmlschema11-2/#nt-duMiFrag>
+duMinuteFrag = unsignedNoDecimalPtNumeral %s"M"
+
+; <https://www.w3.org/TR/xmlschema11-2/#nt-duSeFrag>
+duSecondFrag = (unsignedNoDecimalPtNumeral / unsignedDecimalPtNumeral) %s"S"
+
+; <https://www.w3.org/TR/xmlschema11-2/#nt-duYMFrag>
+duYearMonthFrag = (duYearFrag [ duMonthFrag ]) / duMonthFrag
+
+; <https://www.w3.org/TR/xmlschema11-2/#nt-duTFrag>
+duTimeFrag = %s"T" ((duHourFrag [ duMinuteFrag ] [ duSecondFrag ]) / (duMinuteFrag [ duSecondFrag ]) / duSecondFrag)
+
+; <https://www.w3.org/TR/xmlschema11-2/#nt-duDTFrag>
+duDayTimeFrag = (duDayFrag [ duTimeFrag ]) / duTimeFrag
+
+; --- 3.3.6 duration ---
+
+; <https://www.w3.org/TR/xmlschema11-2/#nt-durationRep>
+durationLexicalRep = [ "-" ] %s"P" ((duYearMonthFrag [ duDayTimeFrag ]) / duDayTimeFrag)
+
+; --- 3.4.26 yearMonthDuration, 3.4.27 dayTimeDuration ---
+
+; <https://www.w3.org/TR/xmlschema11-2/#nt-yearMonthDurationRep>
+yearMonthDurationLexicalRep = [ "-" ] %s"P" duYearMonthFrag
+
+; <https://www.w3.org/TR/xmlschema11-2/#nt-dayTimeDurationRep>
+dayTimeDurationLexicalRep = [ "-" ] %s"P" duDayTimeFrag
+
+; --- D.2.2 date/time fragments ---
+
+; <https://www.w3.org/TR/xmlschema11-2/#nt-yrFrag>
+yearFrag = [ "-" ] (NZDIGIT digit digit 1*digit / "0" digit digit digit)
+
+; <https://www.w3.org/TR/xmlschema11-2/#nt-moFrag>
+monthFrag = "0" NZDIGIT
+          / "1" ("0" / "1" / "2")
+
+; <https://www.w3.org/TR/xmlschema11-2/#nt-daFrag>
+dayFrag = "0" NZDIGIT
+        / ("1" / "2") digit
+        / "3" ("0" / "1")
+
+; <https://www.w3.org/TR/xmlschema11-2/#nt-hrFrag>
+hourFrag = ("0" / "1") digit
+         / "2" ("0" / "1" / "2" / "3")
+
+; <https://www.w3.org/TR/xmlschema11-2/#nt-miFrag>
+minuteFrag = ("0" / "1" / "2" / "3" / "4" / "5") digit
+
+; <https://www.w3.org/TR/xmlschema11-2/#nt-seFrag>
+secondFrag = ("0" / "1" / "2" / "3" / "4" / "5") digit [ "." 1*digit ]
+
+; <https://www.w3.org/TR/xmlschema11-2/#nt-eodFrag>
+endOfDayFrag = "24:00:00" [ "." 1*"0" ]
+
+; <https://www.w3.org/TR/xmlschema11-2/#nt-tzFrag>
+timezoneFrag = ("+" / "-") ((("0" digit / "1" ("0" / "1" / "2" / "3")) ":" minuteFrag) / "14:00")
+             / %s"Z"
+
+; Not a spec production: `dateTimeLexicalRep`, `timeLexicalRep`, and
+; `dateTimeStampLexicalRep` all repeat this exact alternation inline
+; instead of naming it.
+primitiveTimeFrag = (hourFrag ":" minuteFrag ":" secondFrag) / endOfDayFrag
+
+; --- 3.3.7 dateTime ---
+
+; <https://www.w3.org/TR/xmlschema11-2/#nt-dateTimeRep>
+dateTimeLexicalRep = yearFrag "-" monthFrag "-" dayFrag %s"T" primitiveTimeFrag [ timezoneFrag ]
+
+; --- 3.3.8 time ---
+
+; <https://www.w3.org/TR/xmlschema11-2/#nt-timeRep>
+timeLexicalRep = primitiveTimeFrag [ timezoneFrag ]
+
+; --- 3.3.9 date ---
+
+; <https://www.w3.org/TR/xmlschema11-2/#nt-dateRep>
+dateLexicalRep = yearFrag "-" monthFrag "-" dayFrag [ timezoneFrag ]
+
+; --- 3.3.10 gYearMonth ---
+
+; <https://www.w3.org/TR/xmlschema11-2/#nt-gYearMonthRep>
+gYearMonthLexicalRep = yearFrag "-" monthFrag [ timezoneFrag ]
+
+; --- 3.3.11 gYear ---
+
+; <https://www.w3.org/TR/xmlschema11-2/#nt-gYearRep>
+gYearLexicalRep = yearFrag [ timezoneFrag ]
+
+; --- 3.3.12 gMonthDay ---
+
+; <https://www.w3.org/TR/xmlschema11-2/#nt-gMonthDayRep>
+gMonthDayLexicalRep = "--" monthFrag "-" dayFrag [ timezoneFrag ]
+
+; --- 3.3.13 gDay ---
+
+; <https://www.w3.org/TR/xmlschema11-2/#nt-gDayRep>
+gDayLexicalRep = "---" dayFrag [ timezoneFrag ]
+
+; --- 3.3.14 gMonth ---
+
+; <https://www.w3.org/TR/xmlschema11-2/#nt-gMonthRep>
+gMonthLexicalRep = "--" monthFrag [ timezoneFrag ]
+
+; --- 3.4.28 dateTimeStamp ---
+
+; <https://www.w3.org/TR/xmlschema11-2/#nt-dateTimeStampRep>
+dateTimeStampLexicalRep = yearFrag "-" monthFrag "-" dayFrag %s"T" primitiveTimeFrag timezoneFrag
+
+; --- QName / NCName ---
+; These come from a different specification, [Namespaces in XML 1.0]:
+; <https://www.w3.org/TR/xml-names/>, so they are not renamed to match
+; the XSD Datatypes spec above.
+
 QName = PrefixedName / UnprefixedName
 
 PrefixedName = Prefix ":" LocalPart
@@ -98,3 +208,88 @@ NCName = NCNameStartChar *NCNameChar
 NCNameStartChar = ALPHA / "_" / %xC0-D6 / %xD8-F6 / %xF8-2FF / %x370-37D / %x37F-1FFF / %x200C-200D / %x2070-218F / %x2C00-2FEF / %x3001-D7FF / %xF900-FDCF / %xFDF0-FFFD / %x10000-EFFFF
 
 NCNameChar = NCNameStartChar / "-" / "." / DIGIT / %xB7 / %x0300-036F / %x203F-2040
+
+; --- 3.3.16 hexBinary ---
+
+; <https://www.w3.org/TR/xmlschema11-2/#nt-hexDigit>
+hexDigit = DIGIT / %x41-46 / %x61-66 ; 0-9, A-F, a-f
+
+; <https://www.w3.org/TR/xmlschema11-2/#nt-hexOctet>
+hexOctet = hexDigit hexDigit
+
+; <https://www.w3.org/TR/xmlschema11-2/#nt-hexBinary>
+hexBinary = *hexOctet
+
+; --- 3.3.17 base64Binary ---
+
+; <https://www.w3.org/TR/xmlschema11-2/#nt-Base64Binary>
+Base64Binary = [ *B64quad B64final ]
+
+; <https://www.w3.org/TR/xmlschema11-2/#nt-B64quad>
+; A `B64quad` represents three octets of binary data.
+B64quad = B64 B64 B64 B64
+
+; <https://www.w3.org/TR/xmlschema11-2/#nt-B64final>
+B64final = B64finalquad / Padded16 / Padded8
+
+; <https://www.w3.org/TR/xmlschema11-2/#nt-B64finalquad>
+; A `B64finalquad` represents three octets of binary data without a
+; trailing space.
+B64finalquad = B64 B64 B64 B64char
+
+; <https://www.w3.org/TR/xmlschema11-2/#nt-Padded16>
+; `Padded16` represents a two-octet group at the end of the data.
+Padded16 = B64 B64 B16 "="
+
+; <https://www.w3.org/TR/xmlschema11-2/#nt-Padded8>
+; `Padded8` represents a single octet at the end of the data.
+Padded8 = B64 B04 "=" [ %x20 ] "="
+
+; <https://www.w3.org/TR/xmlschema11-2/#nt-B64>
+B64 = B64char [ %x20 ]
+
+; <https://www.w3.org/TR/xmlschema11-2/#nt-B64char>
+B64char = ALPHA / DIGIT / "+" / "/"
+
+; <https://www.w3.org/TR/xmlschema11-2/#nt-B16>
+B16 = B16char [ %x20 ]
+
+; <https://www.w3.org/TR/xmlschema11-2/#nt-B16char>
+; Base64 characters whose bit-string value ends in '00'.
+B16char = %s"A" / %s"E" / %s"I" / %s"M" / %s"Q" / %s"U" / %s"Y"
+        / %s"c" / %s"g" / %s"k" / %s"o" / %s"s" / %s"w"
+        / "0" / "4" / "8"
+
+; <https://www.w3.org/TR/xmlschema11-2/#nt-B04>
+B04 = B04char [ %x20 ]
+
+; <https://www.w3.org/TR/xmlschema11-2/#nt-B04char>
+; Base64 characters whose bit-string value ends in '0000'.
+B04char = %s"A" / %s"Q" / %s"g" / %s"w"
+
+; --- 3.3.20 integer and its restrictions ---
+; `integer`, `nonNegativeInteger`, `positiveInteger`, `nonPositiveInteger`
+; and `negativeInteger` have no numbered grammar production in the spec;
+; each is defined only by prose plus a `pattern`/`minInclusive`/
+; `maxInclusive` facet restricting `decimal`'s lexical space. See:
+; <https://www.w3.org/TR/xmlschema11-2/#integer>,
+; <https://www.w3.org/TR/xmlschema11-2/#nonNegativeInteger>,
+; <https://www.w3.org/TR/xmlschema11-2/#positiveInteger>,
+; <https://www.w3.org/TR/xmlschema11-2/#nonPositiveInteger>,
+; <https://www.w3.org/TR/xmlschema11-2/#negativeInteger>.
+
+; <https://www.w3.org/TR/xmlschema11-2/#nt-decimalRep>
+decimalLexicalRep = decimalPtNumeral / noDecimalPtNumeral
+
+integer = noDecimalPtNumeral
+
+nonNegativeInteger = "-" 1*"0"
+                    / [ "+" ] 1*digit
+
+positiveInteger = [ "+" ] *"0" NZDIGIT *digit
+
+nonPositiveInteger = "+" 1*"0"
+                    / 1*"0"
+                    / "-" 1*digit
+
+negativeInteger = "-" *"0" NZDIGIT *digit

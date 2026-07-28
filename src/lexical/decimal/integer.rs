@@ -1,11 +1,11 @@
-use crate::lexical::lexical_form;
+use crate::lexical::{lexical_form, Lexical};
 
 use super::{Decimal, DecimalBuf, Overflow, Sign};
-use std::borrow::{Borrow, ToOwned};
+use static_automata::Validate;
 use std::cmp::Ordering;
-use std::fmt;
 use std::hash::{Hash, Hasher};
 use std::str::FromStr;
+use str_newtype::StrNewType;
 
 mod non_negative_integer;
 mod non_positive_integer;
@@ -13,33 +13,35 @@ mod non_positive_integer;
 pub use non_negative_integer::*;
 pub use non_positive_integer::*;
 
+/// Integer number.
+///
+/// `integer` has no numbered grammar production of its own in the XSD
+/// 1.1 Datatypes specification: it is defined by restricting
+/// `decimal`'s lexical space (see [`Decimal`]) to `noDecimalPtNumeral`
+/// forms, i.e. disallowing a decimal point.
+/// See: <https://www.w3.org/TR/xmlschema11-2/#integer>.
+///
+/// ```abnf
+/// integer = noDecimalPtNumeral
+/// ```
+#[derive(Validate, StrNewType)]
+#[automaton(crate::lexical::grammar::Integer)]
+#[newtype(owned(IntegerBuf, derive(PartialEq, Eq)))]
+pub struct Integer(str);
+
+impl Lexical for Integer {
+	type Error = InvalidInteger<String>;
+
+	fn parse(value: &str) -> Result<&Self, Self::Error> {
+		Self::new(value).map_err(|_| InvalidInteger(value.to_owned()))
+	}
+}
+
 lexical_form! {
-	/// Integer number.
-	///
-	/// See: <https://www.w3.org/TR/xmlschema-2/#integer>
 	ty: Integer,
-
-	/// Owned integer number.
-	///
-	/// See: <https://www.w3.org/TR/xmlschema-2/#integer>
 	buffer: IntegerBuf,
-
-	/// Creates a new integer from a string.
-	///
-	/// If the input string is ot a [valid XSD integer](https://www.w3.org/TR/xmlschema-2/#integer),
-	/// an [`InvalidInteger`] error is returned.
-	new,
-
-	/// Creates a new integer from a string without checking it.
-	///
-	/// # Safety
-	///
-	/// The input string must be a [valid XSD integer](https://www.w3.org/TR/xmlschema-2/#integer).
-	new_unchecked,
-
 	value: crate::Integer,
 	error: InvalidInteger,
-	as_ref: as_integer,
 	parent_forms: {
 		as_decimal: Decimal, DecimalBuf
 	}
@@ -50,7 +52,7 @@ impl Integer {
 	/// and `false` is the number is zero or negative.
 	pub fn is_positive(&self) -> bool {
 		let mut sign_positive = true;
-		for c in &self.0 {
+		for c in self.0.as_bytes() {
 			match c {
 				b'+' | b'0' => (),
 				b'-' => sign_positive = false,
@@ -65,7 +67,7 @@ impl Integer {
 	/// and `false` is the number is zero or positive.
 	pub fn is_negative(&self) -> bool {
 		let mut sign_negative = true;
-		for c in &self.0 {
+		for c in self.0.as_bytes() {
 			match c {
 				b'-' | b'0' => (),
 				b'+' => sign_negative = false,
@@ -79,7 +81,7 @@ impl Integer {
 	/// Returns `true` if `self` is zero
 	/// and `false` otherwise.
 	pub fn is_zero(&self) -> bool {
-		for c in &self.0 {
+		for c in self.0.as_bytes() {
 			if !matches!(c, b'+' | b'-' | b'0') {
 				return false;
 			}
@@ -91,12 +93,12 @@ impl Integer {
 	/// Returns `true` if `self` is positive or zero
 	/// and `false` is negative.
 	pub fn is_non_negative(&self) -> bool {
-		self.0[0] != b'-'
+		self.0.as_bytes()[0] != b'-'
 	}
 
 	pub fn sign(&self) -> Sign {
 		let mut sign_positive = true;
-		for c in &self.0 {
+		for c in self.0.as_bytes() {
 			match c {
 				b'+' | b'0' => (),
 				b'-' => sign_positive = false,
@@ -118,7 +120,7 @@ impl Integer {
 	/// The returned integer is in canonical form (without leading zeros).
 	pub fn abs(&self) -> &NonNegativeInteger {
 		let mut last_zero = 0;
-		for (i, c) in self.0.iter().enumerate() {
+		for (i, c) in self.0.as_bytes().iter().enumerate() {
 			match c {
 				b'+' | b'-' => (),
 				b'0' => last_zero = i,
@@ -135,7 +137,7 @@ impl Integer {
 			unsafe { Self::new_unchecked(&self.0[self.0.len() - 1..]) }
 		} else {
 			let mut last_zero = 0;
-			for (i, c) in self.0.iter().enumerate() {
+			for (i, c) in self.0.as_bytes().iter().enumerate() {
 				match c {
 					b'+' => (),
 					b'0' => last_zero = i,
@@ -278,40 +280,6 @@ number_conversion! {
 	i128,
 	usize,
 	isize
-}
-
-fn check_bytes(s: &[u8]) -> bool {
-	check(s.iter().copied())
-}
-
-fn check<C: Iterator<Item = u8>>(mut chars: C) -> bool {
-	enum State {
-		Initial,
-		NonEmptyInteger,
-		Integer,
-	}
-
-	let mut state = State::Initial;
-
-	loop {
-		state = match state {
-			State::Initial => match chars.next() {
-				Some(b'+') => State::NonEmptyInteger,
-				Some(b'-') => State::NonEmptyInteger,
-				Some(b'0'..=b'9') => State::Integer,
-				_ => break false,
-			},
-			State::NonEmptyInteger => match chars.next() {
-				Some(b'0'..=b'9') => State::Integer,
-				_ => break false,
-			},
-			State::Integer => match chars.next() {
-				Some(b'0'..=b'9') => State::Integer,
-				Some(_) => break false,
-				None => break true,
-			},
-		}
-	}
 }
 
 #[cfg(test)]

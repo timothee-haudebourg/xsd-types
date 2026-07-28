@@ -1,44 +1,44 @@
 use crate::lexical::{
-	lexical_form, Decimal, DecimalBuf, Integer, IntegerBuf, NonNegativeInteger,
-	NonNegativeIntegerBuf,
+	lexical_form, Decimal, DecimalBuf, Integer, IntegerBuf, Lexical, NonNegativeInteger,
 };
 
-use super::Overflow;
-use std::borrow::{Borrow, ToOwned};
+use super::{NonPositiveInteger, NonPositiveIntegerBuf, Overflow};
+use static_automata::Validate;
 use std::cmp::Ordering;
-use std::fmt;
 use std::hash::{Hash, Hasher};
 use std::str::FromStr;
+use str_newtype::StrNewType;
+
+/// Negative integer number.
+///
+/// `negativeInteger` has no numbered grammar production of its own in
+/// the XSD 1.1 Datatypes specification: it is defined by restricting
+/// [`NonPositiveInteger`]'s lexical space with a `maxInclusive` of -1.
+/// See: <https://www.w3.org/TR/xmlschema11-2/#negativeInteger>.
+///
+/// ```abnf
+/// negativeInteger = "-" *"0" NZDIGIT *DIGIT
+/// ```
+#[derive(Validate, StrNewType)]
+#[automaton(crate::lexical::grammar::NegativeInteger)]
+#[newtype(owned(NegativeIntegerBuf, derive(PartialEq, Eq)))]
+pub struct NegativeInteger(str);
+
+impl Lexical for NegativeInteger {
+	type Error = InvalidNegativeInteger<String>;
+
+	fn parse(value: &str) -> Result<&Self, Self::Error> {
+		Self::new(value).map_err(|_| InvalidNegativeInteger(value.to_owned()))
+	}
+}
 
 lexical_form! {
-	/// Negative integer number.
-	///
-	/// See: <https://www.w3.org/TR/xmlschema-2/#negativeInteger>
 	ty: NegativeInteger,
-
-	/// Owned negative integer number.
-	///
-	/// See: <https://www.w3.org/TR/xmlschema-2/#negativeInteger>
 	buffer: NegativeIntegerBuf,
-
-	/// Creates a new negative integer from a string.
-	///
-	/// If the input string is ot a [valid XSD negative integer](https://www.w3.org/TR/xmlschema-2/#negativeInteger),
-	/// an [`InvalidNegativeInteger`] error is returned.
-	new,
-
-	/// Creates a new positive integer from a string without checking it.
-	///
-	/// # Safety
-	///
-	/// The input string must be a [valid XSD negative integer](https://www.w3.org/TR/xmlschema-2/#negativeInteger).
-	new_unchecked,
-
 	value: crate::NegativeInteger,
 	error: InvalidNegativeInteger,
-	as_ref: as_negative_integer,
 	parent_forms: {
-		as_non_positive_integer: NonNegativeInteger, NonNegativeIntegerBuf,
+		as_non_positive_integer: NonPositiveInteger, NonPositiveIntegerBuf,
 		as_integer: Integer, IntegerBuf,
 		as_decimal: Decimal, DecimalBuf
 	}
@@ -48,7 +48,7 @@ impl NegativeInteger {
 	/// Returns the canonical form of the absolute value of `self` (without leading zeros).
 	pub fn abs(&self) -> &NonNegativeInteger {
 		let mut last_zero = 0;
-		for (i, c) in self.0.iter().enumerate() {
+		for (i, c) in self.0.as_bytes().iter().enumerate() {
 			match c {
 				b'-' => (),
 				b'0' => last_zero = i,
@@ -159,34 +159,27 @@ number_conversion! {
 	isize
 }
 
-fn check_bytes(s: &[u8]) -> bool {
-	check(s.iter().copied())
-}
+#[cfg(test)]
+mod tests {
+	use super::*;
 
-fn check<C: Iterator<Item = u8>>(mut chars: C) -> bool {
-	enum State {
-		Initial,
-		NonEmptyInteger,
-		Integer,
+	#[test]
+	fn parse_negative() {
+		NegativeInteger::new("-1").unwrap();
+		NegativeInteger::new("-042").unwrap();
 	}
 
-	let mut state = State::Initial;
+	#[test]
+	fn parse_zero_rejected() {
+		// A negative integer's value must be strictly negative: `-0` and `0`
+		// are not valid `negativeInteger` lexical representations.
+		NegativeInteger::new("-0").unwrap_err();
+		NegativeInteger::new("0").unwrap_err();
+	}
 
-	loop {
-		state = match state {
-			State::Initial => match chars.next() {
-				Some(b'-') => State::NonEmptyInteger,
-				_ => break false,
-			},
-			State::NonEmptyInteger => match chars.next() {
-				Some(b'0'..=b'9') => State::Integer,
-				_ => break false,
-			},
-			State::Integer => match chars.next() {
-				Some(b'0'..=b'9') => State::Integer,
-				Some(_) => break false,
-				None => break true,
-			},
-		}
+	#[test]
+	fn as_non_positive_integer_preserves_value() {
+		let n = NegativeInteger::new("-5").unwrap();
+		assert_eq!(n.as_non_positive_integer().as_str(), "-5");
 	}
 }
