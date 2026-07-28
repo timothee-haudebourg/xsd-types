@@ -39,10 +39,10 @@ impl ParseXsd for Boolean {
 }
 
 impl FromStr for Boolean {
-	type Err = lexical::InvalidBoolean;
+	type Err = lexical::InvalidBoolean<String>;
 
 	fn from_str(s: &str) -> Result<Self, Self::Err> {
-		let l = lexical::Boolean::new(s)?;
+		let l = lexical::Boolean::new(s).map_err(|e| lexical::InvalidBoolean(e.0.to_owned()))?;
 		Ok(l.into())
 	}
 }

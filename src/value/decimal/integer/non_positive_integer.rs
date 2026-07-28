@@ -160,11 +160,12 @@ impl From<lexical::NonPositiveIntegerBuf> for NonPositiveInteger {
 }
 
 impl FromStr for NonPositiveInteger {
-	type Err = lexical::InvalidNonPositiveInteger;
+	type Err = lexical::InvalidNonPositiveInteger<String>;
 
 	#[inline(always)]
 	fn from_str(s: &str) -> Result<Self, Self::Err> {
-		let l = lexical::NonPositiveInteger::new(s)?;
+		let l = lexical::NonPositiveInteger::new(s)
+			.map_err(|e| lexical::InvalidNonPositiveInteger(e.0.to_owned()))?;
 		Ok(l.into())
 	}
 }

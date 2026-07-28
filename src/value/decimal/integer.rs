@@ -186,11 +186,11 @@ impl From<lexical::IntegerBuf> for Integer {
 }
 
 impl FromStr for Integer {
-	type Err = lexical::InvalidInteger;
+	type Err = lexical::InvalidInteger<String>;
 
 	#[inline(always)]
 	fn from_str(s: &str) -> Result<Self, Self::Err> {
-		let l = lexical::Integer::new(s)?;
+		let l = lexical::Integer::new(s).map_err(|e| lexical::InvalidInteger(e.0.to_owned()))?;
 		Ok(l.into())
 	}
 }

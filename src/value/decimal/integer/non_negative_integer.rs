@@ -170,11 +170,12 @@ impl From<lexical::NonNegativeIntegerBuf> for NonNegativeInteger {
 }
 
 impl FromStr for NonNegativeInteger {
-	type Err = lexical::InvalidNonNegativeInteger;
+	type Err = lexical::InvalidNonNegativeInteger<String>;
 
 	#[inline(always)]
 	fn from_str(s: &str) -> Result<Self, Self::Err> {
-		let l = lexical::NonNegativeInteger::new(s)?;
+		let l = lexical::NonNegativeInteger::new(s)
+			.map_err(|e| lexical::InvalidNonNegativeInteger(e.0.to_owned()))?;
 		Ok(l.into())
 	}
 }

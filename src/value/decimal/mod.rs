@@ -321,11 +321,11 @@ impl From<lexical::DecimalBuf> for Decimal {
 }
 
 impl FromStr for Decimal {
-	type Err = lexical::InvalidDecimal;
+	type Err = lexical::InvalidDecimal<String>;
 
 	#[inline(always)]
 	fn from_str(s: &str) -> Result<Self, Self::Err> {
-		let l = lexical::DecimalBuf::new(s.to_owned()).map_err(|(e, _)| e)?;
+		let l = lexical::DecimalBuf::new(s.to_owned())?;
 		Ok(l.into())
 	}
 }

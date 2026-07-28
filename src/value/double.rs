@@ -124,10 +124,10 @@ impl From<lexical::DoubleBuf> for Double {
 }
 
 impl FromStr for Double {
-	type Err = lexical::InvalidDouble;
+	type Err = lexical::InvalidDouble<String>;
 
 	fn from_str(s: &str) -> Result<Self, Self::Err> {
-		let l = lexical::Double::new(s)?;
+		let l = lexical::Double::new(s).map_err(|e| lexical::InvalidDouble(e.0.to_owned()))?;
 		Ok(l.into())
 	}
 }

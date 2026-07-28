@@ -126,10 +126,10 @@ impl From<lexical::FloatBuf> for Float {
 }
 
 impl FromStr for Float {
-	type Err = lexical::InvalidFloat;
+	type Err = lexical::InvalidFloat<String>;
 
 	fn from_str(s: &str) -> Result<Self, Self::Err> {
-		let l = lexical::Float::new(s)?;
+		let l = lexical::Float::new(s).map_err(|e| lexical::InvalidFloat(e.0.to_owned()))?;
 		Ok(l.into())
 	}
 }
