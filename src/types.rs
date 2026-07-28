@@ -3187,7 +3187,7 @@ impl<'a> fmt::Display for NonNegativeIntegerValueRef<'a> {
 	}
 }
 /// Any specialized [`UnsignedLong`] value.
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Copy)]
 pub enum UnsignedLongValue {
 	UnsignedLong(UnsignedLong),
 	UnsignedInt(UnsignedInt),
@@ -3309,7 +3309,7 @@ impl TryFrom<UnsignedIntDatatype> for UnsignedShortDatatype {
 	}
 }
 /// Any specialized [`UnsignedInt`] value.
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Copy)]
 pub enum UnsignedIntValue {
 	UnsignedInt(UnsignedInt),
 	UnsignedShort(UnsignedShort),
@@ -3394,7 +3394,7 @@ impl UnsignedShortDatatype {
 	}
 }
 /// Any specialized [`UnsignedShort`] value.
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Copy)]
 pub enum UnsignedShortValue {
 	UnsignedShort(UnsignedShort),
 	UnsignedByte(UnsignedByte),
@@ -3421,7 +3421,7 @@ impl fmt::Display for UnsignedShortValue {
 	}
 }
 /// Any specialized [`Long`] value.
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Copy)]
 pub enum LongValue {
 	Long(Long),
 	Int(Int),
@@ -3537,7 +3537,7 @@ impl TryFrom<IntDatatype> for ShortDatatype {
 	}
 }
 /// Any specialized [`Int`] value.
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Copy)]
 pub enum IntValue {
 	Int(Int),
 	Short(Short),
@@ -3618,7 +3618,7 @@ impl ShortDatatype {
 	}
 }
 /// Any specialized [`Short`] value.
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Copy)]
 pub enum ShortValue {
 	Short(Short),
 	Byte(Byte),
