@@ -147,6 +147,7 @@ impl LexicalFormOf<HexBinaryBuf> for lexical::HexBinary {
 }
 
 #[derive(Debug, PartialEq, Eq, PartialOrd, Ord, Hash)]
+#[repr(transparent)]
 pub struct HexBinary([u8]);
 
 impl HexBinary {
