@@ -75,7 +75,7 @@ impl DateTime {
 
 impl PartialEq for DateTime {
 	fn eq(&self, other: &Self) -> bool {
-		self.earliest() == other.earliest() && self.latest() == other.latest()
+		seven_property_model_eq(self.date_time, self.offset, other.date_time, other.offset)
 	}
 }
 
@@ -90,24 +90,85 @@ impl Hash for DateTime {
 
 impl PartialOrd for DateTime {
 	fn partial_cmp(&self, other: &Self) -> Option<Ordering> {
-		if self.offset.is_none() && other.offset.is_none() {
-			// Neither side has a timezone offset: per the XSD order relation,
-			// the `+14:00`/`-14:00` imputed-bounds algorithm only applies
-			// when *exactly one* side is missing an offset. When both are
-			// missing, they are compared directly, as if both had the same
-			// (unspecified) offset.
-			return Some(self.date_time.cmp(&other.date_time));
-		}
+		seven_property_model_partial_cmp(self.date_time, self.offset, other.date_time, other.offset)
+	}
+}
 
-		match (
-			self.earliest().cmp(&other.latest()),
-			self.latest().cmp(&other.earliest()),
-		) {
-			(Ordering::Equal, Ordering::Equal) => Some(Ordering::Equal),
-			(Ordering::Less, Ordering::Less) => Some(Ordering::Less),
-			(Ordering::Greater, Ordering::Greater) => Some(Ordering::Greater),
-			_ => None,
-		}
+/// The largest permitted XSD `timezoneOffset` (`+14:00`).
+fn max_offset() -> time::UtcOffset {
+	time::UtcOffset::from_whole_seconds(14 * 60 * 60).unwrap()
+}
+
+/// The smallest permitted XSD `timezoneOffset` (`-14:00`).
+fn min_offset() -> time::UtcOffset {
+	time::UtcOffset::from_whole_seconds(-14 * 60 * 60).unwrap()
+}
+
+/// Resolves the possibly-absent `year`/`month`/`day` components of a
+/// seven-property-model value (`dateTime`, `date`, `time`, `gYearMonth`,
+/// `gYear`, `gMonthDay`, `gDay`, `gMonth`) into a full `PrimitiveDateTime`,
+/// as required to compare or order such values.
+///
+/// Per <https://www.w3.org/TR/xmlschema11-2/#dt-dateTime> (Appendix
+/// D.2.1), absent components are filled in with those of `1972-12-31`,
+/// except that an absent `day` takes the last day permitted in the
+/// (possibly itself defaulted) month.
+pub(crate) fn seven_property_model_date_time(
+	year: Option<i32>,
+	month: Option<time::Month>,
+	day: Option<u8>,
+	time: time::Time,
+) -> time::PrimitiveDateTime {
+	let year = year.unwrap_or(1972);
+	let month = month.unwrap_or(time::Month::December);
+	let day = day.unwrap_or_else(|| time::util::days_in_month(month, year));
+
+	// `year`, `month` and `day` are all in range by construction, so this
+	// can't fail.
+	let date = time::Date::from_calendar_date(year, month, day).unwrap();
+	time::PrimitiveDateTime::new(date, time)
+}
+
+/// Shared XSD equality relation for the seven-property-model datatypes.
+pub(crate) fn seven_property_model_eq(
+	a_date_time: time::PrimitiveDateTime,
+	a_offset: Option<time::UtcOffset>,
+	b_date_time: time::PrimitiveDateTime,
+	b_offset: Option<time::UtcOffset>,
+) -> bool {
+	let a_earliest = a_date_time.assume_offset(a_offset.unwrap_or_else(max_offset));
+	let a_latest = a_date_time.assume_offset(a_offset.unwrap_or_else(min_offset));
+	let b_earliest = b_date_time.assume_offset(b_offset.unwrap_or_else(max_offset));
+	let b_latest = b_date_time.assume_offset(b_offset.unwrap_or_else(min_offset));
+
+	a_earliest == b_earliest && a_latest == b_latest
+}
+
+/// Shared XSD order relation for the seven-property-model datatypes: compares
+/// the imputed `+14:00`/`-14:00` bounds of each value, except that when
+/// neither side has a timezone offset, they are compared directly (the
+/// imputed-bounds algorithm only applies when *exactly one* side is missing
+/// an offset).
+pub(crate) fn seven_property_model_partial_cmp(
+	a_date_time: time::PrimitiveDateTime,
+	a_offset: Option<time::UtcOffset>,
+	b_date_time: time::PrimitiveDateTime,
+	b_offset: Option<time::UtcOffset>,
+) -> Option<Ordering> {
+	if a_offset.is_none() && b_offset.is_none() {
+		return Some(a_date_time.cmp(&b_date_time));
+	}
+
+	let a_earliest = a_date_time.assume_offset(a_offset.unwrap_or_else(max_offset));
+	let a_latest = a_date_time.assume_offset(a_offset.unwrap_or_else(min_offset));
+	let b_earliest = b_date_time.assume_offset(b_offset.unwrap_or_else(max_offset));
+	let b_latest = b_date_time.assume_offset(b_offset.unwrap_or_else(min_offset));
+
+	match (a_earliest.cmp(&b_latest), a_latest.cmp(&b_earliest)) {
+		(Ordering::Equal, Ordering::Equal) => Some(Ordering::Equal),
+		(Ordering::Less, Ordering::Less) => Some(Ordering::Less),
+		(Ordering::Greater, Ordering::Greater) => Some(Ordering::Greater),
+		_ => None,
 	}
 }
 
@@ -331,7 +392,44 @@ impl<'de> serde::Deserialize<'de> for DateTime {
 
 #[cfg(test)]
 mod tests {
-	use super::{DateTime, DateTimeStamp};
+	use super::{seven_property_model_date_time, DateTime, DateTimeStamp};
+
+	/// Per <https://www.w3.org/TR/xmlschema11-2/#dt-dateTime> (Appendix
+	/// D.2.1), an absent `day` takes the last day permitted in the
+	/// (possibly itself defaulted) month, which must account for leap years.
+	#[test]
+	fn effective_date_time_defaults_day_to_end_of_month() {
+		let feb_2024 = seven_property_model_date_time(
+			Some(2024),
+			Some(time::Month::February),
+			None,
+			time::Time::MIDNIGHT,
+		);
+		assert_eq!(feb_2024.date().day(), 29);
+
+		let feb_2023 = seven_property_model_date_time(
+			Some(2023),
+			Some(time::Month::February),
+			None,
+			time::Time::MIDNIGHT,
+		);
+		assert_eq!(feb_2023.date().day(), 28);
+	}
+
+	/// Per the same rule, a wholly-absent `year`/`month`/`day` (the `time`
+	/// datatype's case) defaults to `1972-12-31`.
+	#[test]
+	fn effective_date_time_defaults_to_1972_12_31() {
+		let date_time = seven_property_model_date_time(
+			None,
+			None,
+			None,
+			time::Time::from_hms(1, 2, 3).unwrap(),
+		);
+		assert_eq!(date_time.year(), 1972);
+		assert_eq!(date_time.month(), time::Month::December);
+		assert_eq!(date_time.day(), 31);
+	}
 
 	#[cfg(feature = "chrono")]
 	#[test]

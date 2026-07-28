@@ -1,10 +1,11 @@
 use crate::{
 	format_timezone,
 	lexical::{InvalidDate, LexicalFormOf},
-	Datatype, DisplayYear, ParseXsd, XsdValue,
+	seven_property_model_eq, seven_property_model_partial_cmp, Datatype, DisplayYear, ParseXsd,
+	XsdValue,
 };
 use core::fmt;
-use std::str::FromStr;
+use std::{cmp::Ordering, hash::Hash, str::FromStr};
 
 #[derive(Debug, thiserror::Error)]
 #[error("invalid date value")]
@@ -19,6 +20,41 @@ pub struct Date {
 impl Date {
 	pub fn new(date: time::Date, offset: Option<time::UtcOffset>) -> Self {
 		Self { date, offset }
+	}
+
+	fn effective_date_time(&self) -> time::PrimitiveDateTime {
+		time::PrimitiveDateTime::new(self.date, time::Time::MIDNIGHT)
+	}
+}
+
+impl PartialEq for Date {
+	fn eq(&self, other: &Self) -> bool {
+		seven_property_model_eq(
+			self.effective_date_time(),
+			self.offset,
+			other.effective_date_time(),
+			other.offset,
+		)
+	}
+}
+
+impl Eq for Date {}
+
+impl Hash for Date {
+	fn hash<H: std::hash::Hasher>(&self, state: &mut H) {
+		self.date.hash(state);
+		self.offset.hash(state)
+	}
+}
+
+impl PartialOrd for Date {
+	fn partial_cmp(&self, other: &Self) -> Option<Ordering> {
+		seven_property_model_partial_cmp(
+			self.effective_date_time(),
+			self.offset,
+			other.effective_date_time(),
+			other.offset,
+		)
 	}
 }
 
@@ -62,5 +98,40 @@ impl fmt::Display for Date {
 		)?;
 
 		format_timezone(self.offset, f)
+	}
+}
+
+#[cfg(test)]
+mod tests {
+	use super::Date;
+
+	#[test]
+	fn ord_without_offset_is_direct() {
+		let a: Date = "2024-01-01".parse().unwrap();
+		let b: Date = "2024-01-02".parse().unwrap();
+
+		assert!(a < b);
+	}
+
+	#[test]
+	fn ord_with_one_offset_can_be_incomparable() {
+		// The imputed `+14:00`/`-14:00` bounds for `2024-01-01` (no offset)
+		// span `[2023-12-31T10:00Z, 2024-01-01T14:00Z]`, which overlaps the
+		// single instant `2024-01-02T00:00:00+14:00` resolves to
+		// (`2024-01-01T10:00Z`).
+		let a: Date = "2024-01-01".parse().unwrap();
+		let b: Date = "2024-01-02+14:00".parse().unwrap();
+
+		assert_eq!(a.partial_cmp(&b), None);
+	}
+
+	#[test]
+	fn eq_ignores_representation() {
+		let a: Date = "2024-01-01+02:00".parse().unwrap();
+		let b: Date = "2024-01-01+02:00".parse().unwrap();
+		let c: Date = "2024-01-01+03:00".parse().unwrap();
+
+		assert_eq!(a, b);
+		assert_ne!(a, c);
 	}
 }
