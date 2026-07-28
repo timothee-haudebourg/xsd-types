@@ -1,6 +1,6 @@
 use crate::{
 	format_nanoseconds,
-	lexical::{InvalidDuration, LexicalFormOf},
+	lexical::{InvalidDuration, Lexical, LexicalFormOf},
 	Datatype, DurationDatatype, ParseXsd, XsdValue,
 };
 use core::fmt;
@@ -56,8 +56,7 @@ impl FromStr for Duration {
 	type Err = InvalidDuration<String>;
 
 	fn from_str(s: &str) -> Result<Self, Self::Err> {
-		let lexical_value = crate::lexical::Duration::new(s)
-			.map_err(|InvalidDuration(s)| InvalidDuration(s.to_owned()))?;
+		let lexical_value = crate::lexical::Duration::parse(s)?;
 		Ok(lexical_value.as_value())
 	}
 }
@@ -125,7 +124,7 @@ impl serde::Serialize for Duration {
 	where
 		S: serde::Serializer,
 	{
-		self.into_string().serialize(serializer)
+		serializer.collect_str(self)
 	}
 }
 

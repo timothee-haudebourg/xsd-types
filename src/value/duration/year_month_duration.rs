@@ -1,5 +1,5 @@
 use crate::{
-	lexical::{duration::InvalidYearMonthDuration, LexicalFormOf},
+	lexical::{duration::InvalidYearMonthDuration, Lexical, LexicalFormOf},
 	Datatype, DurationDatatype, ParseXsd, XsdValue,
 };
 use core::fmt;
@@ -38,8 +38,7 @@ impl FromStr for YearMonthDuration {
 	type Err = InvalidYearMonthDuration<String>;
 
 	fn from_str(s: &str) -> Result<Self, Self::Err> {
-		let lexical_value = crate::lexical::YearMonthDuration::new(s)
-			.map_err(|InvalidYearMonthDuration(s)| InvalidYearMonthDuration(s.to_owned()))?;
+		let lexical_value = crate::lexical::YearMonthDuration::parse(s)?;
 		Ok(lexical_value.as_value())
 	}
 }
@@ -73,7 +72,7 @@ impl serde::Serialize for YearMonthDuration {
 	where
 		S: serde::Serializer,
 	{
-		self.into_string().serialize(serializer)
+		serializer.collect_str(self)
 	}
 }
 

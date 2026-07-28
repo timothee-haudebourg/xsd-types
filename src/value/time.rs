@@ -1,9 +1,11 @@
 use crate::{
-	format_nanoseconds, format_timezone, is_valid_offset, seven_property_model_date_time,
-	seven_property_model_eq, seven_property_model_partial_cmp, Datatype, ParseXsd, XsdValue,
+	format_nanoseconds, format_timezone, is_valid_offset,
+	lexical::{InvalidTime, Lexical, LexicalFormOf},
+	seven_property_model_date_time, seven_property_model_eq, seven_property_model_partial_cmp,
+	Datatype, ParseXsd, XsdValue,
 };
 use core::fmt;
-use std::{cmp::Ordering, hash::Hash};
+use std::{cmp::Ordering, hash::Hash, str::FromStr};
 
 #[derive(Debug, thiserror::Error)]
 #[error("invalid time value")]
@@ -83,6 +85,24 @@ impl XsdValue for Time {
 	}
 }
 
+#[derive(Debug, thiserror::Error)]
+pub enum TimeFromStrError {
+	#[error("invalid time syntax")]
+	Syntax(#[from] InvalidTime<String>),
+
+	#[error(transparent)]
+	Value(#[from] InvalidTimeValue),
+}
+
+impl FromStr for Time {
+	type Err = TimeFromStrError;
+
+	fn from_str(s: &str) -> Result<Self, Self::Err> {
+		let lexical_value = crate::lexical::Time::parse(s)?;
+		lexical_value.try_as_value().map_err(Into::into)
+	}
+}
+
 impl ParseXsd for Time {
 	type LexicalForm = crate::lexical::Time;
 }
@@ -99,6 +119,43 @@ impl fmt::Display for Time {
 
 		format_nanoseconds(self.time.nanosecond(), f)?;
 		format_timezone(self.offset, f)
+	}
+}
+
+#[cfg(feature = "serde")]
+impl serde::Serialize for Time {
+	fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
+	where
+		S: serde::Serializer,
+	{
+		serializer.collect_str(self)
+	}
+}
+
+#[cfg(feature = "serde")]
+impl<'de> serde::Deserialize<'de> for Time {
+	fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
+	where
+		D: serde::Deserializer<'de>,
+	{
+		struct Visitor;
+
+		impl<'de> serde::de::Visitor<'de> for Visitor {
+			type Value = Time;
+
+			fn expecting(&self, formatter: &mut fmt::Formatter) -> fmt::Result {
+				formatter.write_str("a http://www.w3.org/2001/XMLSchema#time")
+			}
+
+			fn visit_str<E>(self, v: &str) -> Result<Self::Value, E>
+			where
+				E: serde::de::Error,
+			{
+				v.parse().map_err(|e| E::custom(e))
+			}
+		}
+
+		deserializer.deserialize_str(Visitor)
 	}
 }
 
@@ -142,5 +199,16 @@ mod tests {
 	fn new_rejects_out_of_range_offset() {
 		let offset = time::UtcOffset::from_hms(15, 0, 0).unwrap();
 		assert!(Time::new(time(12, 0, 0), Some(offset)).is_none());
+	}
+
+	#[test]
+	fn from_str_roundtrip() {
+		let t: Time = "13:07:12+01:00".parse().unwrap();
+		assert_eq!(t.time(), time(13, 7, 12));
+		assert_eq!(
+			t.offset(),
+			Some(time::UtcOffset::from_hms(1, 0, 0).unwrap())
+		);
+		assert_eq!(t.to_string(), "13:07:12+01:00");
 	}
 }

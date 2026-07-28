@@ -10,7 +10,7 @@ use num_rational::BigRational;
 use num_traits::{Signed, ToPrimitive, Zero};
 use once_cell::unsync::OnceCell;
 
-use crate::lexical::LexicalFormOf;
+use crate::lexical::{Lexical, LexicalFormOf};
 use crate::{
 	lexical, Datatype, DecimalDatatype, Double, Float, IntDatatype, LongDatatype,
 	NonNegativeIntegerDatatype, NonPositiveIntegerDatatype, ParseXsd, ShortDatatype,
@@ -325,8 +325,8 @@ impl FromStr for Decimal {
 
 	#[inline(always)]
 	fn from_str(s: &str) -> Result<Self, Self::Err> {
-		let l = lexical::DecimalBuf::new(s.to_owned())?;
-		Ok(l.into())
+		let l = lexical::Decimal::parse(s)?;
+		Ok(l.value())
 	}
 }
 
@@ -500,6 +500,43 @@ impl LexicalFormOf<Decimal> for lexical::Decimal {
 
 	fn try_as_value(&self) -> Result<Decimal, Self::ValueError> {
 		Ok(self.value())
+	}
+}
+
+#[cfg(feature = "serde")]
+impl serde::Serialize for Decimal {
+	fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
+	where
+		S: serde::Serializer,
+	{
+		serializer.collect_str(self)
+	}
+}
+
+#[cfg(feature = "serde")]
+impl<'de> serde::Deserialize<'de> for Decimal {
+	fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
+	where
+		D: serde::Deserializer<'de>,
+	{
+		struct Visitor;
+
+		impl<'de> serde::de::Visitor<'de> for Visitor {
+			type Value = Decimal;
+
+			fn expecting(&self, formatter: &mut fmt::Formatter) -> fmt::Result {
+				formatter.write_str("a http://www.w3.org/2001/XMLSchema#decimal")
+			}
+
+			fn visit_str<E>(self, v: &str) -> Result<Self::Value, E>
+			where
+				E: serde::de::Error,
+			{
+				v.parse().map_err(|e| E::custom(e))
+			}
+		}
+
+		deserializer.deserialize_str(Visitor)
 	}
 }
 

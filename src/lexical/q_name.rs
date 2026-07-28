@@ -25,6 +25,7 @@ use super::{Lexical, LexicalFormOf};
 #[derive(Validate, StrNewType, PartialEq, Eq, PartialOrd, Ord, Hash)]
 #[automaton(super::grammar::QName)]
 #[newtype(owned(QNameBuf, derive(PartialEq, Eq, PartialOrd, Ord, Hash)))]
+#[cfg_attr(feature = "serde", newtype(serde))]
 pub struct QName(str);
 
 impl Lexical for QName {

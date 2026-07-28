@@ -13,7 +13,7 @@ readme = "README.md"
 rust-version = "1.87"
 
 [features]
-serde = ["dep:serde"]
+serde = ["dep:serde", "iref/serde"]
 chrono = ["dep:chrono"]
 large-dates = ["time/large-dates"]
 

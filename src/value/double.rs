@@ -8,7 +8,7 @@ use std::{
 use ordered_float::OrderedFloat;
 
 use crate::{
-	lexical::{self, LexicalFormOf},
+	lexical::{self, Lexical, LexicalFormOf},
 	Datatype, ParseXsd, XsdValue,
 };
 
@@ -127,8 +127,45 @@ impl FromStr for Double {
 	type Err = lexical::InvalidDouble<String>;
 
 	fn from_str(s: &str) -> Result<Self, Self::Err> {
-		let l = lexical::Double::new(s).map_err(|e| lexical::InvalidDouble(e.0.to_owned()))?;
-		Ok(l.into())
+		let l = lexical::Double::parse(s)?;
+		Ok(l.as_value())
+	}
+}
+
+#[cfg(feature = "serde")]
+impl serde::Serialize for Double {
+	fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
+	where
+		S: serde::Serializer,
+	{
+		serializer.collect_str(self)
+	}
+}
+
+#[cfg(feature = "serde")]
+impl<'de> serde::Deserialize<'de> for Double {
+	fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
+	where
+		D: serde::Deserializer<'de>,
+	{
+		struct Visitor;
+
+		impl<'de> serde::de::Visitor<'de> for Visitor {
+			type Value = Double;
+
+			fn expecting(&self, formatter: &mut fmt::Formatter) -> fmt::Result {
+				formatter.write_str("a http://www.w3.org/2001/XMLSchema#double")
+			}
+
+			fn visit_str<E>(self, v: &str) -> Result<Self::Value, E>
+			where
+				E: serde::de::Error,
+			{
+				v.parse().map_err(|e| E::custom(e))
+			}
+		}
+
+		deserializer.deserialize_str(Visitor)
 	}
 }
 

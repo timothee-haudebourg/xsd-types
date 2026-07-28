@@ -19,6 +19,7 @@ use crate::lexical::{Lexical, LexicalFormOf};
 #[derive(Validate, StrNewType, PartialEq, Eq, PartialOrd, Ord, Hash)]
 #[automaton(super::grammar::Id)]
 #[newtype(owned(IdBuf, derive(PartialEq, Eq, PartialOrd, Ord, Hash)))]
+#[cfg_attr(feature = "serde", newtype(serde))]
 pub struct Id(str);
 
 impl Lexical for Id {

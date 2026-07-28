@@ -9,7 +9,7 @@ use num_bigint::{BigInt, TryFromBigIntError};
 use num_traits::{Signed, Zero};
 
 use crate::{
-	lexical::{self, LexicalFormOf},
+	lexical::{self, Lexical, LexicalFormOf},
 	Datatype, IntDatatype, IntegerDatatype, LongDatatype, NonNegativeIntegerDatatype,
 	NonPositiveIntegerDatatype, ParseXsd, ShortDatatype, UnsignedIntDatatype, UnsignedLongDatatype,
 	UnsignedShortDatatype, XsdValue,
@@ -190,7 +190,7 @@ impl FromStr for Integer {
 
 	#[inline(always)]
 	fn from_str(s: &str) -> Result<Self, Self::Err> {
-		let l = lexical::Integer::new(s).map_err(|e| lexical::InvalidInteger(e.0.to_owned()))?;
+		let l = lexical::Integer::parse(s)?;
 		Ok(l.into())
 	}
 }
@@ -212,6 +212,43 @@ impl From<NonNegativeInteger> for Integer {
 impl fmt::Display for Integer {
 	fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
 		self.0.fmt(f)
+	}
+}
+
+#[cfg(feature = "serde")]
+impl serde::Serialize for Integer {
+	fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
+	where
+		S: serde::Serializer,
+	{
+		serializer.collect_str(self)
+	}
+}
+
+#[cfg(feature = "serde")]
+impl<'de> serde::Deserialize<'de> for Integer {
+	fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
+	where
+		D: serde::Deserializer<'de>,
+	{
+		struct Visitor;
+
+		impl<'de> serde::de::Visitor<'de> for Visitor {
+			type Value = Integer;
+
+			fn expecting(&self, formatter: &mut fmt::Formatter) -> fmt::Result {
+				formatter.write_str("a http://www.w3.org/2001/XMLSchema#integer")
+			}
+
+			fn visit_str<E>(self, v: &str) -> Result<Self::Value, E>
+			where
+				E: serde::de::Error,
+			{
+				v.parse().map_err(|e| E::custom(e))
+			}
+		}
+
+		deserializer.deserialize_str(Visitor)
 	}
 }
 

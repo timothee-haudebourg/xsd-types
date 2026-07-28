@@ -1,7 +1,7 @@
 use std::{cmp::Ordering, fmt, hash::Hash, str::FromStr};
 
 use crate::{
-	lexical::{InvalidDateTime, LexicalFormOf},
+	lexical::{InvalidDateTime, Lexical, LexicalFormOf},
 	utils::div_rem,
 	Datatype, DateTimeDatatype, ParseXsd, XsdValue,
 };
@@ -336,8 +336,7 @@ impl FromStr for DateTime {
 	type Err = DateTimeFromStrError;
 
 	fn from_str(s: &str) -> Result<Self, Self::Err> {
-		let lexical_value = crate::lexical::DateTime::new(s)
-			.map_err(|InvalidDateTime(s)| InvalidDateTime(s.to_owned()))?;
+		let lexical_value = crate::lexical::DateTime::parse(s)?;
 		lexical_value.try_as_value().map_err(Into::into)
 	}
 }
@@ -418,7 +417,7 @@ impl serde::Serialize for DateTime {
 	where
 		S: serde::Serializer,
 	{
-		self.into_string().serialize(serializer)
+		serializer.collect_str(self)
 	}
 }
 

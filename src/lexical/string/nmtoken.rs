@@ -19,6 +19,7 @@ use crate::lexical::{Lexical, LexicalFormOf};
 #[derive(Validate, StrNewType, PartialEq, Eq, PartialOrd, Ord, Hash)]
 #[automaton(super::grammar::NMToken)]
 #[newtype(owned(NMTokenBuf, derive(PartialEq, Eq, PartialOrd, Ord, Hash)))]
+#[cfg_attr(feature = "serde", newtype(serde))]
 pub struct NMToken(str);
 
 impl Lexical for NMToken {

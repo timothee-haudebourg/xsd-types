@@ -10,7 +10,7 @@ use num_traits::{Signed, Zero};
 
 use crate::{
 	impl_integer_arithmetic,
-	lexical::{self, LexicalFormOf},
+	lexical::{self, Lexical, LexicalFormOf},
 	value::decimal::{U16_MAX, U32_MAX, U64_MAX, U8_MAX},
 	Datatype, Integer, NonNegativeIntegerDatatype, ParseXsd, UnsignedIntDatatype,
 	UnsignedLongDatatype, UnsignedShortDatatype, XsdValue,
@@ -170,15 +170,51 @@ impl FromStr for NonNegativeInteger {
 
 	#[inline(always)]
 	fn from_str(s: &str) -> Result<Self, Self::Err> {
-		let l = lexical::NonNegativeInteger::new(s)
-			.map_err(|e| lexical::InvalidNonNegativeInteger(e.0.to_owned()))?;
-		Ok(l.into())
+		let l = lexical::NonNegativeInteger::parse(s)?;
+		Ok(l.as_value())
 	}
 }
 
 impl fmt::Display for NonNegativeInteger {
 	fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
 		self.0.fmt(f)
+	}
+}
+
+#[cfg(feature = "serde")]
+impl serde::Serialize for NonNegativeInteger {
+	fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
+	where
+		S: serde::Serializer,
+	{
+		serializer.collect_str(self)
+	}
+}
+
+#[cfg(feature = "serde")]
+impl<'de> serde::Deserialize<'de> for NonNegativeInteger {
+	fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
+	where
+		D: serde::Deserializer<'de>,
+	{
+		struct Visitor;
+
+		impl<'de> serde::de::Visitor<'de> for Visitor {
+			type Value = NonNegativeInteger;
+
+			fn expecting(&self, formatter: &mut fmt::Formatter) -> fmt::Result {
+				formatter.write_str("a http://www.w3.org/2001/XMLSchema#nonNegativeInteger")
+			}
+
+			fn visit_str<E>(self, v: &str) -> Result<Self::Value, E>
+			where
+				E: serde::de::Error,
+			{
+				v.parse().map_err(|e| E::custom(e))
+			}
+		}
+
+		deserializer.deserialize_str(Visitor)
 	}
 }
 
@@ -482,9 +518,56 @@ impl LexicalFormOf<PositiveInteger> for lexical::PositiveInteger {
 	}
 }
 
+impl FromStr for PositiveInteger {
+	type Err = lexical::InvalidPositiveInteger<String>;
+
+	#[inline(always)]
+	fn from_str(s: &str) -> Result<Self, Self::Err> {
+		let l = lexical::PositiveInteger::parse(s)?;
+		Ok(l.as_value())
+	}
+}
+
 impl fmt::Display for PositiveInteger {
 	fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
 		self.0.fmt(f)
+	}
+}
+
+#[cfg(feature = "serde")]
+impl serde::Serialize for PositiveInteger {
+	fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
+	where
+		S: serde::Serializer,
+	{
+		serializer.collect_str(self)
+	}
+}
+
+#[cfg(feature = "serde")]
+impl<'de> serde::Deserialize<'de> for PositiveInteger {
+	fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
+	where
+		D: serde::Deserializer<'de>,
+	{
+		struct Visitor;
+
+		impl<'de> serde::de::Visitor<'de> for Visitor {
+			type Value = PositiveInteger;
+
+			fn expecting(&self, formatter: &mut fmt::Formatter) -> fmt::Result {
+				formatter.write_str("a http://www.w3.org/2001/XMLSchema#positiveInteger")
+			}
+
+			fn visit_str<E>(self, v: &str) -> Result<Self::Value, E>
+			where
+				E: serde::de::Error,
+			{
+				v.parse().map_err(|e| E::custom(e))
+			}
+		}
+
+		deserializer.deserialize_str(Visitor)
 	}
 }
 

@@ -1,6 +1,6 @@
 use crate::{
 	format_nanoseconds,
-	lexical::{duration::InvalidDayTimeDuration, LexicalFormOf},
+	lexical::{duration::InvalidDayTimeDuration, Lexical, LexicalFormOf},
 	Datatype, DurationDatatype, ParseXsd, XsdValue,
 };
 use core::fmt;
@@ -48,8 +48,7 @@ impl FromStr for DayTimeDuration {
 	type Err = InvalidDayTimeDuration<String>;
 
 	fn from_str(s: &str) -> Result<Self, Self::Err> {
-		let lexical_value = crate::lexical::DayTimeDuration::new(s)
-			.map_err(|InvalidDayTimeDuration(s)| InvalidDayTimeDuration(s.to_owned()))?;
+		let lexical_value = crate::lexical::DayTimeDuration::parse(s)?;
 		Ok(lexical_value.as_value())
 	}
 }
@@ -106,7 +105,7 @@ impl serde::Serialize for DayTimeDuration {
 	where
 		S: serde::Serializer,
 	{
-		self.into_string().serialize(serializer)
+		serializer.collect_str(self)
 	}
 }
 

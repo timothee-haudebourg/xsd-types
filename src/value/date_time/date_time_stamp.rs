@@ -2,7 +2,7 @@ use std::{cmp::Ordering, fmt, hash::Hash, str::FromStr};
 
 use crate::{
 	format_nanoseconds, format_timezone,
-	lexical::{date_time::InvalidDateTimeStamp, LexicalFormOf},
+	lexical::{date_time::InvalidDateTimeStamp, Lexical, LexicalFormOf},
 	Datatype, DateTimeDatatype, DisplayYear, ParseXsd, XsdValue,
 };
 
@@ -190,8 +190,7 @@ impl FromStr for DateTimeStamp {
 	type Err = DateTimeStampFromStrError;
 
 	fn from_str(s: &str) -> Result<Self, Self::Err> {
-		let lexical_value = crate::lexical::DateTimeStamp::new(s)
-			.map_err(|InvalidDateTimeStamp(s)| InvalidDateTimeStamp(s.to_owned()))?;
+		let lexical_value = crate::lexical::DateTimeStamp::parse(s)?;
 		lexical_value.try_as_value().map_err(Into::into)
 	}
 }
@@ -258,7 +257,7 @@ impl serde::Serialize for DateTimeStamp {
 	where
 		S: serde::Serializer,
 	{
-		self.into_string().serialize(serializer)
+		serializer.collect_str(self)
 	}
 }
 

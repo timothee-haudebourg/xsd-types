@@ -1,6 +1,6 @@
 use crate::{
 	format_timezone, is_valid_offset,
-	lexical::{InvalidGMonthDay, LexicalFormOf},
+	lexical::{InvalidGMonthDay, Lexical, LexicalFormOf},
 	seven_property_model_date_time, seven_property_model_eq, seven_property_model_partial_cmp,
 	Datatype, ParseXsd, XsdValue,
 };
@@ -65,8 +65,7 @@ impl FromStr for GMonthDay {
 	type Err = InvalidGMonthDay<String>;
 
 	fn from_str(s: &str) -> Result<Self, Self::Err> {
-		let lexical_value = crate::lexical::GMonthDay::new(s)
-			.map_err(|InvalidGMonthDay(s)| InvalidGMonthDay(s.to_owned()))?;
+		let lexical_value = crate::lexical::GMonthDay::parse(s)?;
 		Ok(lexical_value.as_value())
 	}
 }
@@ -118,6 +117,43 @@ impl fmt::Display for GMonthDay {
 		write!(f, "--{:02}-{:02}", self.month, self.day)?;
 
 		format_timezone(self.offset, f)
+	}
+}
+
+#[cfg(feature = "serde")]
+impl serde::Serialize for GMonthDay {
+	fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
+	where
+		S: serde::Serializer,
+	{
+		serializer.collect_str(self)
+	}
+}
+
+#[cfg(feature = "serde")]
+impl<'de> serde::Deserialize<'de> for GMonthDay {
+	fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
+	where
+		D: serde::Deserializer<'de>,
+	{
+		struct Visitor;
+
+		impl<'de> serde::de::Visitor<'de> for Visitor {
+			type Value = GMonthDay;
+
+			fn expecting(&self, formatter: &mut fmt::Formatter) -> fmt::Result {
+				formatter.write_str("a http://www.w3.org/2001/XMLSchema#gMonthDay")
+			}
+
+			fn visit_str<E>(self, v: &str) -> Result<Self::Value, E>
+			where
+				E: serde::de::Error,
+			{
+				v.parse().map_err(|e| E::custom(e))
+			}
+		}
+
+		deserializer.deserialize_str(Visitor)
 	}
 }
 

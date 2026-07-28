@@ -6,7 +6,7 @@ use std::{
 };
 
 use crate::{
-	lexical::{self, LexicalFormOf},
+	lexical::{self, Lexical, LexicalFormOf},
 	Datatype, ParseXsd, XsdValue,
 };
 
@@ -109,10 +109,11 @@ impl From<Vec<u8>> for Base64BinaryBuf {
 }
 
 impl FromStr for Base64BinaryBuf {
-	type Err = InvalidBase64;
+	type Err = lexical::InvalidBase64Binary<String>;
 
 	fn from_str(s: &str) -> Result<Self, Self::Err> {
-		Self::decode(s)
+		let l = lexical::Base64Binary::parse(s)?;
+		Ok(l.value())
 	}
 }
 
@@ -163,6 +164,43 @@ impl LexicalFormOf<Base64BinaryBuf> for lexical::Base64Binary {
 
 	fn try_as_value(&self) -> Result<Base64BinaryBuf, Self::ValueError> {
 		Ok(self.value())
+	}
+}
+
+#[cfg(feature = "serde")]
+impl serde::Serialize for Base64BinaryBuf {
+	fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
+	where
+		S: serde::Serializer,
+	{
+		serializer.collect_str(self)
+	}
+}
+
+#[cfg(feature = "serde")]
+impl<'de> serde::Deserialize<'de> for Base64BinaryBuf {
+	fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
+	where
+		D: serde::Deserializer<'de>,
+	{
+		struct Visitor;
+
+		impl<'de> serde::de::Visitor<'de> for Visitor {
+			type Value = Base64BinaryBuf;
+
+			fn expecting(&self, formatter: &mut fmt::Formatter) -> fmt::Result {
+				formatter.write_str("a http://www.w3.org/2001/XMLSchema#base64Binary")
+			}
+
+			fn visit_str<E>(self, v: &str) -> Result<Self::Value, E>
+			where
+				E: serde::de::Error,
+			{
+				v.parse().map_err(|e| E::custom(e))
+			}
+		}
+
+		deserializer.deserialize_str(Visitor)
 	}
 }
 

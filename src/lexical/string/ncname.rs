@@ -19,6 +19,7 @@ use crate::lexical::{Lexical, LexicalFormOf};
 #[derive(Validate, StrNewType, PartialEq, Eq, PartialOrd, Ord, Hash)]
 #[automaton(super::grammar::NCName)]
 #[newtype(owned(NCNameBuf, derive(PartialEq, Eq, PartialOrd, Ord, Hash)))]
+#[cfg_attr(feature = "serde", newtype(serde))]
 pub struct NCName(str);
 
 impl Lexical for NCName {

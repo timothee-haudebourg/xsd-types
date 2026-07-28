@@ -1,7 +1,7 @@
 use core::fmt;
 use std::{borrow::Borrow, ops::Deref, str::FromStr};
 
-use crate::ParseXsd;
+use crate::{lexical::Lexical, ParseXsd};
 
 #[derive(Debug, thiserror::Error)]
 #[error("invalid normalized string `{0}`")]
@@ -108,10 +108,50 @@ impl FromStr for NormalizedString {
 	type Err = InvalidNormalizedStr<String>;
 
 	fn from_str(s: &str) -> Result<Self, Self::Err> {
-		Self::new(s.to_owned())
+		// Not `try_as_value()`: that goes through `FromStr` too, which would
+		// recurse back here.
+		let lexical_value = NormalizedStr::parse(s)?;
+		Ok(lexical_value.to_owned())
 	}
 }
 
 impl ParseXsd for NormalizedString {
 	type LexicalForm = crate::lexical::NormalizedStr;
+}
+
+#[cfg(feature = "serde")]
+impl serde::Serialize for NormalizedString {
+	fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
+	where
+		S: serde::Serializer,
+	{
+		self.0.serialize(serializer)
+	}
+}
+
+#[cfg(feature = "serde")]
+impl<'de> serde::Deserialize<'de> for NormalizedString {
+	fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
+	where
+		D: serde::Deserializer<'de>,
+	{
+		struct Visitor;
+
+		impl<'de> serde::de::Visitor<'de> for Visitor {
+			type Value = NormalizedString;
+
+			fn expecting(&self, formatter: &mut fmt::Formatter) -> fmt::Result {
+				formatter.write_str("a http://www.w3.org/2001/XMLSchema#normalizedString")
+			}
+
+			fn visit_str<E>(self, v: &str) -> Result<Self::Value, E>
+			where
+				E: serde::de::Error,
+			{
+				v.parse().map_err(|e| E::custom(e))
+			}
+		}
+
+		deserializer.deserialize_str(Visitor)
+	}
 }
