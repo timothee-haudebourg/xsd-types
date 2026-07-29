@@ -1022,9 +1022,6 @@ impl<'a> ValueRef<'a> {
 			Self::QName(value) => Value::QName(value.to_owned()),
 		}
 	}
-	pub fn cloned(&self) -> Value {
-		self.into_owned()
-	}
 }
 impl<'a> XsdValue for ValueRef<'a> {
 	fn datatype(&self) -> Datatype {
@@ -2130,8 +2127,8 @@ impl<'a> DecimalValueRef<'a> {
 			))),
 		}
 	}
-	pub fn cloned(&self) -> DecimalValue {
-		match *self {
+	pub fn into_owned(self) -> DecimalValue {
+		match self {
 			Self::Decimal(value) => DecimalValue::Decimal(value.to_owned()),
 			Self::Integer(value) => DecimalValue::Integer(value.to_owned()),
 			Self::NonPositiveInteger(value) => DecimalValue::NonPositiveInteger(value.to_owned()),
@@ -2771,8 +2768,8 @@ impl<'a> IntegerValueRef<'a> {
 			}
 		}
 	}
-	pub fn cloned(&self) -> IntegerValue {
-		match *self {
+	pub fn into_owned(self) -> IntegerValue {
+		match self {
 			Self::Integer(value) => IntegerValue::Integer(value.to_owned()),
 			Self::NonPositiveInteger(value) => IntegerValue::NonPositiveInteger(value.to_owned()),
 			Self::NegativeInteger(value) => IntegerValue::NegativeInteger(value.to_owned()),
@@ -2911,8 +2908,8 @@ impl<'a> NonPositiveIntegerValueRef<'a> {
 			Self::NegativeInteger(_) => NonPositiveIntegerDatatype::NegativeInteger,
 		}
 	}
-	pub fn cloned(&self) -> NonPositiveIntegerValue {
-		match *self {
+	pub fn into_owned(self) -> NonPositiveIntegerValue {
+		match self {
 			Self::NonPositiveInteger(value) => {
 				NonPositiveIntegerValue::NonPositiveInteger(value.to_owned())
 			}
@@ -3154,8 +3151,8 @@ impl<'a> NonNegativeIntegerValueRef<'a> {
 			}
 		}
 	}
-	pub fn cloned(&self) -> NonNegativeIntegerValue {
-		match *self {
+	pub fn into_owned(self) -> NonNegativeIntegerValue {
+		match self {
 			Self::NonNegativeInteger(value) => {
 				NonNegativeIntegerValue::NonNegativeInteger(value.to_owned())
 			}
@@ -4287,8 +4284,8 @@ impl<'a> StringValueRef<'a> {
 			)),
 		}
 	}
-	pub fn cloned(&self) -> StringValue {
-		match *self {
+	pub fn into_owned(self) -> StringValue {
+		match self {
 			Self::String(value) => StringValue::String(value.to_owned()),
 			Self::NormalizedString(value) => StringValue::NormalizedString(value.to_owned()),
 			Self::Token(value) => StringValue::Token(value.to_owned()),
@@ -4666,8 +4663,8 @@ impl<'a> NormalizedStringValueRef<'a> {
 			Self::NMToken(_) => NormalizedStringDatatype::Token(TokenDatatype::NMToken),
 		}
 	}
-	pub fn cloned(&self) -> NormalizedStringValue {
-		match *self {
+	pub fn into_owned(self) -> NormalizedStringValue {
+		match self {
 			Self::NormalizedString(value) => {
 				NormalizedStringValue::NormalizedString(value.to_owned())
 			}
@@ -4935,8 +4932,8 @@ impl<'a> TokenValueRef<'a> {
 			Self::NMToken(_) => TokenDatatype::NMToken,
 		}
 	}
-	pub fn cloned(&self) -> TokenValue {
-		match *self {
+	pub fn into_owned(self) -> TokenValue {
+		match self {
 			Self::Token(value) => TokenValue::Token(value.to_owned()),
 			Self::Language(value) => TokenValue::Language(value.to_owned()),
 			Self::Name(value) => TokenValue::Name(value.to_owned()),
@@ -5128,8 +5125,8 @@ impl<'a> NameValueRef<'a> {
 			Self::IdRef(_) => NameDatatype::NCName(NCNameDatatype::IdRef),
 		}
 	}
-	pub fn cloned(&self) -> NameValue {
-		match *self {
+	pub fn into_owned(self) -> NameValue {
+		match self {
 			Self::Name(value) => NameValue::Name(value.to_owned()),
 			Self::NCName(value) => NameValue::NCName(value.to_owned()),
 			Self::Id(value) => NameValue::Id(value.to_owned()),
@@ -5226,8 +5223,8 @@ impl<'a> NCNameValueRef<'a> {
 			Self::IdRef(_) => NCNameDatatype::IdRef,
 		}
 	}
-	pub fn cloned(&self) -> NCNameValue {
-		match *self {
+	pub fn into_owned(self) -> NCNameValue {
+		match self {
 			Self::NCName(value) => NCNameValue::NCName(value.to_owned()),
 			Self::Id(value) => NCNameValue::Id(value.to_owned()),
 			Self::IdRef(value) => NCNameValue::IdRef(value.to_owned()),
