@@ -3,7 +3,7 @@ use crate::{
 	Datatype, DurationDatatype, ParseXsd, XsdValue,
 };
 use core::fmt;
-use std::str::FromStr;
+use std::{cmp::Ordering, hash::Hash, str::FromStr};
 
 #[derive(Debug, Clone, Copy)]
 pub struct YearMonthDuration {
@@ -21,6 +21,44 @@ impl YearMonthDuration {
 
 	pub fn into_string(self) -> String {
 		self.to_string()
+	}
+
+	/// Returns the number of months in this duration, negative if this
+	/// duration is negative.
+	pub fn signed_months(&self) -> i64 {
+		if self.is_negative {
+			-(self.months as i64)
+		} else {
+			self.months as i64
+		}
+	}
+}
+
+impl PartialEq for YearMonthDuration {
+	fn eq(&self, other: &Self) -> bool {
+		self.signed_months() == other.signed_months()
+	}
+}
+
+impl Eq for YearMonthDuration {}
+
+impl Hash for YearMonthDuration {
+	fn hash<H: std::hash::Hasher>(&self, state: &mut H) {
+		self.signed_months().hash(state);
+	}
+}
+
+/// Since `seconds` is always zero, `yearMonthDuration` is totally ordered by
+/// its number of months: <https://www.w3.org/TR/xmlschema11-2/#yearMonthDuration>.
+impl PartialOrd for YearMonthDuration {
+	fn partial_cmp(&self, other: &Self) -> Option<Ordering> {
+		Some(self.cmp(other))
+	}
+}
+
+impl Ord for YearMonthDuration {
+	fn cmp(&self, other: &Self) -> Ordering {
+		self.signed_months().cmp(&other.signed_months())
 	}
 }
 

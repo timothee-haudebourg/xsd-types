@@ -4,7 +4,7 @@ use crate::{
 	Datatype, DurationDatatype, ParseXsd, XsdValue,
 };
 use core::fmt;
-use std::str::FromStr;
+use std::{cmp::Ordering, hash::Hash, str::FromStr};
 
 #[derive(Debug, Clone, Copy)]
 pub struct DayTimeDuration {
@@ -31,6 +31,58 @@ impl DayTimeDuration {
 
 	pub fn into_string(self) -> String {
 		self.to_string()
+	}
+
+	/// Returns the whole number of seconds in this duration, negative if
+	/// this duration is negative.
+	pub fn signed_seconds(&self) -> i64 {
+		if self.is_negative {
+			-(self.seconds as i64)
+		} else {
+			self.seconds as i64
+		}
+	}
+
+	/// Returns the sub-second nanoseconds in this duration, negative if this
+	/// duration is negative.
+	pub fn signed_nano_seconds(&self) -> i32 {
+		if self.is_negative {
+			-(self.nano_seconds as i32)
+		} else {
+			self.nano_seconds as i32
+		}
+	}
+}
+
+impl PartialEq for DayTimeDuration {
+	fn eq(&self, other: &Self) -> bool {
+		self.signed_seconds() == other.signed_seconds()
+			&& self.signed_nano_seconds() == other.signed_nano_seconds()
+	}
+}
+
+impl Eq for DayTimeDuration {}
+
+impl Hash for DayTimeDuration {
+	fn hash<H: std::hash::Hasher>(&self, state: &mut H) {
+		self.signed_seconds().hash(state);
+		self.signed_nano_seconds().hash(state);
+	}
+}
+
+/// Since `months` is always zero, `dayTimeDuration` is totally ordered by its
+/// number of seconds: <https://www.w3.org/TR/xmlschema11-2/#dayTimeDuration>.
+impl PartialOrd for DayTimeDuration {
+	fn partial_cmp(&self, other: &Self) -> Option<Ordering> {
+		Some(self.cmp(other))
+	}
+}
+
+impl Ord for DayTimeDuration {
+	fn cmp(&self, other: &Self) -> Ordering {
+		self.signed_seconds()
+			.cmp(&other.signed_seconds())
+			.then_with(|| self.signed_nano_seconds().cmp(&other.signed_nano_seconds()))
 	}
 }
 
