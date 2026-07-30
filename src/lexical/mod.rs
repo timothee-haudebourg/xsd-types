@@ -1,4 +1,6 @@
 //! Lexical domain types.
+use std::error::Error;
+
 use static_automata::grammar;
 
 #[grammar(
@@ -75,7 +77,7 @@ pub use time::{InvalidTime, Time, TimeBuf};
 
 /// Lexical type.
 pub trait Lexical {
-	type Error;
+	type Error: Error;
 
 	fn parse(value: &str) -> Result<&Self, Self::Error>;
 }
@@ -89,7 +91,7 @@ impl Lexical for str {
 }
 
 pub trait LexicalFormOf<V>: Lexical {
-	type ValueError;
+	type ValueError: Error;
 
 	fn try_as_value(&self) -> Result<V, Self::ValueError>;
 

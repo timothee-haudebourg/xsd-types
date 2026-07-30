@@ -233,20 +233,30 @@ pub const XSD_POSITIVE_INTEGER: &Iri = iri!("http://www.w3.org/2001/XMLSchema#po
 pub trait ParseXsd: Sized {
 	type LexicalForm: LexicalFormOf<Self> + ?Sized;
 
-	fn parse_xsd(lexical_value: &str) -> ParseXsdResult<Self, Self::LexicalForm> {
+	fn parse_xsd(lexical_value: &str) -> Result<Self, ParseXsdError> {
 		Self::LexicalForm::parse(lexical_value)
-			.map_err(ParseXsdError::InvalidLexicalForm)?
+			.map_err(ParseXsdError::lexical_form)?
 			.try_as_value()
-			.map_err(ParseXsdError::InvalidValue)
+			.map_err(ParseXsdError::value)
 	}
 }
 
-/// XSD lexical parse result.
-pub type ParseXsdResult<T, L> =
-	Result<T, ParseXsdError<<L as Lexical>::Error, <L as LexicalFormOf<T>>::ValueError>>;
-
 /// XSD lexical parse error.
-pub enum ParseXsdError<L, V> {
-	InvalidLexicalForm(L),
-	InvalidValue(V),
+#[derive(Debug, thiserror::Error)]
+pub enum ParseXsdError {
+	#[error("invalid lexical form: {0}")]
+	LexicalForm(String),
+
+	#[error("invalid value: {0}")]
+	Value(String),
+}
+
+impl ParseXsdError {
+	pub fn lexical_form(e: impl ToString) -> Self {
+		Self::LexicalForm(e.to_string())
+	}
+
+	pub fn value(e: impl ToString) -> Self {
+		Self::Value(e.to_string())
+	}
 }

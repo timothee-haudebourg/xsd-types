@@ -13,7 +13,7 @@ class Datatype
 	attr_reader :iri
 	attr_reader :subclasses
 
-	def initialize(name, iri, copy, subclasses)
+	def initialize(name, iri, copy, ord, subclasses)
 		if name.class == String then
 			@name = name
 			@owned_name = name
@@ -26,11 +26,18 @@ class Datatype
 
 		@iri = iri
 		@copy = copy
+		@ord = ord
 		@subclasses = subclasses
 	end
 
 	def is_copy?
 		@copy
+	end
+
+	# Whether this datatype's own value type has a total order (`Ord`), as
+	# opposed to merely a partial order (`PartialOrd`).
+	def has_ord?
+		@ord
 	end
 
 	def generate_datatype_enum
@@ -80,12 +87,12 @@ class Datatype
 		end
 		puts "\t\t}"
 		puts "\t}"
-		puts "\tpub fn parse(&self, value: &str) -> Result<#{@name}Value, ParseError> {"
+		puts "\tpub fn parse(&self, value: &str) -> Result<#{@name}Value, ParseXsdError> {"
 		puts "\t\tmatch self {"
-		puts "\t\t\tSelf::#{@name} => ParseXsd::parse_xsd(value).map(#{@name}Value::#{@name}).map_err(|_| ParseError),"
+		puts "\t\t\tSelf::#{@name} => ParseXsd::parse_xsd(value).map(#{@name}Value::#{@name}),"
 		@subclasses.each do |c|
 			if c.subclasses.empty? then
-				puts "\t\t\tSelf::#{c.name} => ParseXsd::parse_xsd(value).map(#{@name}Value::#{c.name}).map_err(|_| ParseError),"
+				puts "\t\t\tSelf::#{c.name} => ParseXsd::parse_xsd(value).map(#{@name}Value::#{c.name}),"
 			else
 				puts "\t\t\tSelf::#{c.name}(t) => t.parse(value).map(Into::into),"
 			end
@@ -104,7 +111,12 @@ class Datatype
 
 	def generate_value_enum
 		puts "/// Any specialized [`#{@ref_name}`] value."
-		puts "#[derive(Debug, Clone)]"
+		traits = ["Debug", "Clone"]
+		traits << "Copy" if self.is_copy?
+		traits += ["PartialEq", "Eq", "PartialOrd"]
+		traits << "Ord" if self.has_ord?
+		traits << "Hash"
+		puts "#[derive(#{traits.join(", ")})]"
 		puts "pub enum #{@name}Value {"
 		self.generate_value_variants
 		puts "}"
@@ -144,7 +156,10 @@ class Datatype
 
 		if self.any_subtype? { |c| !c.is_copy? } then
 			puts "/// Any specialized [`#{@ref_name}`] value reference."
-			puts "#[derive(Debug, Clone, Copy)]"
+			traits = ["Debug", "Clone", "Copy", "PartialEq", "Eq", "PartialOrd"]
+			traits << "Ord" if self.has_ord?
+			traits << "Hash"
+			puts "#[derive(#{traits.join(", ")})]"
 			puts "pub enum #{@name}ValueRef<'a> {"
 			self.generate_value_ref_variants
 			puts "}"
@@ -166,8 +181,8 @@ class Datatype
 			end
 			puts "\t\t}"
 			puts "\t}"
-			puts "\tpub fn cloned(&self) -> #{@name}Value {"
-			puts "\t\tmatch *self {"
+			puts "\tpub fn into_owned(self) -> #{@name}Value {"
+			puts "\t\tmatch self {"
 			self.generate_value_ref_variants_to_owned("#{@name}Value")
 			puts "\t\t}"
 			puts "\t}"
@@ -372,66 +387,75 @@ class Datatype
 end
 
 datatypes = [
-	Datatype.new("Boolean", "XSD_BOOLEAN", true, []),
-	Datatype.new("Float", "XSD_FLOAT", true, []),
-	Datatype.new("Double", "XSD_DOUBLE", true, []),
-	Datatype.new("Decimal", "XSD_DECIMAL", false, [
-		Datatype.new("Integer", "XSD_INTEGER", false, [
-			Datatype.new("NonPositiveInteger", "XSD_NON_POSITIVE_INTEGER", false, [
-				Datatype.new("NegativeInteger", "XSD_NEGATIVE_INTEGER", false, [])
+	Datatype.new("Boolean", "XSD_BOOLEAN", true, true, []),
+	Datatype.new("Float", "XSD_FLOAT", true, true, []),
+	Datatype.new("Double", "XSD_DOUBLE", true, true, []),
+	Datatype.new("Decimal", "XSD_DECIMAL", false, true, [
+		Datatype.new("Integer", "XSD_INTEGER", false, true, [
+			Datatype.new("NonPositiveInteger", "XSD_NON_POSITIVE_INTEGER", false, true, [
+				Datatype.new("NegativeInteger", "XSD_NEGATIVE_INTEGER", false, true, [])
 			]),
-			Datatype.new("NonNegativeInteger", "XSD_NON_NEGATIVE_INTEGER", false, [
-				Datatype.new("PositiveInteger", "XSD_POSITIVE_INTEGER", false, []),
-				Datatype.new("UnsignedLong", "XSD_UNSIGNED_LONG", true, [
-					Datatype.new("UnsignedInt", "XSD_UNSIGNED_INT", true, [
-						Datatype.new("UnsignedShort", "XSD_UNSIGNED_SHORT", true, [
-							Datatype.new("UnsignedByte", "XSD_UNSIGNED_BYTE", true, [])
+			Datatype.new("NonNegativeInteger", "XSD_NON_NEGATIVE_INTEGER", false, true, [
+				Datatype.new("PositiveInteger", "XSD_POSITIVE_INTEGER", false, true, []),
+				Datatype.new("UnsignedLong", "XSD_UNSIGNED_LONG", true, true, [
+					Datatype.new("UnsignedInt", "XSD_UNSIGNED_INT", true, true, [
+						Datatype.new("UnsignedShort", "XSD_UNSIGNED_SHORT", true, true, [
+							Datatype.new("UnsignedByte", "XSD_UNSIGNED_BYTE", true, true, [])
 						])
 					])
 				])
 			]),
-			Datatype.new("Long", "XSD_LONG", true, [
-				Datatype.new("Int", "XSD_INT", true, [
-					Datatype.new("Short", "XSD_SHORT", true, [
-						Datatype.new("Byte", "XSD_BYTE", true, [])
+			Datatype.new("Long", "XSD_LONG", true, true, [
+				Datatype.new("Int", "XSD_INT", true, true, [
+					Datatype.new("Short", "XSD_SHORT", true, true, [
+						Datatype.new("Byte", "XSD_BYTE", true, true, [])
 					])
 				])
 			])
 		])
 	]),
-	Datatype.new({ variant: "String", owned: "String", ref: "str" }, "XSD_STRING", false, [
-		Datatype.new({ variant: "NormalizedString", owned: "NormalizedString", ref: "NormalizedStr" }, "XSD_NORMALIZED_STRING", false, [
-			Datatype.new({ variant: "Token", owned: "TokenBuf" }, "XSD_TOKEN", false, [
-				Datatype.new({ variant: "Language", owned: "LanguageBuf" }, "XSD_LANGUAGE", false, []),
-				Datatype.new({ variant: "Name", owned: "NameBuf" }, "XSD_NAME", false, [
-					Datatype.new({ variant: "NCName", owned: "NCNameBuf" }, "XSD_NC_NAME", false, [
-						Datatype.new({ variant: "Id", owned: "IdBuf" }, "XSD_ID", false, []),
-						Datatype.new({ variant: "IdRef", owned: "IdRefBuf" }, "XSD_IDREF", false, []),
+	Datatype.new({ variant: "String", owned: "String", ref: "str" }, "XSD_STRING", false, true, [
+		Datatype.new({ variant: "NormalizedString", owned: "NormalizedString", ref: "NormalizedStr" }, "XSD_NORMALIZED_STRING", false, true, [
+			Datatype.new({ variant: "Token", owned: "TokenBuf" }, "XSD_TOKEN", false, true, [
+				Datatype.new({ variant: "Language", owned: "LanguageBuf" }, "XSD_LANGUAGE", false, true, []),
+				Datatype.new({ variant: "Name", owned: "NameBuf" }, "XSD_NAME", false, true, [
+					Datatype.new({ variant: "NCName", owned: "NCNameBuf" }, "XSD_NC_NAME", false, true, [
+						Datatype.new({ variant: "Id", owned: "IdBuf" }, "XSD_ID", false, true, []),
+						Datatype.new({ variant: "IdRef", owned: "IdRefBuf" }, "XSD_IDREF", false, true, []),
 					])
 				]),
-				Datatype.new({ variant: "NMToken", owned: "NMTokenBuf" }, "XSD_NMTOKEN", false, []),
+				Datatype.new({ variant: "NMToken", owned: "NMTokenBuf" }, "XSD_NMTOKEN", false, true, []),
 			])
 		])
 	]),
-	Datatype.new("Duration", "XSD_DURATION", true, [
-		Datatype.new("DayTimeDuration", "XSD_DAY_TIME_DURATION", true, []),
-		Datatype.new("YearMonthDuration", "XSD_YEAR_MONTH_DURATION", true, []),
+	# `Duration` itself, unlike `DayTimeDuration`/`YearMonthDuration`, only has a
+	# partial order (comparison via four fixed reference `dateTime`s can be
+	# indeterminate, e.g. `P1M <> P30D`); see `Duration`'s `PartialOrd` impl.
+	Datatype.new("Duration", "XSD_DURATION", true, false, [
+		Datatype.new("DayTimeDuration", "XSD_DAY_TIME_DURATION", true, true, []),
+		Datatype.new("YearMonthDuration", "XSD_YEAR_MONTH_DURATION", true, true, []),
 	]),
-	Datatype.new("DateTime", "XSD_DATE_TIME", true, [
-		Datatype.new("DateTimeStamp", "XSD_DATE_TIME_STAMP", true, []),
+	# `DateTime` itself, unlike `DateTimeStamp`, only has a partial order (two
+	# values can be incomparable when only one has a timezone offset).
+	Datatype.new("DateTime", "XSD_DATE_TIME", true, false, [
+		Datatype.new("DateTimeStamp", "XSD_DATE_TIME_STAMP", true, true, []),
 	]),
-	Datatype.new("Time", "XSD_TIME", true, []),
-	Datatype.new("Date", "XSD_DATE", true, []),
-	Datatype.new("GYearMonth", "XSD_G_YEAR_MONTH", true, []),
-	Datatype.new("GYear", "XSD_G_YEAR", true, []),
-	Datatype.new("GMonthDay", "XSD_G_MONTH_DAY", true, []),
-	Datatype.new("GDay", "XSD_G_DAY", true, []),
-	Datatype.new("GMonth", "XSD_G_MONTH", true, []),
-	Datatype.new({ variant: "Base64Binary", owned: "Base64BinaryBuf" }, "XSD_BASE64_BINARY", false, []),
-	Datatype.new({ variant: "HexBinary", owned: "HexBinaryBuf" }, "XSD_HEX_BINARY", false, []),
-	Datatype.new({ variant: "AnyUri", owned: "AnyUriBuf" }, "XSD_ANY_URI", false, []),
-	Datatype.new({ variant: "QName", owned: "QNameBuf" }, "XSD_Q_NAME", false, []),
-	# Datatype.new("Notation", "XSD_NOTATION", false, [])
+	# `Time`/`Date`/`GMonthDay`/`GDay` only have a partial order, for the same
+	# reason as `DateTime`. `GYearMonth`/`GYear`/`GMonth` are always totally
+	# ordered instead: two distinct values are always at least 28 days apart,
+	# which exceeds the `±14:00` offset uncertainty window (28 hours).
+	Datatype.new("Time", "XSD_TIME", true, false, []),
+	Datatype.new("Date", "XSD_DATE", true, false, []),
+	Datatype.new("GYearMonth", "XSD_G_YEAR_MONTH", true, true, []),
+	Datatype.new("GYear", "XSD_G_YEAR", true, true, []),
+	Datatype.new("GMonthDay", "XSD_G_MONTH_DAY", true, false, []),
+	Datatype.new("GDay", "XSD_G_DAY", true, false, []),
+	Datatype.new("GMonth", "XSD_G_MONTH", true, true, []),
+	Datatype.new({ variant: "Base64Binary", owned: "Base64BinaryBuf" }, "XSD_BASE64_BINARY", false, true, []),
+	Datatype.new({ variant: "HexBinary", owned: "HexBinaryBuf" }, "XSD_HEX_BINARY", false, true, []),
+	Datatype.new({ variant: "AnyUri", owned: "AnyUriBuf" }, "XSD_ANY_URI", false, true, []),
+	Datatype.new({ variant: "QName", owned: "QNameBuf" }, "XSD_Q_NAME", false, true, []),
+	# Datatype.new("Notation", "XSD_NOTATION", false, true, [])
 ]
 
 def generate_datatype_enum(classes)
@@ -475,11 +499,11 @@ def generate_datatype_enum(classes)
 	end
 	puts "\t\t}"
 	puts "\t}"
-	puts "\tpub fn parse(&self, value: &str) -> Result<Value, ParseError> {"
+	puts "\tpub fn parse(&self, value: &str) -> Result<Value, ParseXsdError> {"
 	puts "\t\tmatch self {"
 	classes.each do |c|
 		if c.subclasses.empty? then
-			puts "\t\t\tSelf::#{c.name} => ParseXsd::parse_xsd(value).map(Value::#{c.name}).map_err(|_| ParseError),"
+			puts "\t\t\tSelf::#{c.name} => ParseXsd::parse_xsd(value).map(Value::#{c.name}),"
 		else
 			puts "\t\t\tSelf::#{c.name}(t) => t.parse(value).map(Into::into),"
 		end
@@ -497,7 +521,9 @@ end
 
 def generate_value_enum(classes)
 	puts "/// Any XSD value."
-	puts "#[derive(Debug, Clone)]"
+	# `Time`/`Date`/`GMonthDay`/`GDay`/`Duration`/`DateTime` only have a
+	# partial order, so `Value`/`ValueRef` can never derive `Ord`.
+	puts "#[derive(Debug, Clone, PartialEq, Eq, PartialOrd, Hash)]"
 	puts "pub enum Value {"
 	classes.each do |c|
 		c.generate_value_variants
@@ -531,7 +557,7 @@ def generate_value_enum(classes)
 	puts "}"
 
 	puts "/// Any XSD value reference."
-	puts "#[derive(Debug, Clone, Copy)]"
+	puts "#[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Hash)]"
 	puts "pub enum ValueRef<'a> {"
 	classes.each do |c|
 		c.generate_value_ref_variants
@@ -573,9 +599,6 @@ def generate_value_enum(classes)
 	end
 	puts "\t\t}"
 	puts "\t}"
-	puts "\tpub fn cloned(&self) -> Value {"
-	puts "\t\tself.into_owned()"
-	puts "\t}"
 	puts "}"
 
 	puts "impl<'a> XsdValue for ValueRef<'a> {"
@@ -597,11 +620,15 @@ def generate_value_enum(classes)
 	end
 end
 
+puts "// @generated by `ruby utils/generate.rb`. Do not edit directly;"
+puts "// edit the generator instead, then run:"
+puts "//     ruby utils/generate.rb > src/types.rs && cargo fmt"
 puts "use iref::Iri;"
 puts "use std::fmt;"
 puts "use crate::{"
 puts "XsdValue,"
 puts "ParseXsd,"
+puts "ParseXsdError,"
 datatypes.each do |t|
 	t.each_subtype do |t|
 		puts "#{t.iri},"
@@ -618,11 +645,6 @@ datatypes.each do |t|
 	end
 end
 puts "};"
-
-puts "/// XSD value parse error."
-puts "#[derive(Debug, thiserror::Error)]"
-puts "#[error(\"XSD value syntax error\")]"
-puts "pub struct ParseError;"
 
 generate_datatype_enum(datatypes)
 generate_value_enum(datatypes)
