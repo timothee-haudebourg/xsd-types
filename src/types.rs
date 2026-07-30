@@ -521,7 +521,7 @@ impl DateTimeDatatype {
 	}
 }
 /// Any XSD value.
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, PartialEq, Eq, PartialOrd, Hash)]
 pub enum Value {
 	Boolean(Boolean),
 	Float(Float),
@@ -728,7 +728,7 @@ impl fmt::Display for Value {
 	}
 }
 /// Any XSD value reference.
-#[derive(Debug, Clone, Copy)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Hash)]
 pub enum ValueRef<'a> {
 	Boolean(Boolean),
 	Float(Float),
@@ -1579,7 +1579,7 @@ impl<'a> TryFrom<ValueRef<'a>> for NonNegativeIntegerValueRef<'a> {
 	}
 }
 /// Any specialized [`Decimal`] value.
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, PartialEq, Eq, PartialOrd, Ord, Hash)]
 pub enum DecimalValue {
 	Decimal(Decimal),
 	Integer(Integer),
@@ -2041,7 +2041,7 @@ impl TryFrom<IntegerDatatype> for ShortDatatype {
 	}
 }
 /// Any specialized [`Decimal`] value reference.
-#[derive(Debug, Clone, Copy)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash)]
 pub enum DecimalValueRef<'a> {
 	Decimal(&'a Decimal),
 	Integer(&'a Integer),
@@ -2260,7 +2260,7 @@ impl<'a> TryFrom<DecimalValueRef<'a>> for NonNegativeIntegerValueRef<'a> {
 	}
 }
 /// Any specialized [`Integer`] value.
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, PartialEq, Eq, PartialOrd, Ord, Hash)]
 pub enum IntegerValue {
 	Integer(Integer),
 	NonPositiveInteger(NonPositiveInteger),
@@ -2689,7 +2689,7 @@ impl TryFrom<LongDatatype> for ShortDatatype {
 	}
 }
 /// Any specialized [`Integer`] value reference.
-#[derive(Debug, Clone, Copy)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash)]
 pub enum IntegerValueRef<'a> {
 	Integer(&'a Integer),
 	NonPositiveInteger(&'a NonPositiveInteger),
@@ -2859,7 +2859,7 @@ impl<'a> TryFrom<IntegerValueRef<'a>> for NonNegativeIntegerValueRef<'a> {
 	}
 }
 /// Any specialized [`NonPositiveInteger`] value.
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, PartialEq, Eq, PartialOrd, Ord, Hash)]
 pub enum NonPositiveIntegerValue {
 	NonPositiveInteger(NonPositiveInteger),
 	NegativeInteger(NegativeInteger),
@@ -2886,7 +2886,7 @@ impl fmt::Display for NonPositiveIntegerValue {
 	}
 }
 /// Any specialized [`NonPositiveInteger`] value reference.
-#[derive(Debug, Clone, Copy)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash)]
 pub enum NonPositiveIntegerValueRef<'a> {
 	NonPositiveInteger(&'a NonPositiveInteger),
 	NegativeInteger(&'a NegativeInteger),
@@ -2933,7 +2933,7 @@ impl<'a> fmt::Display for NonPositiveIntegerValueRef<'a> {
 	}
 }
 /// Any specialized [`NonNegativeInteger`] value.
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, PartialEq, Eq, PartialOrd, Ord, Hash)]
 pub enum NonNegativeIntegerValue {
 	NonNegativeInteger(NonNegativeInteger),
 	PositiveInteger(PositiveInteger),
@@ -3105,7 +3105,7 @@ impl TryFrom<UnsignedLongDatatype> for UnsignedShortDatatype {
 	}
 }
 /// Any specialized [`NonNegativeInteger`] value reference.
-#[derive(Debug, Clone, Copy)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash)]
 pub enum NonNegativeIntegerValueRef<'a> {
 	NonNegativeInteger(&'a NonNegativeInteger),
 	PositiveInteger(&'a PositiveInteger),
@@ -3184,7 +3184,7 @@ impl<'a> fmt::Display for NonNegativeIntegerValueRef<'a> {
 	}
 }
 /// Any specialized [`UnsignedLong`] value.
-#[derive(Debug, Clone, Copy)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash)]
 pub enum UnsignedLongValue {
 	UnsignedLong(UnsignedLong),
 	UnsignedInt(UnsignedInt),
@@ -3306,7 +3306,7 @@ impl TryFrom<UnsignedIntDatatype> for UnsignedShortDatatype {
 	}
 }
 /// Any specialized [`UnsignedInt`] value.
-#[derive(Debug, Clone, Copy)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash)]
 pub enum UnsignedIntValue {
 	UnsignedInt(UnsignedInt),
 	UnsignedShort(UnsignedShort),
@@ -3391,7 +3391,7 @@ impl UnsignedShortDatatype {
 	}
 }
 /// Any specialized [`UnsignedShort`] value.
-#[derive(Debug, Clone, Copy)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash)]
 pub enum UnsignedShortValue {
 	UnsignedShort(UnsignedShort),
 	UnsignedByte(UnsignedByte),
@@ -3418,7 +3418,7 @@ impl fmt::Display for UnsignedShortValue {
 	}
 }
 /// Any specialized [`Long`] value.
-#[derive(Debug, Clone, Copy)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash)]
 pub enum LongValue {
 	Long(Long),
 	Int(Int),
@@ -3534,7 +3534,7 @@ impl TryFrom<IntDatatype> for ShortDatatype {
 	}
 }
 /// Any specialized [`Int`] value.
-#[derive(Debug, Clone, Copy)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash)]
 pub enum IntValue {
 	Int(Int),
 	Short(Short),
@@ -3615,7 +3615,7 @@ impl ShortDatatype {
 	}
 }
 /// Any specialized [`Short`] value.
-#[derive(Debug, Clone, Copy)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash)]
 pub enum ShortValue {
 	Short(Short),
 	Byte(Byte),
@@ -3988,7 +3988,7 @@ impl<'a> TryFrom<ValueRef<'a>> for NCNameValueRef<'a> {
 	}
 }
 /// Any specialized [`str`] value.
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, PartialEq, Eq, PartialOrd, Ord, Hash)]
 pub enum StringValue {
 	String(String),
 	NormalizedString(NormalizedString),
@@ -4227,7 +4227,7 @@ impl TryFrom<NormalizedStringDatatype> for NCNameDatatype {
 	}
 }
 /// Any specialized [`str`] value reference.
-#[derive(Debug, Clone, Copy)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash)]
 pub enum StringValueRef<'a> {
 	String(&'a str),
 	NormalizedString(&'a NormalizedStr),
@@ -4419,7 +4419,7 @@ impl<'a> TryFrom<StringValueRef<'a>> for NCNameValueRef<'a> {
 	}
 }
 /// Any specialized [`NormalizedStr`] value.
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, PartialEq, Eq, PartialOrd, Ord, Hash)]
 pub enum NormalizedStringValue {
 	NormalizedString(NormalizedString),
 	Token(TokenBuf),
@@ -4617,7 +4617,7 @@ impl TryFrom<TokenDatatype> for NCNameDatatype {
 	}
 }
 /// Any specialized [`NormalizedStr`] value reference.
-#[derive(Debug, Clone, Copy)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash)]
 pub enum NormalizedStringValueRef<'a> {
 	NormalizedString(&'a NormalizedStr),
 	Token(&'a Token),
@@ -4768,7 +4768,7 @@ impl<'a> TryFrom<NormalizedStringValueRef<'a>> for NCNameValueRef<'a> {
 	}
 }
 /// Any specialized [`Token`] value.
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, PartialEq, Eq, PartialOrd, Ord, Hash)]
 pub enum TokenValue {
 	Token(TokenBuf),
 	Language(LanguageBuf),
@@ -4897,7 +4897,7 @@ impl TryFrom<NameDatatype> for NCNameDatatype {
 	}
 }
 /// Any specialized [`Token`] value reference.
-#[derive(Debug, Clone, Copy)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash)]
 pub enum TokenValueRef<'a> {
 	Token(&'a Token),
 	Language(&'a Language),
@@ -5005,7 +5005,7 @@ impl<'a> TryFrom<TokenValueRef<'a>> for NCNameValueRef<'a> {
 	}
 }
 /// Any specialized [`Name`] value.
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, PartialEq, Eq, PartialOrd, Ord, Hash)]
 pub enum NameValue {
 	Name(NameBuf),
 	NCName(NCNameBuf),
@@ -5099,7 +5099,7 @@ impl NCNameDatatype {
 	}
 }
 /// Any specialized [`Name`] value reference.
-#[derive(Debug, Clone, Copy)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash)]
 pub enum NameValueRef<'a> {
 	Name(&'a Name),
 	NCName(&'a NCName),
@@ -5170,7 +5170,7 @@ impl<'a> TryFrom<NameValueRef<'a>> for NCNameValueRef<'a> {
 	}
 }
 /// Any specialized [`NCName`] value.
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, PartialEq, Eq, PartialOrd, Ord, Hash)]
 pub enum NCNameValue {
 	NCName(NCNameBuf),
 	Id(IdBuf),
@@ -5200,7 +5200,7 @@ impl fmt::Display for NCNameValue {
 	}
 }
 /// Any specialized [`NCName`] value reference.
-#[derive(Debug, Clone, Copy)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash)]
 pub enum NCNameValueRef<'a> {
 	NCName(&'a NCName),
 	Id(&'a Id),
@@ -5280,7 +5280,7 @@ impl TryFrom<Value> for DurationValue {
 	}
 }
 /// Any specialized [`Duration`] value.
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, PartialEq, Eq, PartialOrd, Hash)]
 pub enum DurationValue {
 	Duration(Duration),
 	DayTimeDuration(DayTimeDuration),
@@ -5342,7 +5342,7 @@ impl TryFrom<Value> for DateTimeValue {
 	}
 }
 /// Any specialized [`DateTime`] value.
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, PartialEq, Eq, PartialOrd, Hash)]
 pub enum DateTimeValue {
 	DateTime(DateTime),
 	DateTimeStamp(DateTimeStamp),
