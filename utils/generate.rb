@@ -13,7 +13,14 @@ class Datatype
 	attr_reader :iri
 	attr_reader :subclasses
 
-	def initialize(name, iri, copy, ord, subclasses)
+	# `cmp` is the strongest comparison capability this datatype's own value
+	# type has, one of:
+	# - `:ord` — `PartialEq`, `Eq`, `PartialOrd`, `Ord`, `Hash` (most types).
+	# - `:eq`  — `PartialEq`, `Eq`, `PartialOrd`, `Hash`, but no `Ord` (e.g.
+	#            `Duration`, `DateTime`: only a partial order).
+	# - `nil`  — `PartialEq`, `PartialOrd` only (`Float`/`Double`: `NaN` isn't
+	#            even equal to itself, so `Eq`/`Ord`/`Hash` don't apply).
+	def initialize(name, iri, copy, cmp, subclasses)
 		if name.class == String then
 			@name = name
 			@owned_name = name
@@ -26,7 +33,7 @@ class Datatype
 
 		@iri = iri
 		@copy = copy
-		@ord = ord
+		@cmp = cmp
 		@subclasses = subclasses
 	end
 
@@ -34,10 +41,15 @@ class Datatype
 		@copy
 	end
 
+	# Whether this datatype's own value type has `Eq`/`Hash` at all.
+	def has_eq?
+		@cmp == :ord || @cmp == :eq
+	end
+
 	# Whether this datatype's own value type has a total order (`Ord`), as
 	# opposed to merely a partial order (`PartialOrd`).
 	def has_ord?
-		@ord
+		@cmp == :ord
 	end
 
 	def generate_datatype_enum
@@ -113,9 +125,11 @@ class Datatype
 		puts "/// Any specialized [`#{@ref_name}`] value."
 		traits = ["Debug", "Clone"]
 		traits << "Copy" if self.is_copy?
-		traits += ["PartialEq", "Eq", "PartialOrd"]
+		traits << "PartialEq"
+		traits << "Eq" if self.has_eq?
+		traits << "PartialOrd"
 		traits << "Ord" if self.has_ord?
-		traits << "Hash"
+		traits << "Hash" if self.has_eq?
 		puts "#[derive(#{traits.join(", ")})]"
 		puts "pub enum #{@name}Value {"
 		self.generate_value_variants
@@ -156,9 +170,11 @@ class Datatype
 
 		if self.any_subtype? { |c| !c.is_copy? } then
 			puts "/// Any specialized [`#{@ref_name}`] value reference."
-			traits = ["Debug", "Clone", "Copy", "PartialEq", "Eq", "PartialOrd"]
+			traits = ["Debug", "Clone", "Copy", "PartialEq"]
+			traits << "Eq" if self.has_eq?
+			traits << "PartialOrd"
 			traits << "Ord" if self.has_ord?
-			traits << "Hash"
+			traits << "Hash" if self.has_eq?
 			puts "#[derive(#{traits.join(", ")})]"
 			puts "pub enum #{@name}ValueRef<'a> {"
 			self.generate_value_ref_variants
@@ -387,75 +403,77 @@ class Datatype
 end
 
 datatypes = [
-	Datatype.new("Boolean", "XSD_BOOLEAN", true, true, []),
-	Datatype.new("Float", "XSD_FLOAT", true, true, []),
-	Datatype.new("Double", "XSD_DOUBLE", true, true, []),
-	Datatype.new("Decimal", "XSD_DECIMAL", false, true, [
-		Datatype.new("Integer", "XSD_INTEGER", false, true, [
-			Datatype.new("NonPositiveInteger", "XSD_NON_POSITIVE_INTEGER", false, true, [
-				Datatype.new("NegativeInteger", "XSD_NEGATIVE_INTEGER", false, true, [])
+	Datatype.new("Boolean", "XSD_BOOLEAN", true, :ord, []),
+	# `NaN` isn't even equal to itself, so `Float`/`Double` have neither `Eq`
+	# nor `Ord` (only `PartialEq`/`PartialOrd`, matching `f32`/`f64` exactly).
+	Datatype.new("Float", "XSD_FLOAT", true, nil, []),
+	Datatype.new("Double", "XSD_DOUBLE", true, nil, []),
+	Datatype.new("Decimal", "XSD_DECIMAL", false, :ord, [
+		Datatype.new("Integer", "XSD_INTEGER", false, :ord, [
+			Datatype.new("NonPositiveInteger", "XSD_NON_POSITIVE_INTEGER", false, :ord, [
+				Datatype.new("NegativeInteger", "XSD_NEGATIVE_INTEGER", false, :ord, [])
 			]),
-			Datatype.new("NonNegativeInteger", "XSD_NON_NEGATIVE_INTEGER", false, true, [
-				Datatype.new("PositiveInteger", "XSD_POSITIVE_INTEGER", false, true, []),
-				Datatype.new("UnsignedLong", "XSD_UNSIGNED_LONG", true, true, [
-					Datatype.new("UnsignedInt", "XSD_UNSIGNED_INT", true, true, [
-						Datatype.new("UnsignedShort", "XSD_UNSIGNED_SHORT", true, true, [
-							Datatype.new("UnsignedByte", "XSD_UNSIGNED_BYTE", true, true, [])
+			Datatype.new("NonNegativeInteger", "XSD_NON_NEGATIVE_INTEGER", false, :ord, [
+				Datatype.new("PositiveInteger", "XSD_POSITIVE_INTEGER", false, :ord, []),
+				Datatype.new("UnsignedLong", "XSD_UNSIGNED_LONG", true, :ord, [
+					Datatype.new("UnsignedInt", "XSD_UNSIGNED_INT", true, :ord, [
+						Datatype.new("UnsignedShort", "XSD_UNSIGNED_SHORT", true, :ord, [
+							Datatype.new("UnsignedByte", "XSD_UNSIGNED_BYTE", true, :ord, [])
 						])
 					])
 				])
 			]),
-			Datatype.new("Long", "XSD_LONG", true, true, [
-				Datatype.new("Int", "XSD_INT", true, true, [
-					Datatype.new("Short", "XSD_SHORT", true, true, [
-						Datatype.new("Byte", "XSD_BYTE", true, true, [])
+			Datatype.new("Long", "XSD_LONG", true, :ord, [
+				Datatype.new("Int", "XSD_INT", true, :ord, [
+					Datatype.new("Short", "XSD_SHORT", true, :ord, [
+						Datatype.new("Byte", "XSD_BYTE", true, :ord, [])
 					])
 				])
 			])
 		])
 	]),
-	Datatype.new({ variant: "String", owned: "String", ref: "str" }, "XSD_STRING", false, true, [
-		Datatype.new({ variant: "NormalizedString", owned: "NormalizedString", ref: "NormalizedStr" }, "XSD_NORMALIZED_STRING", false, true, [
-			Datatype.new({ variant: "Token", owned: "TokenBuf" }, "XSD_TOKEN", false, true, [
-				Datatype.new({ variant: "Language", owned: "LanguageBuf" }, "XSD_LANGUAGE", false, true, []),
-				Datatype.new({ variant: "Name", owned: "NameBuf" }, "XSD_NAME", false, true, [
-					Datatype.new({ variant: "NCName", owned: "NCNameBuf" }, "XSD_NC_NAME", false, true, [
-						Datatype.new({ variant: "Id", owned: "IdBuf" }, "XSD_ID", false, true, []),
-						Datatype.new({ variant: "IdRef", owned: "IdRefBuf" }, "XSD_IDREF", false, true, []),
+	Datatype.new({ variant: "String", owned: "String", ref: "str" }, "XSD_STRING", false, :ord, [
+		Datatype.new({ variant: "NormalizedString", owned: "NormalizedString", ref: "NormalizedStr" }, "XSD_NORMALIZED_STRING", false, :ord, [
+			Datatype.new({ variant: "Token", owned: "TokenBuf" }, "XSD_TOKEN", false, :ord, [
+				Datatype.new({ variant: "Language", owned: "LanguageBuf" }, "XSD_LANGUAGE", false, :ord, []),
+				Datatype.new({ variant: "Name", owned: "NameBuf" }, "XSD_NAME", false, :ord, [
+					Datatype.new({ variant: "NCName", owned: "NCNameBuf" }, "XSD_NC_NAME", false, :ord, [
+						Datatype.new({ variant: "Id", owned: "IdBuf" }, "XSD_ID", false, :ord, []),
+						Datatype.new({ variant: "IdRef", owned: "IdRefBuf" }, "XSD_IDREF", false, :ord, []),
 					])
 				]),
-				Datatype.new({ variant: "NMToken", owned: "NMTokenBuf" }, "XSD_NMTOKEN", false, true, []),
+				Datatype.new({ variant: "NMToken", owned: "NMTokenBuf" }, "XSD_NMTOKEN", false, :ord, []),
 			])
 		])
 	]),
 	# `Duration` itself, unlike `DayTimeDuration`/`YearMonthDuration`, only has a
 	# partial order (comparison via four fixed reference `dateTime`s can be
 	# indeterminate, e.g. `P1M <> P30D`); see `Duration`'s `PartialOrd` impl.
-	Datatype.new("Duration", "XSD_DURATION", true, false, [
-		Datatype.new("DayTimeDuration", "XSD_DAY_TIME_DURATION", true, true, []),
-		Datatype.new("YearMonthDuration", "XSD_YEAR_MONTH_DURATION", true, true, []),
+	Datatype.new("Duration", "XSD_DURATION", true, :eq, [
+		Datatype.new("DayTimeDuration", "XSD_DAY_TIME_DURATION", true, :ord, []),
+		Datatype.new("YearMonthDuration", "XSD_YEAR_MONTH_DURATION", true, :ord, []),
 	]),
 	# `DateTime` itself, unlike `DateTimeStamp`, only has a partial order (two
 	# values can be incomparable when only one has a timezone offset).
-	Datatype.new("DateTime", "XSD_DATE_TIME", true, false, [
-		Datatype.new("DateTimeStamp", "XSD_DATE_TIME_STAMP", true, true, []),
+	Datatype.new("DateTime", "XSD_DATE_TIME", true, :eq, [
+		Datatype.new("DateTimeStamp", "XSD_DATE_TIME_STAMP", true, :ord, []),
 	]),
 	# `Time`/`Date`/`GMonthDay`/`GDay` only have a partial order, for the same
 	# reason as `DateTime`. `GYearMonth`/`GYear`/`GMonth` are always totally
 	# ordered instead: two distinct values are always at least 28 days apart,
 	# which exceeds the `±14:00` offset uncertainty window (28 hours).
-	Datatype.new("Time", "XSD_TIME", true, false, []),
-	Datatype.new("Date", "XSD_DATE", true, false, []),
-	Datatype.new("GYearMonth", "XSD_G_YEAR_MONTH", true, true, []),
-	Datatype.new("GYear", "XSD_G_YEAR", true, true, []),
-	Datatype.new("GMonthDay", "XSD_G_MONTH_DAY", true, false, []),
-	Datatype.new("GDay", "XSD_G_DAY", true, false, []),
-	Datatype.new("GMonth", "XSD_G_MONTH", true, true, []),
-	Datatype.new({ variant: "Base64Binary", owned: "Base64BinaryBuf" }, "XSD_BASE64_BINARY", false, true, []),
-	Datatype.new({ variant: "HexBinary", owned: "HexBinaryBuf" }, "XSD_HEX_BINARY", false, true, []),
-	Datatype.new({ variant: "AnyUri", owned: "AnyUriBuf" }, "XSD_ANY_URI", false, true, []),
-	Datatype.new({ variant: "QName", owned: "QNameBuf" }, "XSD_Q_NAME", false, true, []),
-	# Datatype.new("Notation", "XSD_NOTATION", false, true, [])
+	Datatype.new("Time", "XSD_TIME", true, :eq, []),
+	Datatype.new("Date", "XSD_DATE", true, :eq, []),
+	Datatype.new("GYearMonth", "XSD_G_YEAR_MONTH", true, :ord, []),
+	Datatype.new("GYear", "XSD_G_YEAR", true, :ord, []),
+	Datatype.new("GMonthDay", "XSD_G_MONTH_DAY", true, :eq, []),
+	Datatype.new("GDay", "XSD_G_DAY", true, :eq, []),
+	Datatype.new("GMonth", "XSD_G_MONTH", true, :ord, []),
+	Datatype.new({ variant: "Base64Binary", owned: "Base64BinaryBuf" }, "XSD_BASE64_BINARY", false, :ord, []),
+	Datatype.new({ variant: "HexBinary", owned: "HexBinaryBuf" }, "XSD_HEX_BINARY", false, :ord, []),
+	Datatype.new({ variant: "AnyUri", owned: "AnyUriBuf" }, "XSD_ANY_URI", false, :ord, []),
+	Datatype.new({ variant: "QName", owned: "QNameBuf" }, "XSD_Q_NAME", false, :ord, []),
+	# Datatype.new("Notation", "XSD_NOTATION", false, :ord, [])
 ]
 
 def generate_datatype_enum(classes)
@@ -522,8 +540,10 @@ end
 def generate_value_enum(classes)
 	puts "/// Any XSD value."
 	# `Time`/`Date`/`GMonthDay`/`GDay`/`Duration`/`DateTime` only have a
-	# partial order, so `Value`/`ValueRef` can never derive `Ord`.
-	puts "#[derive(Debug, Clone, PartialEq, Eq, PartialOrd, Hash)]"
+	# partial order, so `Value`/`ValueRef` can never derive `Ord`. `Float`/
+	# `Double` don't even have `Eq`/`Hash` (`NaN` is incomparable with itself),
+	# so `Value`/`ValueRef` can't derive those either.
+	puts "#[derive(Debug, Clone, PartialEq, PartialOrd)]"
 	puts "pub enum Value {"
 	classes.each do |c|
 		c.generate_value_variants
@@ -557,7 +577,7 @@ def generate_value_enum(classes)
 	puts "}"
 
 	puts "/// Any XSD value reference."
-	puts "#[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Hash)]"
+	puts "#[derive(Debug, Clone, Copy, PartialEq, PartialOrd)]"
 	puts "pub enum ValueRef<'a> {"
 	classes.each do |c|
 		c.generate_value_ref_variants

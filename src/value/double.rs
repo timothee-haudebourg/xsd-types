@@ -5,44 +5,44 @@ use std::{
 	str::FromStr,
 };
 
-use ordered_float::OrderedFloat;
-
 use crate::{
 	lexical::{self, Lexical, LexicalFormOf},
 	Datatype, ParseXsd, XsdValue,
 };
 
-#[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash)]
-pub struct Double(OrderedFloat<f64>);
+/// XSD `double`.
+#[derive(Debug, Clone, Copy, PartialEq, PartialOrd)]
+#[repr(transparent)]
+pub struct Double(pub f64);
 
 impl Double {
-	pub const NEG_INFINITY: Self = Self(OrderedFloat(f64::NEG_INFINITY));
-	pub const INFINITY: Self = Self(OrderedFloat(f64::INFINITY));
-	pub const MIN: Self = Self(OrderedFloat(f64::MIN));
-	pub const MAX: Self = Self(OrderedFloat(f64::MAX));
-	pub const NAN: Self = Self(OrderedFloat(f64::NAN));
+	pub const NEG_INFINITY: Self = Self(f64::NEG_INFINITY);
+	pub const INFINITY: Self = Self(f64::INFINITY);
+	pub const MIN: Self = Self(f64::MIN);
+	pub const MAX: Self = Self(f64::MAX);
+	pub const NAN: Self = Self(f64::NAN);
 
 	#[inline(always)]
 	pub fn new(f: f64) -> Self {
-		Self(OrderedFloat(f))
+		Self(f)
 	}
 
 	/// Returns `true` if this value is NaN.
 	#[inline(always)]
 	pub fn is_nan(&self) -> bool {
-		self.0 .0.is_nan()
+		self.0.is_nan()
 	}
 
 	/// Returns `true` if this number is neither infinite nor NaN.
 	#[inline(always)]
 	pub fn is_finite(&self) -> bool {
-		self.0 .0.is_finite()
+		self.0.is_finite()
 	}
 
 	/// Returns `true` if this value is positive infinity or negative infinity, and `false` otherwise.
 	#[inline(always)]
 	pub fn is_infinite(&self) -> bool {
-		self.0 .0.is_infinite()
+		self.0.is_infinite()
 	}
 
 	/// Returns `true` if `self` has a positive sign, including +0.0, NaNs with
@@ -57,7 +57,7 @@ impl Double {
 	/// for more info.
 	#[inline(always)]
 	pub fn is_positive(&self) -> bool {
-		self.0 .0.is_sign_positive()
+		self.0.is_sign_positive()
 	}
 
 	/// Returns `false` if `self` has a negative sign, including -0.0, NaNs with
@@ -72,13 +72,13 @@ impl Double {
 	/// for more info.
 	#[inline(always)]
 	pub fn is_negative(&self) -> bool {
-		self.0 .0.is_sign_negative()
+		self.0.is_sign_negative()
 	}
 
 	/// Converts this value into a `f64`.
 	#[inline(always)]
 	pub const fn into_f64(self) -> f64 {
-		self.0 .0
+		self.0
 	}
 }
 
@@ -89,7 +89,7 @@ const XSD_CANONICAL_DOUBLE: pretty_dtoa::FmtFloatConfig = pretty_dtoa::FmtFloatC
 
 impl fmt::Display for Double {
 	fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-		pretty_dtoa::dtoa(self.0 .0, XSD_CANONICAL_DOUBLE).fmt(f)
+		pretty_dtoa::dtoa(self.0, XSD_CANONICAL_DOUBLE).fmt(f)
 	}
 }
 
@@ -171,19 +171,19 @@ impl<'de> serde::Deserialize<'de> for Double {
 
 impl From<f32> for Double {
 	fn from(value: f32) -> Self {
-		Self(OrderedFloat(value as f64))
+		Self(value as f64)
 	}
 }
 
 impl From<f64> for Double {
 	fn from(value: f64) -> Self {
-		Self(OrderedFloat(value))
+		Self(value)
 	}
 }
 
 impl From<Double> for f64 {
 	fn from(value: Double) -> Self {
-		value.0 .0
+		value.0
 	}
 }
 
@@ -217,7 +217,7 @@ impl Add for Double {
 	type Output = Self;
 
 	fn add(self, rhs: Self) -> Self::Output {
-		Self(OrderedFloat(*self.0 + *rhs.0))
+		Self(self.0 + rhs.0)
 	}
 }
 
@@ -225,7 +225,7 @@ impl Sub for Double {
 	type Output = Self;
 
 	fn sub(self, rhs: Self) -> Self::Output {
-		Self(OrderedFloat(*self.0 - *rhs.0))
+		Self(self.0 - rhs.0)
 	}
 }
 
@@ -233,7 +233,7 @@ impl Mul for Double {
 	type Output = Self;
 
 	fn mul(self, rhs: Self) -> Self::Output {
-		Self(OrderedFloat(*self.0 * *rhs.0))
+		Self(self.0 * rhs.0)
 	}
 }
 
@@ -241,6 +241,31 @@ impl Div for Double {
 	type Output = Self;
 
 	fn div(self, rhs: Self) -> Self::Output {
-		Self(OrderedFloat(*self.0 / *rhs.0))
+		Self(self.0 / rhs.0)
+	}
+}
+
+#[cfg(test)]
+mod tests {
+	use super::*;
+
+	// <https://www.w3.org/TR/xmlschema11-2/#double>: "NaN ≠ NaN", and "NaN is
+	// incomparable with any value in the value space including itself".
+	#[test]
+	fn nan_is_not_equal_to_itself() {
+		assert_ne!(Double::NAN, Double::NAN);
+	}
+
+	#[test]
+	fn nan_is_incomparable() {
+		assert_eq!(Double::NAN.partial_cmp(&Double::NAN), None);
+		assert_eq!(Double::NAN.partial_cmp(&Double::new(0.0)), None);
+	}
+
+	// <https://www.w3.org/TR/xmlschema11-2/#double>: "0 = −0 (although they are
+	// not identical)".
+	#[test]
+	fn positive_and_negative_zero_are_equal() {
+		assert_eq!(Double::new(0.0), Double::new(-0.0));
 	}
 }

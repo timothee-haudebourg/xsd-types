@@ -480,7 +480,7 @@ impl DateTimeDatatype {
 	}
 }
 /// Any XSD value.
-#[derive(Debug, Clone, PartialEq, Eq, PartialOrd, Hash)]
+#[derive(Debug, Clone, PartialEq, PartialOrd)]
 pub enum Value {
 	Boolean(Boolean),
 	Float(Float),
@@ -687,7 +687,7 @@ impl fmt::Display for Value {
 	}
 }
 /// Any XSD value reference.
-#[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Hash)]
+#[derive(Debug, Clone, Copy, PartialEq, PartialOrd)]
 pub enum ValueRef<'a> {
 	Boolean(Boolean),
 	Float(Float),
