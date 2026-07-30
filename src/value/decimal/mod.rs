@@ -1,14 +1,14 @@
+use std::cell::OnceCell;
 use std::fmt;
 use std::hash::Hash;
 use std::ops::Deref;
 use std::str::FromStr;
+use std::sync::LazyLock;
 use std::{borrow::Borrow, collections::HashSet};
 
-use lazy_static::lazy_static;
 use num_bigint::BigInt;
 use num_rational::BigRational;
 use num_traits::{Signed, ToPrimitive, Zero};
-use once_cell::unsync::OnceCell;
 
 use crate::lexical::{Lexical, LexicalFormOf};
 use crate::{
@@ -23,25 +23,23 @@ mod integer;
 
 pub use integer::*;
 
-lazy_static! {
-	static ref I64_MIN: BigInt = i64::MIN.into();
-	static ref I64_MIN_RATIO: BigRational = I64_MIN.clone().into();
-	static ref I32_MIN: BigInt = i32::MIN.into();
-	static ref I32_MIN_RATIO: BigRational = I32_MIN.clone().into();
-	static ref I16_MIN: BigInt = i16::MIN.into();
-	static ref I16_MIN_RATIO: BigRational = I16_MIN.clone().into();
-	static ref I8_MIN: BigInt = i8::MIN.into();
-	static ref I8_MIN_RATIO: BigRational = I8_MIN.clone().into();
-	static ref U64_MAX: BigInt = u64::MAX.into();
-	static ref U64_MAX_RATIO: BigRational = U64_MAX.clone().into();
-	static ref U32_MAX: BigInt = u32::MAX.into();
-	static ref U32_MAX_RATIO: BigRational = U32_MAX.clone().into();
-	static ref U16_MAX: BigInt = u16::MAX.into();
-	static ref U16_MAX_RATIO: BigRational = U16_MAX.clone().into();
-	static ref U8_MAX: BigInt = u8::MAX.into();
-	static ref U8_MAX_RATIO: BigRational = U8_MAX.clone().into();
-	static ref TEN: BigInt = 10u32.into();
-}
+static I64_MIN: LazyLock<BigInt> = LazyLock::new(|| i64::MIN.into());
+static I64_MIN_RATIO: LazyLock<BigRational> = LazyLock::new(|| I64_MIN.clone().into());
+static I32_MIN: LazyLock<BigInt> = LazyLock::new(|| i32::MIN.into());
+static I32_MIN_RATIO: LazyLock<BigRational> = LazyLock::new(|| I32_MIN.clone().into());
+static I16_MIN: LazyLock<BigInt> = LazyLock::new(|| i16::MIN.into());
+static I16_MIN_RATIO: LazyLock<BigRational> = LazyLock::new(|| I16_MIN.clone().into());
+static I8_MIN: LazyLock<BigInt> = LazyLock::new(|| i8::MIN.into());
+static I8_MIN_RATIO: LazyLock<BigRational> = LazyLock::new(|| I8_MIN.clone().into());
+static U64_MAX: LazyLock<BigInt> = LazyLock::new(|| u64::MAX.into());
+static U64_MAX_RATIO: LazyLock<BigRational> = LazyLock::new(|| U64_MAX.clone().into());
+static U32_MAX: LazyLock<BigInt> = LazyLock::new(|| u32::MAX.into());
+static U32_MAX_RATIO: LazyLock<BigRational> = LazyLock::new(|| U32_MAX.clone().into());
+static U16_MAX: LazyLock<BigInt> = LazyLock::new(|| u16::MAX.into());
+static U16_MAX_RATIO: LazyLock<BigRational> = LazyLock::new(|| U16_MAX.clone().into());
+static U8_MAX: LazyLock<BigInt> = LazyLock::new(|| u8::MAX.into());
+static U8_MAX_RATIO: LazyLock<BigRational> = LazyLock::new(|| U8_MAX.clone().into());
+static TEN: LazyLock<BigInt> = LazyLock::new(|| 10u32.into());
 
 /// Decimal number.
 ///
