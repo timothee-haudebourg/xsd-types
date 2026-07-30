@@ -1,19 +1,19 @@
-use iref::{InvalidUri, Uri, UriBuf};
+use iref::{InvalidIri, Iri, IriBuf};
 
 use super::{Lexical, LexicalFormOf};
 
-impl Lexical for Uri {
-	type Error = InvalidUri<String>;
+impl Lexical for Iri {
+	type Error = InvalidIri<String>;
 
 	fn parse(value: &str) -> Result<&Self, Self::Error> {
-		Uri::new(value).map_err(|_| InvalidUri(value.to_owned()))
+		Iri::new(value).map_err(|_| InvalidIri(value.to_owned()))
 	}
 }
 
-impl LexicalFormOf<UriBuf> for Uri {
+impl LexicalFormOf<IriBuf> for Iri {
 	type ValueError = std::convert::Infallible;
 
-	fn try_as_value(&self) -> Result<UriBuf, Self::ValueError> {
+	fn try_as_value(&self) -> Result<IriBuf, Self::ValueError> {
 		Ok(self.to_owned())
 	}
 }
