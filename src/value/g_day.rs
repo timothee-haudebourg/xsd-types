@@ -7,6 +7,15 @@ use crate::{
 use core::fmt;
 use std::{cmp::Ordering, hash::Hash, str::FromStr};
 
+/// A recurring day of the month, optionally with a timezone offset.
+///
+/// This is the value space of the XSD `gDay` datatype: a decoded day number
+/// paired with an optional XSD timezone offset, as opposed to its lexical
+/// (string) representation, [`lexical::GDay`](crate::lexical::GDay).
+/// Equality and ordering follow XSD's partial order over timezone offsets: an
+/// absent offset stands for the full `-14:00..=+14:00` range, so two days
+/// can compare as neither equal nor ordered.
+/// See: <https://www.w3.org/TR/xmlschema11-2/#gDay>.
 #[derive(Debug, Clone, Copy)]
 pub struct GDay {
 	day: u8,
@@ -14,6 +23,8 @@ pub struct GDay {
 }
 
 impl GDay {
+	/// Creates a new `GDay`, or returns `None` if `day` is outside `1..=31`,
+	/// or `offset` is outside the `-14:00..=+14:00` range permitted by XSD.
 	pub fn new(day: u8, offset: Option<time::UtcOffset>) -> Option<Self> {
 		if (1..=31).contains(&day) && offset.is_none_or(is_valid_offset) {
 			Some(Self { day, offset })

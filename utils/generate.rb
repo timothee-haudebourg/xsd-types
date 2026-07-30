@@ -8,6 +8,12 @@ def variant(name, pattern)
 	end
 end
 
+def a_or_an(word, capitalize = false)
+	article = "AEIOU".include?(word[0]) ? "an" : "a"
+	article = article.capitalize if capitalize
+	"#{article} `#{word}`"
+end
+
 class Datatype
 	attr_reader :name, :owned_name, :ref_name
 	attr_reader :iri
@@ -57,12 +63,15 @@ class Datatype
 		puts "#[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash)]"
 		puts "pub enum #{@name}Datatype {"
 
+		puts "\t/// The plain `#{@name}` datatype, not any of the specializations below."
 		puts "\t#{@name},"
 
 		@subclasses.each do |c|
 			if c.subclasses.empty? then
+				puts "\t/// The `#{c.name}` datatype."
 				puts "\t#{c.name},"
 			else
+				puts "\t/// #{a_or_an(c.name, true)} (or further specialized) datatype."
 				puts "\t#{c.name}(#{c.name}Datatype),"
 			end
 		end
@@ -70,6 +79,7 @@ class Datatype
 		puts "}"
 
 		puts "impl #{@name}Datatype {"
+		puts "\t/// Returns the `#{@name}` datatype (or specialization) matching `iri`, if any."
 		puts "\tpub fn from_iri(iri: &Iri) -> Option<Self> {"
 		puts "\t\tif iri == #{@iri} {"
 		puts "\t\t\treturn Some(Self::#{@name})"
@@ -87,6 +97,7 @@ class Datatype
 		end
 		puts "\t\tNone"
 		puts "\t}"
+		puts "\t/// Returns the IRI naming this datatype."
 		puts "\tpub fn iri(&self) -> &'static Iri {"
 		puts "\t\tmatch self {"
 		puts "\t\t\tSelf::#{@name} => #{@iri},"
@@ -99,6 +110,7 @@ class Datatype
 		end
 		puts "\t\t}"
 		puts "\t}"
+		puts "\t/// Parses `value` as a lexical representation of this specific datatype."
 		puts "\tpub fn parse(&self, value: &str) -> Result<#{@name}Value, ParseXsdError> {"
 		puts "\t\tmatch self {"
 		puts "\t\t\tSelf::#{@name} => ParseXsd::parse_xsd(value).map(#{@name}Value::#{@name}),"
@@ -136,6 +148,7 @@ class Datatype
 		puts "}"
 
 		puts "impl #{@name}Value {"
+		puts "\t/// Returns the specific datatype of this value."
 		puts "\tpub fn datatype(&self) -> #{@name}Datatype {"
 		puts "\t\tmatch self {"
 		puts "\t\t\tSelf::#{@name}(_) => #{@name}Datatype::#{@name},"
@@ -181,6 +194,7 @@ class Datatype
 			puts "}"
 
 			puts "impl #{@name}Value {"
+			puts "\t/// Borrows this value."
 			puts "\tpub fn as_ref(&self) -> #{@name}ValueRef<'_> {"
 			puts "\t\tmatch self {"
 			self.generate_value_variants_as_ref("#{@name}ValueRef")
@@ -189,6 +203,7 @@ class Datatype
 			puts "}"
 
 			puts "impl<'a> #{@name}ValueRef<'a> {"
+			puts "\t/// Returns the specific datatype of this value."
 			puts "\tpub fn datatype(&self) -> #{@name}Datatype {"
 			puts "\t\tmatch self {"
 			puts "\t\t\tSelf::#{@name}(_) => #{@name}Datatype::#{@name},"
@@ -197,6 +212,7 @@ class Datatype
 			end
 			puts "\t\t}"
 			puts "\t}"
+			puts "\t/// Clones the referenced data into an owned value."
 			puts "\tpub fn into_owned(self) -> #{@name}Value {"
 			puts "\t\tmatch self {"
 			self.generate_value_ref_variants_to_owned("#{@name}Value")
@@ -352,12 +368,14 @@ class Datatype
 
 	def generate_value_variants
 		self.each_subtype do |t|
+			puts "\t/// #{a_or_an(t.name, true)} value."
 			puts "\t#{t.name}(#{t.owned_name}),"
 		end
 	end
 
 	def generate_value_ref_variants
 		self.each_subtype do |t|
+			puts "\t/// A reference to #{a_or_an(t.name)} value."
 			if t.is_copy? then
 				puts "\t#{t.name}(#{t.ref_name}),"
 			else
@@ -483,8 +501,10 @@ def generate_datatype_enum(classes)
 
 	classes.each do |c|
 		if c.subclasses.empty? then
+			puts "\t/// The `#{c.name}` datatype."
 			puts "\t#{c.name},"
 		else
+			puts "\t/// #{a_or_an(c.name, true)} (or further specialized) datatype."
 			puts "\t#{c.name}(#{c.name}Datatype),"
 		end
 	end
@@ -492,6 +512,7 @@ def generate_datatype_enum(classes)
 	puts "}"
 
 	puts "impl Datatype {"
+	puts "\t/// Returns the datatype matching `iri`, if any."
 	puts "\tpub fn from_iri(iri: &Iri) -> Option<Self> {"
 	classes.each do |c|
 		if c.subclasses.empty? then
@@ -506,6 +527,7 @@ def generate_datatype_enum(classes)
 	end
 	puts "\t\tNone"
 	puts "\t}"
+	puts "\t/// Returns the IRI naming this datatype."
 	puts "\tpub fn iri(&self) -> &'static Iri {"
 	puts "\t\tmatch self {"
 	classes.each do |c|
@@ -517,6 +539,7 @@ def generate_datatype_enum(classes)
 	end
 	puts "\t\t}"
 	puts "\t}"
+	puts "\t/// Parses `value` as a lexical representation of this specific datatype."
 	puts "\tpub fn parse(&self, value: &str) -> Result<Value, ParseXsdError> {"
 	puts "\t\tmatch self {"
 	classes.each do |c|
@@ -551,6 +574,7 @@ def generate_value_enum(classes)
 	puts "}"
 
 	puts "impl Value {"
+	puts "\t/// Returns the datatype of this value."
 	puts "\tpub fn datatype(&self) -> Datatype {"
 	puts "\t\tmatch self {"
 	classes.each do |c|
@@ -595,6 +619,7 @@ def generate_value_enum(classes)
 	puts "}"
 
 	puts "impl Value {"
+	puts "\t/// Borrows this value."
 	puts "\tpub fn as_ref(&self) -> ValueRef<'_> {"
 	puts "\t\tmatch self {"
 	classes.each do |c|
@@ -605,6 +630,7 @@ def generate_value_enum(classes)
 	puts "}"
 
 	puts "impl<'a> ValueRef<'a> {"
+	puts "\t/// Returns the datatype of this value."
 	puts "\tpub fn datatype(&self) -> Datatype {"
 	puts "\t\tmatch self {"
 	classes.each do |c|
@@ -612,6 +638,7 @@ def generate_value_enum(classes)
 	end
 	puts "\t\t}"
 	puts "\t}"
+	puts "\t/// Clones the referenced data into an owned value."
 	puts "\tpub fn into_owned(self) -> Value {"
 	puts "\t\tmatch self {"
 	classes.each do |c|

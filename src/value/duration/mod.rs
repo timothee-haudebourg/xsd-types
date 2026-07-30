@@ -12,6 +12,12 @@ pub use day_time_duration::*;
 pub mod year_month_duration;
 pub use year_month_duration::*;
 
+/// Duration value.
+///
+/// Value space representation of the `duration` datatype, storing a sign,
+/// a number of months, and a number of seconds (with sub-second
+/// nanoseconds), as described by the XSD 1.1 Datatypes specification.
+/// See: <https://www.w3.org/TR/xmlschema11-2/#duration>.
 #[derive(Debug, Clone, Copy)]
 pub struct Duration {
 	is_negative: bool,
@@ -21,6 +27,11 @@ pub struct Duration {
 }
 
 impl Duration {
+	/// Creates a new duration from its sign, number of months, number of
+	/// seconds, and sub-second nanoseconds.
+	///
+	/// The `nano_seconds` value is normalized into `seconds` if it is
+	/// greater than or equal to one billion.
 	pub fn new(is_negative: bool, months: u32, mut seconds: u32, mut nano_seconds: u32) -> Self {
 		// Normalize nanoseconds.
 		let s = nano_seconds / 1_000_000_000;
@@ -37,6 +48,8 @@ impl Duration {
 		}
 	}
 
+	/// Converts this duration into its canonical lexical string
+	/// representation.
 	pub fn into_string(self) -> String {
 		self.to_string()
 	}

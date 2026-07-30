@@ -9,14 +9,22 @@ use crate::{
 mod date_time_stamp;
 pub use date_time_stamp::*;
 
+/// Error raised when trying to convert a [`DateTime`] without a timezone
+/// offset into a representation that requires one (e.g. `time::OffsetDateTime`
+/// or a `chrono::DateTime`).
 #[derive(Debug, thiserror::Error)]
 #[error("missing timezone")]
 pub struct MissingTimezone;
 
+/// Error raised when the components of a [`DateTime`] do not form a valid
+/// date and time (e.g. an out-of-range day for the given month, or a
+/// timezone offset outside the range permitted by XSD).
 #[derive(Debug, thiserror::Error)]
 #[error("invalid datetime value")]
 pub struct InvalidDateTimeValue;
 
+/// Error raised when a timezone offset falls outside the
+/// `-14:00..=+14:00` range permitted by XSD.
 #[derive(Debug, thiserror::Error)]
 #[error("timezone offset out of range")]
 pub struct InvalidOffset;
@@ -27,6 +35,17 @@ pub(crate) fn is_valid_offset(offset: time::UtcOffset) -> bool {
 	(-14 * 60 * 60..=14 * 60 * 60).contains(&offset.whole_seconds())
 }
 
+/// A date and time, optionally with a timezone offset.
+///
+/// This is the value space of the XSD `dateTime` datatype: a decoded
+/// `time::PrimitiveDateTime` paired with an optional XSD timezone offset, as
+/// opposed to its lexical (string) representation,
+/// [`lexical::DateTime`](crate::lexical::DateTime). For a variant that
+/// requires the timezone offset to always be present, see [`DateTimeStamp`].
+/// Equality and ordering follow XSD's partial order over timezone offsets: an
+/// absent offset stands for the full `-14:00..=+14:00` range, so two values
+/// can compare as neither equal nor ordered.
+/// See: <https://www.w3.org/TR/xmlschema11-2/#dateTime>.
 #[derive(Debug, Clone, Copy)]
 pub struct DateTime {
 	date_time: time::PrimitiveDateTime,
@@ -92,6 +111,7 @@ impl DateTime {
 			.unwrap()
 	}
 
+	/// Converts this `DateTime` into its lexical (string) representation.
 	pub fn into_string(self) -> String {
 		self.to_string()
 	}
@@ -323,6 +343,9 @@ impl fmt::Display for DisplayYear {
 	}
 }
 
+/// Error raised when parsing a [`DateTime`] from a string, either because
+/// the input is not a syntactically valid `dateTime` lexical representation,
+/// or because it does not denote a valid date/time value.
 #[derive(Debug, thiserror::Error)]
 pub enum DateTimeFromStrError {
 	#[error("invalid date syntax")]

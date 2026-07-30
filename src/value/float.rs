@@ -10,18 +10,33 @@ use crate::{
 	Datatype, ParseXsd, XsdValue,
 };
 
-/// XSD `float`.
+/// Value space of the XSD `float` datatype.
+///
+/// This is the decoded counterpart of [`lexical::Float`]: it stores the
+/// parsed IEEE 754 single-precision floating point value rather than its
+/// lexical (string) representation.
+/// See: <https://www.w3.org/TR/xmlschema11-2/#float>.
 #[derive(Debug, Clone, Copy, PartialEq, PartialOrd)]
 #[repr(transparent)]
 pub struct Float(pub f32);
 
 impl Float {
+	/// Negative infinity.
 	pub const NEG_INFINITY: Self = Self(f32::NEG_INFINITY);
+
+	/// Positive infinity.
 	pub const INFINITY: Self = Self(f32::INFINITY);
+
+	/// Smallest finite `float` value.
 	pub const MIN: Self = Self(f32::MIN);
+
+	/// Largest finite `float` value.
 	pub const MAX: Self = Self(f32::MAX);
+
+	/// Not a Number (NaN).
 	pub const NAN: Self = Self(f32::NAN);
 
+	/// Creates a new `float` value from the given `f32`.
 	#[inline(always)]
 	pub fn new(f: f32) -> Self {
 		Self(f)

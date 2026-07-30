@@ -7,6 +7,14 @@ use crate::{
 use core::fmt;
 use std::{cmp::Ordering, hash::Hash, str::FromStr};
 
+/// A year, optionally with a timezone offset.
+///
+/// This is the value space of the XSD `gYear` datatype: a decoded year number
+/// paired with an optional XSD timezone offset, as opposed to its lexical
+/// (string) representation, [`lexical::GYear`](crate::lexical::GYear).
+/// Two distinct years are always far enough apart that they remain totally
+/// ordered even accounting for the `±14:00` offset uncertainty window.
+/// See: <https://www.w3.org/TR/xmlschema11-2/#gYear>.
 #[derive(Debug, Clone, Copy)]
 pub struct GYear {
 	year: i32,

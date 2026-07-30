@@ -19,22 +19,30 @@ const CHARS: [char; 64] = [
 
 const PADDING: char = '=';
 
+/// Error raised when decoding an invalid base64-encoded byte string.
 #[derive(Debug, thiserror::Error)]
 #[error("invalid base64")]
 pub struct InvalidBase64;
 
+/// Decoded `base64Binary` value, as an owned byte buffer.
+///
+/// This is the value-space representation of the XSD 1.1 `base64Binary`
+/// datatype. See: <https://www.w3.org/TR/xmlschema11-2/#base64Binary>.
 #[derive(Debug, Default, Clone, PartialEq, Eq, PartialOrd, Ord, Hash)]
 pub struct Base64BinaryBuf(Vec<u8>);
 
 impl Base64BinaryBuf {
+	/// Creates a new, empty `base64Binary` value.
 	pub fn new() -> Self {
 		Self::default()
 	}
 
+	/// Creates a `base64Binary` value from already-decoded raw bytes.
 	pub fn from_bytes(bytes: Vec<u8>) -> Self {
 		Self(bytes)
 	}
 
+	/// Decodes a base64-encoded byte string into its raw bytes.
 	pub fn decode(input: impl AsRef<[u8]>) -> Result<Self, InvalidBase64> {
 		let input = input.as_ref();
 		let mut bytes = Vec::with_capacity(input.len() * 3 / 4);
@@ -68,18 +76,22 @@ impl Base64BinaryBuf {
 		Ok(Self(bytes))
 	}
 
+	/// Consumes the buffer, returning the raw decoded bytes.
 	pub fn into_bytes(self) -> Vec<u8> {
 		self.0
 	}
 
+	/// Returns the raw decoded bytes as a slice.
 	pub fn as_bytes(&self) -> &[u8] {
 		&self.0
 	}
 
+	/// Borrows `self` as a [`Base64Binary`] slice.
 	pub fn as_base64_binary(&self) -> &Base64Binary {
 		Base64Binary::new(&self.0)
 	}
 
+	/// Mutably borrows `self` as a [`Base64Binary`] slice.
 	pub fn as_base64_binary_mut(&mut self) -> &mut Base64Binary {
 		Base64Binary::new_mut(&mut self.0)
 	}
@@ -204,19 +216,29 @@ impl<'de> serde::Deserialize<'de> for Base64BinaryBuf {
 	}
 }
 
+/// Decoded `base64Binary` value, as a borrowed byte slice.
+///
+/// This is the borrowed counterpart of [`Base64BinaryBuf`], analogous to how
+/// `str` relates to `String`.
+/// See: <https://www.w3.org/TR/xmlschema11-2/#base64Binary>.
 #[derive(Debug, PartialEq, Eq, PartialOrd, Ord, Hash)]
 #[repr(transparent)]
 pub struct Base64Binary([u8]);
 
 impl Base64Binary {
+	/// Wraps a byte slice as a [`Base64Binary`] value, without copying it.
 	pub fn new(bytes: &[u8]) -> &Self {
 		unsafe { std::mem::transmute(bytes) }
 	}
 
+	/// Wraps a mutable byte slice as a [`Base64Binary`] value, without
+	/// copying it.
 	pub fn new_mut(bytes: &mut [u8]) -> &mut Self {
 		unsafe { std::mem::transmute(bytes) }
 	}
 
+	/// Returns an iterator over the base64-encoded characters representing
+	/// this value.
 	pub fn chars(&self) -> Chars<'_> {
 		Chars {
 			offset: 0,
@@ -226,6 +248,7 @@ impl Base64Binary {
 		}
 	}
 
+	/// Returns the raw decoded bytes as a slice.
 	pub fn as_bytes(&self) -> &[u8] {
 		&self.0
 	}
@@ -267,6 +290,8 @@ impl ToOwned for Base64Binary {
 	}
 }
 
+/// Iterator over the base64-encoded characters representing a
+/// [`Base64Binary`] value.
 pub struct Chars<'a> {
 	offset: u8,
 	rest: u8,

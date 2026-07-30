@@ -3,7 +3,9 @@ use str_newtype::StrNewType;
 
 use crate::lexical::{Lexical, LexicalFormOf};
 
-/// ID.
+/// NCName.
+///
+/// See: <https://www.w3.org/TR/xmlschema11-2/#NCName>.
 ///
 /// ```abnf
 /// NCName        = (Letter / "_") *NCNameChar

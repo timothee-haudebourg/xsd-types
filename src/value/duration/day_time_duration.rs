@@ -6,6 +6,11 @@ use crate::{
 use core::fmt;
 use std::{cmp::Ordering, hash::Hash, str::FromStr};
 
+/// Day time duration value.
+///
+/// Value space representation of the `dayTimeDuration` datatype, a
+/// restriction of `duration` where the number of months is always zero.
+/// See: <https://www.w3.org/TR/xmlschema11-2/#dayTimeDuration>.
 #[derive(Debug, Clone, Copy)]
 pub struct DayTimeDuration {
 	is_negative: bool,
@@ -14,6 +19,11 @@ pub struct DayTimeDuration {
 }
 
 impl DayTimeDuration {
+	/// Creates a new day time duration from its sign, number of seconds, and
+	/// sub-second nanoseconds.
+	///
+	/// The `nano_seconds` value is normalized into `seconds` if it is
+	/// greater than or equal to one billion.
 	pub fn new(is_negative: bool, mut seconds: u32, mut nano_seconds: u32) -> Self {
 		// Normalize nanoseconds.
 		let s = nano_seconds / 1_000_000_000;
@@ -29,6 +39,8 @@ impl DayTimeDuration {
 		}
 	}
 
+	/// Converts this duration into its canonical lexical string
+	/// representation.
 	pub fn into_string(self) -> String {
 		self.to_string()
 	}

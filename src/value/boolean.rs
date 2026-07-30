@@ -5,6 +5,10 @@ use crate::{
 	Datatype, ParseXsd, XsdValue,
 };
 
+/// Boolean value.
+///
+/// This is the value-space representation of the XSD 1.1 `boolean` datatype.
+/// See: <https://www.w3.org/TR/xmlschema11-2/#boolean>.
 #[derive(Debug, Default, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash)]
 pub struct Boolean(pub bool);
 

@@ -7,10 +7,22 @@ use crate::{
 use core::fmt;
 use std::{cmp::Ordering, hash::Hash, str::FromStr};
 
+/// Error raised when the components of a [`Date`] do not form a valid date
+/// (e.g. an out-of-range day for the given month, or a timezone offset
+/// outside the range permitted by XSD).
 #[derive(Debug, thiserror::Error)]
 #[error("invalid date value")]
 pub struct InvalidDateValue;
 
+/// A date, optionally with a timezone offset.
+///
+/// This is the value space of the XSD `date` datatype: a decoded `time::Date`
+/// paired with an optional XSD timezone offset, as opposed to its lexical
+/// (string) representation, [`lexical::Date`](crate::lexical::Date).
+/// Equality and ordering follow XSD's partial order over timezone offsets: an
+/// absent offset stands for the full `-14:00..=+14:00` range, so two dates
+/// can compare as neither equal nor ordered.
+/// See: <https://www.w3.org/TR/xmlschema11-2/#date>.
 #[derive(Debug, Clone, Copy)]
 pub struct Date {
 	date: time::Date,
@@ -79,6 +91,9 @@ impl PartialOrd for Date {
 	}
 }
 
+/// Error raised when parsing a [`Date`] from a string, either because the
+/// input is not a syntactically valid `date` lexical representation, or
+/// because it does not denote a valid date value.
 #[derive(Debug, thiserror::Error)]
 pub enum DateFromStrError {
 	#[error("invalid date syntax")]

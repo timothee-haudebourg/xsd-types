@@ -6,10 +6,23 @@ use crate::{
 	Datatype, DateTimeDatatype, DisplayYear, ParseXsd, XsdValue,
 };
 
+/// Error raised when the components of a [`DateTimeStamp`] do not form a
+/// valid date and time (e.g. an out-of-range day for the given month, or a
+/// timezone offset outside the range permitted by XSD).
 #[derive(Debug, thiserror::Error)]
 #[error("invalid datetimestamp value")]
 pub struct InvalidDateTimeStampValue;
 
+/// A date and time with a required timezone offset.
+///
+/// This is the value space of the XSD `dateTimeStamp` datatype: a decoded
+/// `time::PrimitiveDateTime` paired with a mandatory XSD timezone offset, as
+/// opposed to its lexical (string) representation,
+/// [`lexical::DateTimeStamp`](crate::lexical::DateTimeStamp). Unlike
+/// [`DateTime`](crate::DateTime), the offset is never absent, so two
+/// `DateTimeStamp` values are always totally ordered by the instant they
+/// represent.
+/// See: <https://www.w3.org/TR/xmlschema11-2/#dateTimeStamp>.
 #[derive(Debug, Clone, Copy)]
 pub struct DateTimeStamp {
 	date_time: time::PrimitiveDateTime,
@@ -74,6 +87,7 @@ impl DateTimeStamp {
 			.unwrap()
 	}
 
+	/// Converts this `DateTimeStamp` into its lexical (string) representation.
 	pub fn into_string(self) -> String {
 		self.to_string()
 	}
@@ -177,6 +191,9 @@ impl fmt::Display for DateTimeStamp {
 	}
 }
 
+/// Error raised when parsing a [`DateTimeStamp`] from a string, either
+/// because the input is not a syntactically valid `dateTimeStamp` lexical
+/// representation, or because it does not denote a valid date/time value.
 #[derive(Debug, thiserror::Error)]
 pub enum DateTimeStampFromStrError {
 	#[error("invalid date syntax")]

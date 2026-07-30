@@ -7,6 +7,15 @@ use crate::{
 use core::fmt;
 use std::{cmp::Ordering, hash::Hash, str::FromStr};
 
+/// A recurring month of the year, optionally with a timezone offset.
+///
+/// This is the value space of the XSD `gMonth` datatype: a decoded month
+/// number paired with an optional XSD timezone offset, as opposed to its
+/// lexical (string) representation, [`lexical::GMonth`](crate::lexical::GMonth).
+/// Two distinct months are always far enough apart (at least 28 days) that
+/// they remain totally ordered even accounting for the `±14:00` offset
+/// uncertainty window.
+/// See: <https://www.w3.org/TR/xmlschema11-2/#gMonth>.
 #[derive(Debug, Clone, Copy)]
 pub struct GMonth {
 	month: u8,
@@ -14,6 +23,9 @@ pub struct GMonth {
 }
 
 impl GMonth {
+	/// Creates a new `GMonth`, or returns `None` if `month` is outside
+	/// `1..=12`, or `offset` is outside the `-14:00..=+14:00` range permitted
+	/// by XSD.
 	pub fn new(month: u8, offset: Option<time::UtcOffset>) -> Option<Self> {
 		if (1..=12).contains(&month) && offset.is_none_or(is_valid_offset) {
 			Some(Self { month, offset })

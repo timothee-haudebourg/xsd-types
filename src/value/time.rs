@@ -7,10 +7,22 @@ use crate::{
 use core::fmt;
 use std::{cmp::Ordering, hash::Hash, str::FromStr};
 
+/// Error raised when the components of a [`Time`] do not form a valid time
+/// (e.g. an out-of-range hour/minute/second, or a timezone offset outside
+/// the range permitted by XSD).
 #[derive(Debug, thiserror::Error)]
 #[error("invalid time value")]
 pub struct InvalidTimeValue;
 
+/// A time of day, optionally with a timezone offset.
+///
+/// This is the value space of the XSD `time` datatype: a decoded `time::Time`
+/// paired with an optional XSD timezone offset, as opposed to its lexical
+/// (string) representation, [`lexical::Time`](crate::lexical::Time).
+/// Equality and ordering follow XSD's partial order over timezone offsets: an
+/// absent offset stands for the full `-14:00..=+14:00` range, so two times
+/// can compare as neither equal nor ordered.
+/// See: <https://www.w3.org/TR/xmlschema11-2/#time>.
 #[derive(Debug, Clone, Copy)]
 pub struct Time {
 	time: time::Time,
@@ -85,6 +97,9 @@ impl XsdValue for Time {
 	}
 }
 
+/// Error raised when parsing a [`Time`] from a string, either because the
+/// input is not a syntactically valid `time` lexical representation, or
+/// because it does not denote a valid time value.
 #[derive(Debug, thiserror::Error)]
 pub enum TimeFromStrError {
 	#[error("invalid time syntax")]

@@ -9,6 +9,16 @@ use std::{cmp::Ordering, hash::Hash, str::FromStr};
 
 const MONTH_MAX_LEN: [u8; 12] = [31, 29, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31];
 
+/// A recurring month and day, optionally with a timezone offset.
+///
+/// This is the value space of the XSD `gMonthDay` datatype: decoded month and
+/// day numbers paired with an optional XSD timezone offset, as opposed to its
+/// lexical (string) representation,
+/// [`lexical::GMonthDay`](crate::lexical::GMonthDay).
+/// Equality and ordering follow XSD's partial order over timezone offsets: an
+/// absent offset stands for the full `-14:00..=+14:00` range, so two values
+/// can compare as neither equal nor ordered.
+/// See: <https://www.w3.org/TR/xmlschema11-2/#gMonthDay>.
 #[derive(Debug, Clone, Copy)]
 pub struct GMonthDay {
 	month: u8,
@@ -17,6 +27,9 @@ pub struct GMonthDay {
 }
 
 impl GMonthDay {
+	/// Creates a new `GMonthDay`, or returns `None` if `month` is not in
+	/// `1..=12`, `day` is not a valid day for that month, or `offset` is
+	/// outside the `-14:00..=+14:00` range permitted by XSD.
 	pub fn new(month: u8, day: u8, offset: Option<time::UtcOffset>) -> Option<Self> {
 		if !offset.is_none_or(is_valid_offset) {
 			return None;

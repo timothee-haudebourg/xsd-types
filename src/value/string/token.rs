@@ -3,15 +3,24 @@ use std::{borrow::Borrow, ops::Deref, str::FromStr};
 
 use crate::{lexical::Lexical, ParseXsd};
 
+/// Error raised when a string is not a valid `token` value.
 #[derive(Debug, thiserror::Error)]
 #[error("invalid token `{0}`")]
 pub struct InvalidToken<T = String>(pub T);
 
+/// Token value.
+///
+/// Value space representation of the XSD `token` datatype: a [`str`]
+/// guaranteed to contain no tab, line feed, or carriage return character,
+/// no leading or trailing space, and no sequence of two or more
+/// consecutive spaces.
+/// See: <https://www.w3.org/TR/xmlschema11-2/#token>.
 #[derive(Debug, PartialEq, Eq, PartialOrd, Ord, Hash)]
 #[repr(transparent)]
 pub struct Token(str);
 
 impl Token {
+	/// Parses and validates the given string as a token.
 	pub fn new(value: &str) -> Result<&Self, InvalidToken<&str>> {
 		if Self::validate(value) {
 			Ok(unsafe { Self::new_unchecked(value) })
@@ -54,6 +63,7 @@ impl Token {
 		std::mem::transmute(value)
 	}
 
+	/// Returns this token as a plain [`str`].
 	pub fn as_str(&self) -> &str {
 		&self.0
 	}
@@ -73,10 +83,15 @@ impl ToOwned for Token {
 	}
 }
 
+/// Owned token value.
+///
+/// Owned variant of [`Token`].
+/// See: <https://www.w3.org/TR/xmlschema11-2/#token>.
 #[derive(Debug, Clone, PartialEq, Eq, PartialOrd, Ord, Hash)]
 pub struct TokenBuf(String);
 
 impl TokenBuf {
+	/// Parses and validates the given string as a token.
 	pub fn new(value: String) -> Result<Self, InvalidToken> {
 		if Token::validate(&value) {
 			Ok(Self(value))
@@ -94,10 +109,12 @@ impl TokenBuf {
 		Self(value)
 	}
 
+	/// Borrows this owned token as a [`Token`].
 	pub fn as_token(&self) -> &Token {
 		unsafe { Token::new_unchecked(self.0.as_str()) }
 	}
 
+	/// Converts this token into a plain [`String`].
 	pub fn into_string(self) -> String {
 		self.0
 	}

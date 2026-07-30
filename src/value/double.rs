@@ -10,18 +10,33 @@ use crate::{
 	Datatype, ParseXsd, XsdValue,
 };
 
-/// XSD `double`.
+/// Value space of the XSD `double` datatype.
+///
+/// This is the decoded counterpart of [`lexical::Double`]: it stores the
+/// parsed IEEE 754 double-precision floating point value rather than its
+/// lexical (string) representation.
+/// See: <https://www.w3.org/TR/xmlschema11-2/#double>.
 #[derive(Debug, Clone, Copy, PartialEq, PartialOrd)]
 #[repr(transparent)]
 pub struct Double(pub f64);
 
 impl Double {
+	/// Negative infinity.
 	pub const NEG_INFINITY: Self = Self(f64::NEG_INFINITY);
+
+	/// Positive infinity.
 	pub const INFINITY: Self = Self(f64::INFINITY);
+
+	/// Smallest finite `double` value.
 	pub const MIN: Self = Self(f64::MIN);
+
+	/// Largest finite `double` value.
 	pub const MAX: Self = Self(f64::MAX);
+
+	/// Not a Number (NaN).
 	pub const NAN: Self = Self(f64::NAN);
 
+	/// Creates a new `double` value from the given `f64`.
 	#[inline(always)]
 	pub fn new(f: f64) -> Self {
 		Self(f)

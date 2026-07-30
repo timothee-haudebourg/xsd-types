@@ -5,6 +5,11 @@ use crate::{
 use core::fmt;
 use std::{cmp::Ordering, hash::Hash, str::FromStr};
 
+/// Year month duration value.
+///
+/// Value space representation of the `yearMonthDuration` datatype, a
+/// restriction of `duration` where the number of seconds is always zero.
+/// See: <https://www.w3.org/TR/xmlschema11-2/#yearMonthDuration>.
 #[derive(Debug, Clone, Copy)]
 pub struct YearMonthDuration {
 	is_negative: bool,
@@ -12,6 +17,7 @@ pub struct YearMonthDuration {
 }
 
 impl YearMonthDuration {
+	/// Creates a new year month duration from its sign and number of months.
 	pub fn new(is_negative: bool, months: u32) -> Self {
 		Self {
 			is_negative,
@@ -19,6 +25,8 @@ impl YearMonthDuration {
 		}
 	}
 
+	/// Converts this duration into its canonical lexical string
+	/// representation.
 	pub fn into_string(self) -> String {
 		self.to_string()
 	}

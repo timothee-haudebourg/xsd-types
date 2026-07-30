@@ -5,6 +5,8 @@ use crate::lexical::{Lexical, LexicalFormOf};
 
 /// Language.
 ///
+/// See: <https://www.w3.org/TR/xmlschema11-2/#language>.
+///
 /// ```abnf
 /// language = 1*8ALPHA *("-" 1*8(ALPHA / DIGIT))
 /// ```

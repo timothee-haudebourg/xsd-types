@@ -17,6 +17,7 @@ use crate::{
 	UnsignedIntDatatype, UnsignedLongDatatype, UnsignedShortDatatype, XsdValue,
 };
 
+/// Sign of a decimal or integer value, re-exported from [`num_bigint`].
 pub use num_bigint::Sign;
 
 mod integer;
@@ -42,6 +43,10 @@ static U8_MAX_RATIO: LazyLock<BigRational> = LazyLock::new(|| U8_MAX.clone().int
 static TEN: LazyLock<BigInt> = LazyLock::new(|| 10u32.into());
 
 /// Decimal number.
+///
+/// This is the value-space counterpart of [`lexical::Decimal`]: it stores
+/// the decoded number rather than its lexical (string) representation.
+/// See: <https://www.w3.org/TR/xmlschema11-2/#decimal>.
 ///
 /// Internally a decimal number is represented as a `BigRational` with a finite
 /// decimal representation.
@@ -94,6 +99,12 @@ pub struct DecimalCheck {
 }
 
 impl DecimalCheck {
+	/// Returns `true` if the given rational number has a finite decimal
+	/// representation.
+	///
+	/// Reuses internal scratch state across calls, so repeated calls on the
+	/// same `DecimalCheck` are slightly cheaper than calling the free
+	/// function [`is_decimal`] repeatedly.
 	pub fn is_decimal(&mut self, r: &BigRational) -> bool {
 		self.set.clear();
 
@@ -174,16 +185,19 @@ impl Decimal {
 		}
 	}
 
+	/// Returns a reference to the underlying `BigRational` value.
 	#[inline(always)]
 	pub fn as_big_rational(&self) -> &BigRational {
 		&self.data
 	}
 
+	/// Converts this decimal number into its underlying `BigRational` value.
 	#[inline(always)]
 	pub fn into_big_rational(self) -> BigRational {
 		self.data
 	}
 
+	/// Returns the decimal number `0`.
 	#[inline(always)]
 	pub fn zero() -> Self {
 		Self {
@@ -192,21 +206,26 @@ impl Decimal {
 		}
 	}
 
+	/// Returns `true` if this value is zero.
 	#[inline(always)]
 	pub fn is_zero(&self) -> bool {
 		self.data.is_zero()
 	}
 
+	/// Returns `true` if this value is strictly positive.
 	#[inline(always)]
 	pub fn is_positive(&self) -> bool {
 		self.data.is_positive()
 	}
 
+	/// Returns `true` if this value is strictly negative.
 	#[inline(always)]
 	pub fn is_negative(&self) -> bool {
 		self.data.is_negative()
 	}
 
+	/// Returns this value as an [`Integer`] reference, if it has no
+	/// fractional part.
 	pub fn as_integer(&self) -> Option<&Integer> {
 		if self.data.is_integer() {
 			Some(Integer::from_bigint_ref(self.data.numer()))
@@ -215,6 +234,7 @@ impl Decimal {
 		}
 	}
 
+	/// Converts this value into an [`Integer`], if it has no fractional part.
 	pub fn into_integer(self) -> Option<Integer> {
 		if self.data.is_integer() {
 			Some(Integer::from(self.data.numer().clone())) // TODO avoid cloning.
@@ -223,6 +243,9 @@ impl Decimal {
 		}
 	}
 
+	/// Returns the most specific XSD decimal-derived datatype that can
+	/// represent this value (e.g. `int`, `nonNegativeInteger`, or `decimal`
+	/// itself).
 	pub fn decimal_type(&self) -> DecimalDatatype {
 		if self.data.is_integer() {
 			if self.data >= BigRational::zero() {
@@ -257,24 +280,34 @@ impl Decimal {
 		}
 	}
 
+	/// Returns the canonical lexical representation of this decimal number,
+	/// computing and caching it on first access.
 	#[inline(always)]
 	pub fn lexical_representation(&self) -> &lexical::DecimalBuf {
 		self.lexical
 			.get_or_init(|| decimal_lexical_representation(&self.data).unwrap())
 	}
 
+	/// Converts this value to an `f64`, or returns `None` if it cannot be
+	/// represented.
 	pub fn as_f64(&self) -> Option<f64> {
 		self.data.to_f64()
 	}
 
+	/// Converts this value to an `f32`, or returns `None` if it cannot be
+	/// represented.
 	pub fn as_f32(&self) -> Option<f32> {
 		self.data.to_f32()
 	}
 
+	/// Converts this value into a [`Float`] (XSD `float`), if it can be
+	/// represented as an `f32`.
 	pub fn as_float(&self) -> Option<Float> {
 		self.as_f32().map(Float::from)
 	}
 
+	/// Converts this value into a [`Double`] (XSD `double`), if it can be
+	/// represented as an `f64`.
 	pub fn as_double(&self) -> Option<Double> {
 		self.as_f64().map(Double::from)
 	}
@@ -377,6 +410,8 @@ macro_rules! try_into_int {
 	};
 }
 
+/// Error raised when a [`Decimal`] cannot be converted into the target
+/// numeric type (e.g. it has a fractional part or is out of range).
 #[derive(Debug, thiserror::Error)]
 #[error("decimal number conversion failed")]
 pub struct FromDecimalError;
@@ -538,14 +573,20 @@ impl<'de> serde::Deserialize<'de> for Decimal {
 	}
 }
 
+/// Error raised when trying to convert a non-finite [`Float`] or [`Double`]
+/// (NaN or infinite) into a [`Decimal`], which has no representation for
+/// such values.
 #[derive(Debug, thiserror::Error)]
 pub enum NonDecimalFloat {
+	/// The float is NaN.
 	#[error("float is NaN")]
 	Nan,
 
+	/// The float is positive infinity.
 	#[error("float is positive infinity")]
 	PositiveInfinity,
 
+	/// The float is negative infinity.
 	#[error("float is negative infinity")]
 	NegativeInfinity,
 }

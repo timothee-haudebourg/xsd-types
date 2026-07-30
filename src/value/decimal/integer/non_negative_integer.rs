@@ -18,6 +18,14 @@ use crate::{
 
 use super::Sign;
 
+/// Non negative integer number.
+///
+/// This is the value-space counterpart of [`lexical::NonNegativeInteger`].
+/// Like its lexical form, `nonNegativeInteger` has no numbered grammar
+/// production of its own in the XSD 1.1 Datatypes specification: it is
+/// defined by restricting [`Integer`]'s value space with a `minInclusive`
+/// of 0.
+/// See: <https://www.w3.org/TR/xmlschema11-2/#nonNegativeInteger>.
 #[derive(Clone, PartialEq, Eq, PartialOrd, Ord, Hash, Debug)]
 pub struct NonNegativeInteger(BigInt);
 
@@ -63,29 +71,39 @@ impl NonNegativeInteger {
 		Self(BigInt::from_signed_bytes_le(bytes))
 	}
 
+	/// Creates a non negative integer from its signed big endian bytes
+	/// representation, failing if the represented value is negative.
 	pub fn from_signed_bytes_be(bytes: &[u8]) -> Result<Self, IntegerIsNegative> {
 		Integer::from_signed_bytes_be(bytes).try_into()
 	}
 
+	/// Creates a non negative integer from its signed little endian bytes
+	/// representation, failing if the represented value is negative.
 	pub fn from_signed_bytes_le(bytes: &[u8]) -> Result<Self, IntegerIsNegative> {
 		Integer::from_signed_bytes_le(bytes).try_into()
 	}
 
+	/// Converts this value into its underlying `BigInt`.
 	#[inline(always)]
 	pub fn into_big_int(self) -> BigInt {
 		self.0
 	}
 
+	/// Returns the non negative integer `0`.
 	#[inline(always)]
 	pub fn zero() -> Self {
 		Self(BigInt::zero())
 	}
 
+	/// Returns `true` if this value is zero.
 	#[inline(always)]
 	pub fn is_zero(&self) -> bool {
 		self.0.is_zero()
 	}
 
+	/// Returns the most specific XSD non-negative-integer-derived datatype
+	/// that can represent this value (e.g. `unsignedByte`, `unsignedInt`,
+	/// `positiveInteger`, ...).
 	pub fn non_negative_integer_type(&self) -> NonNegativeIntegerDatatype {
 		if self.0 <= *U8_MAX {
 			UnsignedShortDatatype::UnsignedByte.into()
@@ -110,18 +128,26 @@ impl NonNegativeInteger {
 		}
 	}
 
+	/// Returns the sign and unsigned big-endian bytes representation of this
+	/// value.
 	pub fn to_bytes_be(&self) -> (Sign, Vec<u8>) {
 		self.0.to_bytes_be()
 	}
 
+	/// Returns the sign and unsigned little-endian bytes representation of
+	/// this value.
 	pub fn to_bytes_le(&self) -> (Sign, Vec<u8>) {
 		self.0.to_bytes_le()
 	}
 
+	/// Returns the two's-complement big-endian bytes representation of this
+	/// value.
 	pub fn to_signed_bytes_be(&self) -> Vec<u8> {
 		self.0.to_signed_bytes_be()
 	}
 
+	/// Returns the two's-complement little-endian bytes representation of
+	/// this value.
 	pub fn to_signed_bytes_le(&self) -> Vec<u8> {
 		self.0.to_signed_bytes_le()
 	}
@@ -232,6 +258,8 @@ impl Borrow<BigInt> for NonNegativeInteger {
 	}
 }
 
+/// Error raised when trying to convert a negative [`Integer`] into a
+/// [`NonNegativeInteger`].
 #[derive(Debug, thiserror::Error)]
 #[error("integer {0} is negative")]
 pub struct IntegerIsNegative(Integer);
@@ -262,6 +290,8 @@ macro_rules! from {
 
 from!(u8, u16, u32, u64, usize);
 
+/// Error raised when converting a [`NonNegativeInteger`] into a smaller
+/// target integer type that cannot represent its value.
 #[derive(Debug, thiserror::Error)]
 #[error("integer out of supported bounds: {0}")]
 pub struct NonNegativeIntegerOutOfTargetBounds(pub NonNegativeInteger);
@@ -430,6 +460,14 @@ impl LexicalFormOf<UnsignedByte> for lexical::NonNegativeInteger {
 	}
 }
 
+/// Positive integer number.
+///
+/// This is the value-space counterpart of [`lexical::PositiveInteger`].
+/// Like its lexical form, `positiveInteger` has no numbered grammar
+/// production of its own in the XSD 1.1 Datatypes specification: it is
+/// defined by restricting [`NonNegativeInteger`]'s value space with a
+/// `minInclusive` of 1.
+/// See: <https://www.w3.org/TR/xmlschema11-2/#positiveInteger>.
 #[derive(Clone, PartialEq, Eq, PartialOrd, Ord, Hash, Debug)]
 pub struct PositiveInteger(BigInt);
 
@@ -475,26 +513,36 @@ impl PositiveInteger {
 		Self(BigInt::from_signed_bytes_le(bytes))
 	}
 
+	/// Converts this value into its underlying `BigInt`.
 	pub fn into_big_int(self) -> BigInt {
 		self.0
 	}
 
+	/// Returns `true` if this value is `1`.
 	pub fn is_one(&self) -> bool {
 		matches!(u8::try_from(&self.0), Ok(1))
 	}
 
+	/// Returns the sign and unsigned big-endian bytes representation of this
+	/// value.
 	pub fn to_bytes_be(&self) -> (Sign, Vec<u8>) {
 		self.0.to_bytes_be()
 	}
 
+	/// Returns the sign and unsigned little-endian bytes representation of
+	/// this value.
 	pub fn to_bytes_le(&self) -> (Sign, Vec<u8>) {
 		self.0.to_bytes_le()
 	}
 
+	/// Returns the two's-complement big-endian bytes representation of this
+	/// value.
 	pub fn to_signed_bytes_be(&self) -> Vec<u8> {
 		self.0.to_signed_bytes_be()
 	}
 
+	/// Returns the two's-complement little-endian bytes representation of
+	/// this value.
 	pub fn to_signed_bytes_le(&self) -> Vec<u8> {
 		self.0.to_signed_bytes_le()
 	}

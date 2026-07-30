@@ -50,12 +50,21 @@ impl From<Value> for std::string::String {
 	}
 }
 
+/// A [`Value`] that is either borrowed as a [`ValueRef`] or owned.
+///
+/// This is the value-space equivalent of [`std::borrow::Cow`], used to avoid
+/// unnecessary cloning when a value is already available by reference.
 pub enum CowValue<'a> {
+	/// A borrowed value.
 	Borrowed(ValueRef<'a>),
+
+	/// An owned value.
 	Owned(Value),
 }
 
 impl<'a> CowValue<'a> {
+	/// Returns this value as a [`ValueRef`], borrowing from the owned
+	/// variant if necessary.
 	pub fn as_value_ref(&self) -> ValueRef<'_> {
 		match self {
 			Self::Borrowed(v) => *v,
@@ -63,6 +72,8 @@ impl<'a> CowValue<'a> {
 		}
 	}
 
+	/// Converts `self` into an owned [`Value`], cloning it if it was
+	/// borrowed.
 	pub fn into_owned(self) -> Value {
 		match self {
 			Self::Borrowed(v) => v.into_owned(),

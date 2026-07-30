@@ -1,5 +1,8 @@
 use crate::{Datatype, ParseXsd, XsdValue};
 
+/// IRI, used as the value-space representation of the XSD 1.1 `anyURI`
+/// datatype.
+/// See: <https://www.w3.org/TR/xmlschema11-2/#anyURI>.
 pub type AnyUri = iref::Iri;
 
 impl XsdValue for AnyUri {
@@ -8,6 +11,9 @@ impl XsdValue for AnyUri {
 	}
 }
 
+/// Owned IRI buffer, used as the value-space representation of the XSD 1.1
+/// `anyURI` datatype.
+/// See: <https://www.w3.org/TR/xmlschema11-2/#anyURI>.
 pub type AnyUriBuf = iref::IriBuf;
 
 impl XsdValue for AnyUriBuf {

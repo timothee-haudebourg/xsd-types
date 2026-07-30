@@ -7,6 +7,16 @@ use crate::{
 use core::fmt;
 use std::{cmp::Ordering, hash::Hash, str::FromStr};
 
+/// A year and month, optionally with a timezone offset.
+///
+/// This is the value space of the XSD `gYearMonth` datatype: decoded year
+/// and month numbers paired with an optional XSD timezone offset, as opposed
+/// to its lexical (string) representation,
+/// [`lexical::GYearMonth`](crate::lexical::GYearMonth).
+/// Two distinct (year, month) pairs are always far enough apart (at least 28
+/// days) that they remain totally ordered even accounting for the `±14:00`
+/// offset uncertainty window.
+/// See: <https://www.w3.org/TR/xmlschema11-2/#gYearMonth>.
 #[derive(Debug, Clone, Copy)]
 pub struct GYearMonth {
 	year: i32,
@@ -15,6 +25,9 @@ pub struct GYearMonth {
 }
 
 impl GYearMonth {
+	/// Creates a new `GYearMonth`, or returns `None` if `month` is outside
+	/// `1..=12`, or `offset` is outside the `-14:00..=+14:00` range permitted
+	/// by XSD.
 	pub fn new(year: i32, month: u8, offset: Option<time::UtcOffset>) -> Option<Self> {
 		if (1..=12).contains(&month) && offset.is_none_or(is_valid_offset) {
 			Some(Self {

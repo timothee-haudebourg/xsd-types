@@ -3,7 +3,9 @@ use str_newtype::StrNewType;
 
 use crate::lexical::{Lexical, LexicalFormOf};
 
-/// ID.
+/// NMTOKEN.
+///
+/// See: <https://www.w3.org/TR/xmlschema11-2/#NMTOKEN>.
 ///
 /// ```abnf
 /// Nmtoken = 1*NameChar

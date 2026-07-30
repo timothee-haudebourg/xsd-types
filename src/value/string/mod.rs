@@ -18,6 +18,11 @@ pub use nmtoken::*;
 pub use normalized::*;
 pub use token::*;
 
+/// String value.
+///
+/// Value space representation of the XSD `string` datatype, aliased to
+/// [`std::string::String`].
+/// See: <https://www.w3.org/TR/xmlschema11-2/#string>.
 pub type String = std::string::String;
 
 impl XsdValue for String {

@@ -3,15 +3,23 @@ use std::{borrow::Borrow, ops::Deref, str::FromStr};
 
 use crate::{lexical::Lexical, ParseXsd};
 
+/// Error raised when a string is not a valid `normalizedString` value.
 #[derive(Debug, thiserror::Error)]
 #[error("invalid normalized string `{0}`")]
 pub struct InvalidNormalizedStr<T = String>(pub T);
 
+/// Normalized string value.
+///
+/// Value space representation of the XSD `normalizedString` datatype: a
+/// [`str`] guaranteed to contain no tab, line feed, or carriage return
+/// character.
+/// See: <https://www.w3.org/TR/xmlschema11-2/#normalizedString>.
 #[derive(Debug, PartialEq, Eq, PartialOrd, Ord, Hash)]
 #[repr(transparent)]
 pub struct NormalizedStr(str);
 
 impl NormalizedStr {
+	/// Parses and validates the given string as a normalized string.
 	pub fn new(value: &str) -> Result<&Self, InvalidNormalizedStr<&str>> {
 		if Self::validate(value) {
 			Ok(unsafe { Self::new_unchecked(value) })
@@ -34,6 +42,7 @@ impl NormalizedStr {
 		std::mem::transmute(value)
 	}
 
+	/// Returns this normalized string as a plain [`str`].
 	pub fn as_str(&self) -> &str {
 		&self.0
 	}
@@ -53,10 +62,15 @@ impl ToOwned for NormalizedStr {
 	}
 }
 
+/// Owned normalized string value.
+///
+/// Owned variant of [`NormalizedStr`].
+/// See: <https://www.w3.org/TR/xmlschema11-2/#normalizedString>.
 #[derive(Debug, Clone, PartialEq, Eq, PartialOrd, Ord, Hash)]
 pub struct NormalizedString(String);
 
 impl NormalizedString {
+	/// Parses and validates the given string as a normalized string.
 	pub fn new(value: String) -> Result<Self, InvalidNormalizedStr> {
 		if NormalizedStr::validate(&value) {
 			Ok(Self(value))
@@ -75,10 +89,12 @@ impl NormalizedString {
 		Self(value)
 	}
 
+	/// Borrows this normalized string as a [`NormalizedStr`].
 	pub fn as_normalized_str(&self) -> &NormalizedStr {
 		unsafe { NormalizedStr::new_unchecked(self.0.as_str()) }
 	}
 
+	/// Converts this normalized string into a plain [`String`].
 	pub fn into_string(self) -> String {
 		self.0
 	}

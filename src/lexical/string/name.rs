@@ -3,7 +3,9 @@ use str_newtype::StrNewType;
 
 use crate::lexical::{Lexical, LexicalFormOf};
 
-/// ID.
+/// Name.
+///
+/// See: <https://www.w3.org/TR/xmlschema11-2/#Name>.
 ///
 /// ```abnf
 /// Name          = (Letter / "_" / ":") *NameChar

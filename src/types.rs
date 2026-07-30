@@ -25,26 +25,45 @@ use std::fmt;
 /// XSD datatype (primitive or not).
 #[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash)]
 pub enum Datatype {
+	/// The `Boolean` datatype.
 	Boolean,
+	/// The `Float` datatype.
 	Float,
+	/// The `Double` datatype.
 	Double,
+	/// A `Decimal` (or further specialized) datatype.
 	Decimal(DecimalDatatype),
+	/// A `String` (or further specialized) datatype.
 	String(StringDatatype),
+	/// A `Duration` (or further specialized) datatype.
 	Duration(DurationDatatype),
+	/// A `DateTime` (or further specialized) datatype.
 	DateTime(DateTimeDatatype),
+	/// The `Time` datatype.
 	Time,
+	/// The `Date` datatype.
 	Date,
+	/// The `GYearMonth` datatype.
 	GYearMonth,
+	/// The `GYear` datatype.
 	GYear,
+	/// The `GMonthDay` datatype.
 	GMonthDay,
+	/// The `GDay` datatype.
 	GDay,
+	/// The `GMonth` datatype.
 	GMonth,
+	/// The `Base64Binary` datatype.
 	Base64Binary,
+	/// The `HexBinary` datatype.
 	HexBinary,
+	/// The `AnyUri` datatype.
 	AnyUri,
+	/// The `QName` datatype.
 	QName,
 }
 impl Datatype {
+	/// Returns the datatype matching `iri`, if any.
 	pub fn from_iri(iri: &Iri) -> Option<Self> {
 		if iri == XSD_BOOLEAN {
 			return Some(Self::Boolean);
@@ -102,6 +121,7 @@ impl Datatype {
 		}
 		None
 	}
+	/// Returns the IRI naming this datatype.
 	pub fn iri(&self) -> &'static Iri {
 		match self {
 			Self::Boolean => XSD_BOOLEAN,
@@ -124,6 +144,7 @@ impl Datatype {
 			Self::QName => XSD_Q_NAME,
 		}
 	}
+	/// Parses `value` as a lexical representation of this specific datatype.
 	pub fn parse(&self, value: &str) -> Result<Value, ParseXsdError> {
 		match self {
 			Self::Boolean => ParseXsd::parse_xsd(value).map(Value::Boolean),
@@ -150,10 +171,13 @@ impl Datatype {
 /// [`Decimal`] datatype variants.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash)]
 pub enum DecimalDatatype {
+	/// The plain `Decimal` datatype, not any of the specializations below.
 	Decimal,
+	/// An `Integer` (or further specialized) datatype.
 	Integer(IntegerDatatype),
 }
 impl DecimalDatatype {
+	/// Returns the `Decimal` datatype (or specialization) matching `iri`, if any.
 	pub fn from_iri(iri: &Iri) -> Option<Self> {
 		if iri == XSD_DECIMAL {
 			return Some(Self::Decimal);
@@ -163,12 +187,14 @@ impl DecimalDatatype {
 		}
 		None
 	}
+	/// Returns the IRI naming this datatype.
 	pub fn iri(&self) -> &'static Iri {
 		match self {
 			Self::Decimal => XSD_DECIMAL,
 			Self::Integer(t) => t.iri(),
 		}
 	}
+	/// Parses `value` as a lexical representation of this specific datatype.
 	pub fn parse(&self, value: &str) -> Result<DecimalValue, ParseXsdError> {
 		match self {
 			Self::Decimal => ParseXsd::parse_xsd(value).map(DecimalValue::Decimal),
@@ -325,10 +351,13 @@ impl TryFrom<DecimalDatatype> for ShortDatatype {
 /// [`str`] datatype variants.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash)]
 pub enum StringDatatype {
+	/// The plain `String` datatype, not any of the specializations below.
 	String,
+	/// A `NormalizedString` (or further specialized) datatype.
 	NormalizedString(NormalizedStringDatatype),
 }
 impl StringDatatype {
+	/// Returns the `String` datatype (or specialization) matching `iri`, if any.
 	pub fn from_iri(iri: &Iri) -> Option<Self> {
 		if iri == XSD_STRING {
 			return Some(Self::String);
@@ -338,12 +367,14 @@ impl StringDatatype {
 		}
 		None
 	}
+	/// Returns the IRI naming this datatype.
 	pub fn iri(&self) -> &'static Iri {
 		match self {
 			Self::String => XSD_STRING,
 			Self::NormalizedString(t) => t.iri(),
 		}
 	}
+	/// Parses `value` as a lexical representation of this specific datatype.
 	pub fn parse(&self, value: &str) -> Result<StringValue, ParseXsdError> {
 		match self {
 			Self::String => ParseXsd::parse_xsd(value).map(StringValue::String),
@@ -416,11 +447,15 @@ impl TryFrom<StringDatatype> for NCNameDatatype {
 /// [`Duration`] datatype variants.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash)]
 pub enum DurationDatatype {
+	/// The plain `Duration` datatype, not any of the specializations below.
 	Duration,
+	/// The `DayTimeDuration` datatype.
 	DayTimeDuration,
+	/// The `YearMonthDuration` datatype.
 	YearMonthDuration,
 }
 impl DurationDatatype {
+	/// Returns the `Duration` datatype (or specialization) matching `iri`, if any.
 	pub fn from_iri(iri: &Iri) -> Option<Self> {
 		if iri == XSD_DURATION {
 			return Some(Self::Duration);
@@ -433,6 +468,7 @@ impl DurationDatatype {
 		}
 		None
 	}
+	/// Returns the IRI naming this datatype.
 	pub fn iri(&self) -> &'static Iri {
 		match self {
 			Self::Duration => XSD_DURATION,
@@ -440,6 +476,7 @@ impl DurationDatatype {
 			Self::YearMonthDuration => XSD_YEAR_MONTH_DURATION,
 		}
 	}
+	/// Parses `value` as a lexical representation of this specific datatype.
 	pub fn parse(&self, value: &str) -> Result<DurationValue, ParseXsdError> {
 		match self {
 			Self::Duration => ParseXsd::parse_xsd(value).map(DurationValue::Duration),
@@ -453,10 +490,13 @@ impl DurationDatatype {
 /// [`DateTime`] datatype variants.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash)]
 pub enum DateTimeDatatype {
+	/// The plain `DateTime` datatype, not any of the specializations below.
 	DateTime,
+	/// The `DateTimeStamp` datatype.
 	DateTimeStamp,
 }
 impl DateTimeDatatype {
+	/// Returns the `DateTime` datatype (or specialization) matching `iri`, if any.
 	pub fn from_iri(iri: &Iri) -> Option<Self> {
 		if iri == XSD_DATE_TIME {
 			return Some(Self::DateTime);
@@ -466,12 +506,14 @@ impl DateTimeDatatype {
 		}
 		None
 	}
+	/// Returns the IRI naming this datatype.
 	pub fn iri(&self) -> &'static Iri {
 		match self {
 			Self::DateTime => XSD_DATE_TIME,
 			Self::DateTimeStamp => XSD_DATE_TIME_STAMP,
 		}
 	}
+	/// Parses `value` as a lexical representation of this specific datatype.
 	pub fn parse(&self, value: &str) -> Result<DateTimeValue, ParseXsdError> {
 		match self {
 			Self::DateTime => ParseXsd::parse_xsd(value).map(DateTimeValue::DateTime),
@@ -482,50 +524,93 @@ impl DateTimeDatatype {
 /// Any XSD value.
 #[derive(Debug, Clone, PartialEq, PartialOrd)]
 pub enum Value {
+	/// A `Boolean` value.
 	Boolean(Boolean),
+	/// A `Float` value.
 	Float(Float),
+	/// A `Double` value.
 	Double(Double),
+	/// A `Decimal` value.
 	Decimal(Decimal),
+	/// An `Integer` value.
 	Integer(Integer),
+	/// A `NonPositiveInteger` value.
 	NonPositiveInteger(NonPositiveInteger),
+	/// A `NegativeInteger` value.
 	NegativeInteger(NegativeInteger),
+	/// A `NonNegativeInteger` value.
 	NonNegativeInteger(NonNegativeInteger),
+	/// A `PositiveInteger` value.
 	PositiveInteger(PositiveInteger),
+	/// An `UnsignedLong` value.
 	UnsignedLong(UnsignedLong),
+	/// An `UnsignedInt` value.
 	UnsignedInt(UnsignedInt),
+	/// An `UnsignedShort` value.
 	UnsignedShort(UnsignedShort),
+	/// An `UnsignedByte` value.
 	UnsignedByte(UnsignedByte),
+	/// A `Long` value.
 	Long(Long),
+	/// An `Int` value.
 	Int(Int),
+	/// A `Short` value.
 	Short(Short),
+	/// A `Byte` value.
 	Byte(Byte),
+	/// A `String` value.
 	String(String),
+	/// A `NormalizedString` value.
 	NormalizedString(NormalizedString),
+	/// A `Token` value.
 	Token(TokenBuf),
+	/// A `Language` value.
 	Language(LanguageBuf),
+	/// A `Name` value.
 	Name(NameBuf),
+	/// A `NCName` value.
 	NCName(NCNameBuf),
+	/// An `Id` value.
 	Id(IdBuf),
+	/// An `IdRef` value.
 	IdRef(IdRefBuf),
+	/// A `NMToken` value.
 	NMToken(NMTokenBuf),
+	/// A `Duration` value.
 	Duration(Duration),
+	/// A `DayTimeDuration` value.
 	DayTimeDuration(DayTimeDuration),
+	/// A `YearMonthDuration` value.
 	YearMonthDuration(YearMonthDuration),
+	/// A `DateTime` value.
 	DateTime(DateTime),
+	/// A `DateTimeStamp` value.
 	DateTimeStamp(DateTimeStamp),
+	/// A `Time` value.
 	Time(Time),
+	/// A `Date` value.
 	Date(Date),
+	/// A `GYearMonth` value.
 	GYearMonth(GYearMonth),
+	/// A `GYear` value.
 	GYear(GYear),
+	/// A `GMonthDay` value.
 	GMonthDay(GMonthDay),
+	/// A `GDay` value.
 	GDay(GDay),
+	/// A `GMonth` value.
 	GMonth(GMonth),
+	/// A `Base64Binary` value.
 	Base64Binary(Base64BinaryBuf),
+	/// A `HexBinary` value.
 	HexBinary(HexBinaryBuf),
+	/// An `AnyUri` value.
 	AnyUri(AnyUriBuf),
+	/// A `QName` value.
 	QName(QNameBuf),
 }
 impl Value {
+	/// Returns the datatype of this value.
 	pub fn datatype(&self) -> Datatype {
 		match self {
 			Self::Boolean(_) => Datatype::Boolean,
@@ -689,47 +774,89 @@ impl fmt::Display for Value {
 /// Any XSD value reference.
 #[derive(Debug, Clone, Copy, PartialEq, PartialOrd)]
 pub enum ValueRef<'a> {
+	/// A reference to a `Boolean` value.
 	Boolean(Boolean),
+	/// A reference to a `Float` value.
 	Float(Float),
+	/// A reference to a `Double` value.
 	Double(Double),
+	/// A reference to a `Decimal` value.
 	Decimal(&'a Decimal),
+	/// A reference to an `Integer` value.
 	Integer(&'a Integer),
+	/// A reference to a `NonPositiveInteger` value.
 	NonPositiveInteger(&'a NonPositiveInteger),
+	/// A reference to a `NegativeInteger` value.
 	NegativeInteger(&'a NegativeInteger),
+	/// A reference to a `NonNegativeInteger` value.
 	NonNegativeInteger(&'a NonNegativeInteger),
+	/// A reference to a `PositiveInteger` value.
 	PositiveInteger(&'a PositiveInteger),
+	/// A reference to an `UnsignedLong` value.
 	UnsignedLong(UnsignedLong),
+	/// A reference to an `UnsignedInt` value.
 	UnsignedInt(UnsignedInt),
+	/// A reference to an `UnsignedShort` value.
 	UnsignedShort(UnsignedShort),
+	/// A reference to an `UnsignedByte` value.
 	UnsignedByte(UnsignedByte),
+	/// A reference to a `Long` value.
 	Long(Long),
+	/// A reference to an `Int` value.
 	Int(Int),
+	/// A reference to a `Short` value.
 	Short(Short),
+	/// A reference to a `Byte` value.
 	Byte(Byte),
+	/// A reference to a `String` value.
 	String(&'a str),
+	/// A reference to a `NormalizedString` value.
 	NormalizedString(&'a NormalizedStr),
+	/// A reference to a `Token` value.
 	Token(&'a Token),
+	/// A reference to a `Language` value.
 	Language(&'a Language),
+	/// A reference to a `Name` value.
 	Name(&'a Name),
+	/// A reference to a `NCName` value.
 	NCName(&'a NCName),
+	/// A reference to an `Id` value.
 	Id(&'a Id),
+	/// A reference to an `IdRef` value.
 	IdRef(&'a IdRef),
+	/// A reference to a `NMToken` value.
 	NMToken(&'a NMToken),
+	/// A reference to a `Duration` value.
 	Duration(Duration),
+	/// A reference to a `DayTimeDuration` value.
 	DayTimeDuration(DayTimeDuration),
+	/// A reference to a `YearMonthDuration` value.
 	YearMonthDuration(YearMonthDuration),
+	/// A reference to a `DateTime` value.
 	DateTime(DateTime),
+	/// A reference to a `DateTimeStamp` value.
 	DateTimeStamp(DateTimeStamp),
+	/// A reference to a `Time` value.
 	Time(Time),
+	/// A reference to a `Date` value.
 	Date(Date),
+	/// A reference to a `GYearMonth` value.
 	GYearMonth(GYearMonth),
+	/// A reference to a `GYear` value.
 	GYear(GYear),
+	/// A reference to a `GMonthDay` value.
 	GMonthDay(GMonthDay),
+	/// A reference to a `GDay` value.
 	GDay(GDay),
+	/// A reference to a `GMonth` value.
 	GMonth(GMonth),
+	/// A reference to a `Base64Binary` value.
 	Base64Binary(&'a Base64Binary),
+	/// A reference to a `HexBinary` value.
 	HexBinary(&'a HexBinary),
+	/// A reference to an `AnyUri` value.
 	AnyUri(&'a AnyUri),
+	/// A reference to a `QName` value.
 	QName(&'a QName),
 }
 impl<'a> fmt::Display for ValueRef<'a> {
@@ -781,6 +908,7 @@ impl<'a> fmt::Display for ValueRef<'a> {
 	}
 }
 impl Value {
+	/// Borrows this value.
 	pub fn as_ref(&self) -> ValueRef<'_> {
 		match self {
 			Self::Boolean(value) => ValueRef::Boolean(*value),
@@ -829,6 +957,7 @@ impl Value {
 	}
 }
 impl<'a> ValueRef<'a> {
+	/// Returns the datatype of this value.
 	pub fn datatype(&self) -> Datatype {
 		match self {
 			Self::Boolean(_) => Datatype::Boolean,
@@ -935,6 +1064,7 @@ impl<'a> ValueRef<'a> {
 			Self::QName(_) => Datatype::QName,
 		}
 	}
+	/// Clones the referenced data into an owned value.
 	pub fn into_owned(self) -> Value {
 		match self {
 			Self::Boolean(value) => Value::Boolean(value),
@@ -1540,22 +1670,37 @@ impl<'a> TryFrom<ValueRef<'a>> for NonNegativeIntegerValueRef<'a> {
 /// Any specialized [`Decimal`] value.
 #[derive(Debug, Clone, PartialEq, Eq, PartialOrd, Ord, Hash)]
 pub enum DecimalValue {
+	/// A `Decimal` value.
 	Decimal(Decimal),
+	/// An `Integer` value.
 	Integer(Integer),
+	/// A `NonPositiveInteger` value.
 	NonPositiveInteger(NonPositiveInteger),
+	/// A `NegativeInteger` value.
 	NegativeInteger(NegativeInteger),
+	/// A `NonNegativeInteger` value.
 	NonNegativeInteger(NonNegativeInteger),
+	/// A `PositiveInteger` value.
 	PositiveInteger(PositiveInteger),
+	/// An `UnsignedLong` value.
 	UnsignedLong(UnsignedLong),
+	/// An `UnsignedInt` value.
 	UnsignedInt(UnsignedInt),
+	/// An `UnsignedShort` value.
 	UnsignedShort(UnsignedShort),
+	/// An `UnsignedByte` value.
 	UnsignedByte(UnsignedByte),
+	/// A `Long` value.
 	Long(Long),
+	/// An `Int` value.
 	Int(Int),
+	/// A `Short` value.
 	Short(Short),
+	/// A `Byte` value.
 	Byte(Byte),
 }
 impl DecimalValue {
+	/// Returns the specific datatype of this value.
 	pub fn datatype(&self) -> DecimalDatatype {
 		match self {
 			Self::Decimal(_) => DecimalDatatype::Decimal,
@@ -1837,12 +1982,17 @@ impl TryFrom<DecimalValue> for ShortValue {
 /// [`Integer`] datatype variants.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash)]
 pub enum IntegerDatatype {
+	/// The plain `Integer` datatype, not any of the specializations below.
 	Integer,
+	/// A `NonPositiveInteger` (or further specialized) datatype.
 	NonPositiveInteger(NonPositiveIntegerDatatype),
+	/// A `NonNegativeInteger` (or further specialized) datatype.
 	NonNegativeInteger(NonNegativeIntegerDatatype),
+	/// A `Long` (or further specialized) datatype.
 	Long(LongDatatype),
 }
 impl IntegerDatatype {
+	/// Returns the `Integer` datatype (or specialization) matching `iri`, if any.
 	pub fn from_iri(iri: &Iri) -> Option<Self> {
 		if iri == XSD_INTEGER {
 			return Some(Self::Integer);
@@ -1858,6 +2008,7 @@ impl IntegerDatatype {
 		}
 		None
 	}
+	/// Returns the IRI naming this datatype.
 	pub fn iri(&self) -> &'static Iri {
 		match self {
 			Self::Integer => XSD_INTEGER,
@@ -1866,6 +2017,7 @@ impl IntegerDatatype {
 			Self::Long(t) => t.iri(),
 		}
 	}
+	/// Parses `value` as a lexical representation of this specific datatype.
 	pub fn parse(&self, value: &str) -> Result<IntegerValue, ParseXsdError> {
 		match self {
 			Self::Integer => ParseXsd::parse_xsd(value).map(IntegerValue::Integer),
@@ -2000,22 +2152,37 @@ impl TryFrom<IntegerDatatype> for ShortDatatype {
 /// Any specialized [`Decimal`] value reference.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash)]
 pub enum DecimalValueRef<'a> {
+	/// A reference to a `Decimal` value.
 	Decimal(&'a Decimal),
+	/// A reference to an `Integer` value.
 	Integer(&'a Integer),
+	/// A reference to a `NonPositiveInteger` value.
 	NonPositiveInteger(&'a NonPositiveInteger),
+	/// A reference to a `NegativeInteger` value.
 	NegativeInteger(&'a NegativeInteger),
+	/// A reference to a `NonNegativeInteger` value.
 	NonNegativeInteger(&'a NonNegativeInteger),
+	/// A reference to a `PositiveInteger` value.
 	PositiveInteger(&'a PositiveInteger),
+	/// A reference to an `UnsignedLong` value.
 	UnsignedLong(UnsignedLong),
+	/// A reference to an `UnsignedInt` value.
 	UnsignedInt(UnsignedInt),
+	/// A reference to an `UnsignedShort` value.
 	UnsignedShort(UnsignedShort),
+	/// A reference to an `UnsignedByte` value.
 	UnsignedByte(UnsignedByte),
+	/// A reference to a `Long` value.
 	Long(Long),
+	/// A reference to an `Int` value.
 	Int(Int),
+	/// A reference to a `Short` value.
 	Short(Short),
+	/// A reference to a `Byte` value.
 	Byte(Byte),
 }
 impl DecimalValue {
+	/// Borrows this value.
 	pub fn as_ref(&self) -> DecimalValueRef<'_> {
 		match self {
 			Self::Decimal(value) => DecimalValueRef::Decimal(value),
@@ -2036,6 +2203,7 @@ impl DecimalValue {
 	}
 }
 impl<'a> DecimalValueRef<'a> {
+	/// Returns the specific datatype of this value.
 	pub fn datatype(&self) -> DecimalDatatype {
 		match self {
 			Self::Decimal(_) => DecimalDatatype::Decimal,
@@ -2084,6 +2252,7 @@ impl<'a> DecimalValueRef<'a> {
 			))),
 		}
 	}
+	/// Clones the referenced data into an owned value.
 	pub fn into_owned(self) -> DecimalValue {
 		match self {
 			Self::Decimal(value) => DecimalValue::Decimal(value.to_owned()),
@@ -2219,21 +2388,35 @@ impl<'a> TryFrom<DecimalValueRef<'a>> for NonNegativeIntegerValueRef<'a> {
 /// Any specialized [`Integer`] value.
 #[derive(Debug, Clone, PartialEq, Eq, PartialOrd, Ord, Hash)]
 pub enum IntegerValue {
+	/// An `Integer` value.
 	Integer(Integer),
+	/// A `NonPositiveInteger` value.
 	NonPositiveInteger(NonPositiveInteger),
+	/// A `NegativeInteger` value.
 	NegativeInteger(NegativeInteger),
+	/// A `NonNegativeInteger` value.
 	NonNegativeInteger(NonNegativeInteger),
+	/// A `PositiveInteger` value.
 	PositiveInteger(PositiveInteger),
+	/// An `UnsignedLong` value.
 	UnsignedLong(UnsignedLong),
+	/// An `UnsignedInt` value.
 	UnsignedInt(UnsignedInt),
+	/// An `UnsignedShort` value.
 	UnsignedShort(UnsignedShort),
+	/// An `UnsignedByte` value.
 	UnsignedByte(UnsignedByte),
+	/// A `Long` value.
 	Long(Long),
+	/// An `Int` value.
 	Int(Int),
+	/// A `Short` value.
 	Short(Short),
+	/// A `Byte` value.
 	Byte(Byte),
 }
 impl IntegerValue {
+	/// Returns the specific datatype of this value.
 	pub fn datatype(&self) -> IntegerDatatype {
 		match self {
 			Self::Integer(_) => IntegerDatatype::Integer,
@@ -2323,10 +2506,13 @@ impl TryFrom<IntegerValue> for NonPositiveIntegerValue {
 /// [`NonPositiveInteger`] datatype variants.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash)]
 pub enum NonPositiveIntegerDatatype {
+	/// The plain `NonPositiveInteger` datatype, not any of the specializations below.
 	NonPositiveInteger,
+	/// The `NegativeInteger` datatype.
 	NegativeInteger,
 }
 impl NonPositiveIntegerDatatype {
+	/// Returns the `NonPositiveInteger` datatype (or specialization) matching `iri`, if any.
 	pub fn from_iri(iri: &Iri) -> Option<Self> {
 		if iri == XSD_NON_POSITIVE_INTEGER {
 			return Some(Self::NonPositiveInteger);
@@ -2336,12 +2522,14 @@ impl NonPositiveIntegerDatatype {
 		}
 		None
 	}
+	/// Returns the IRI naming this datatype.
 	pub fn iri(&self) -> &'static Iri {
 		match self {
 			Self::NonPositiveInteger => XSD_NON_POSITIVE_INTEGER,
 			Self::NegativeInteger => XSD_NEGATIVE_INTEGER,
 		}
 	}
+	/// Parses `value` as a lexical representation of this specific datatype.
 	pub fn parse(&self, value: &str) -> Result<NonPositiveIntegerValue, ParseXsdError> {
 		match self {
 			Self::NonPositiveInteger => {
@@ -2442,11 +2630,15 @@ impl TryFrom<IntegerValue> for UnsignedShortValue {
 /// [`NonNegativeInteger`] datatype variants.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash)]
 pub enum NonNegativeIntegerDatatype {
+	/// The plain `NonNegativeInteger` datatype, not any of the specializations below.
 	NonNegativeInteger,
+	/// The `PositiveInteger` datatype.
 	PositiveInteger,
+	/// An `UnsignedLong` (or further specialized) datatype.
 	UnsignedLong(UnsignedLongDatatype),
 }
 impl NonNegativeIntegerDatatype {
+	/// Returns the `NonNegativeInteger` datatype (or specialization) matching `iri`, if any.
 	pub fn from_iri(iri: &Iri) -> Option<Self> {
 		if iri == XSD_NON_NEGATIVE_INTEGER {
 			return Some(Self::NonNegativeInteger);
@@ -2459,6 +2651,7 @@ impl NonNegativeIntegerDatatype {
 		}
 		None
 	}
+	/// Returns the IRI naming this datatype.
 	pub fn iri(&self) -> &'static Iri {
 		match self {
 			Self::NonNegativeInteger => XSD_NON_NEGATIVE_INTEGER,
@@ -2466,6 +2659,7 @@ impl NonNegativeIntegerDatatype {
 			Self::UnsignedLong(t) => t.iri(),
 		}
 	}
+	/// Parses `value` as a lexical representation of this specific datatype.
 	pub fn parse(&self, value: &str) -> Result<NonNegativeIntegerValue, ParseXsdError> {
 		match self {
 			Self::NonNegativeInteger => {
@@ -2589,10 +2783,13 @@ impl TryFrom<IntegerValue> for ShortValue {
 /// [`Long`] datatype variants.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash)]
 pub enum LongDatatype {
+	/// The plain `Long` datatype, not any of the specializations below.
 	Long,
+	/// An `Int` (or further specialized) datatype.
 	Int(IntDatatype),
 }
 impl LongDatatype {
+	/// Returns the `Long` datatype (or specialization) matching `iri`, if any.
 	pub fn from_iri(iri: &Iri) -> Option<Self> {
 		if iri == XSD_LONG {
 			return Some(Self::Long);
@@ -2602,12 +2799,14 @@ impl LongDatatype {
 		}
 		None
 	}
+	/// Returns the IRI naming this datatype.
 	pub fn iri(&self) -> &'static Iri {
 		match self {
 			Self::Long => XSD_LONG,
 			Self::Int(t) => t.iri(),
 		}
 	}
+	/// Parses `value` as a lexical representation of this specific datatype.
 	pub fn parse(&self, value: &str) -> Result<LongValue, ParseXsdError> {
 		match self {
 			Self::Long => ParseXsd::parse_xsd(value).map(LongValue::Long),
@@ -2646,21 +2845,35 @@ impl TryFrom<LongDatatype> for ShortDatatype {
 /// Any specialized [`Integer`] value reference.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash)]
 pub enum IntegerValueRef<'a> {
+	/// A reference to an `Integer` value.
 	Integer(&'a Integer),
+	/// A reference to a `NonPositiveInteger` value.
 	NonPositiveInteger(&'a NonPositiveInteger),
+	/// A reference to a `NegativeInteger` value.
 	NegativeInteger(&'a NegativeInteger),
+	/// A reference to a `NonNegativeInteger` value.
 	NonNegativeInteger(&'a NonNegativeInteger),
+	/// A reference to a `PositiveInteger` value.
 	PositiveInteger(&'a PositiveInteger),
+	/// A reference to an `UnsignedLong` value.
 	UnsignedLong(UnsignedLong),
+	/// A reference to an `UnsignedInt` value.
 	UnsignedInt(UnsignedInt),
+	/// A reference to an `UnsignedShort` value.
 	UnsignedShort(UnsignedShort),
+	/// A reference to an `UnsignedByte` value.
 	UnsignedByte(UnsignedByte),
+	/// A reference to a `Long` value.
 	Long(Long),
+	/// A reference to an `Int` value.
 	Int(Int),
+	/// A reference to a `Short` value.
 	Short(Short),
+	/// A reference to a `Byte` value.
 	Byte(Byte),
 }
 impl IntegerValue {
+	/// Borrows this value.
 	pub fn as_ref(&self) -> IntegerValueRef<'_> {
 		match self {
 			Self::Integer(value) => IntegerValueRef::Integer(value),
@@ -2680,6 +2893,7 @@ impl IntegerValue {
 	}
 }
 impl<'a> IntegerValueRef<'a> {
+	/// Returns the specific datatype of this value.
 	pub fn datatype(&self) -> IntegerDatatype {
 		match self {
 			Self::Integer(_) => IntegerDatatype::Integer,
@@ -2723,6 +2937,7 @@ impl<'a> IntegerValueRef<'a> {
 			}
 		}
 	}
+	/// Clones the referenced data into an owned value.
 	pub fn into_owned(self) -> IntegerValue {
 		match self {
 			Self::Integer(value) => IntegerValue::Integer(value.to_owned()),
@@ -2816,10 +3031,13 @@ impl<'a> TryFrom<IntegerValueRef<'a>> for NonNegativeIntegerValueRef<'a> {
 /// Any specialized [`NonPositiveInteger`] value.
 #[derive(Debug, Clone, PartialEq, Eq, PartialOrd, Ord, Hash)]
 pub enum NonPositiveIntegerValue {
+	/// A `NonPositiveInteger` value.
 	NonPositiveInteger(NonPositiveInteger),
+	/// A `NegativeInteger` value.
 	NegativeInteger(NegativeInteger),
 }
 impl NonPositiveIntegerValue {
+	/// Returns the specific datatype of this value.
 	pub fn datatype(&self) -> NonPositiveIntegerDatatype {
 		match self {
 			Self::NonPositiveInteger(_) => NonPositiveIntegerDatatype::NonPositiveInteger,
@@ -2843,10 +3061,13 @@ impl fmt::Display for NonPositiveIntegerValue {
 /// Any specialized [`NonPositiveInteger`] value reference.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash)]
 pub enum NonPositiveIntegerValueRef<'a> {
+	/// A reference to a `NonPositiveInteger` value.
 	NonPositiveInteger(&'a NonPositiveInteger),
+	/// A reference to a `NegativeInteger` value.
 	NegativeInteger(&'a NegativeInteger),
 }
 impl NonPositiveIntegerValue {
+	/// Borrows this value.
 	pub fn as_ref(&self) -> NonPositiveIntegerValueRef<'_> {
 		match self {
 			Self::NonPositiveInteger(value) => {
@@ -2857,12 +3078,14 @@ impl NonPositiveIntegerValue {
 	}
 }
 impl<'a> NonPositiveIntegerValueRef<'a> {
+	/// Returns the specific datatype of this value.
 	pub fn datatype(&self) -> NonPositiveIntegerDatatype {
 		match self {
 			Self::NonPositiveInteger(_) => NonPositiveIntegerDatatype::NonPositiveInteger,
 			Self::NegativeInteger(_) => NonPositiveIntegerDatatype::NegativeInteger,
 		}
 	}
+	/// Clones the referenced data into an owned value.
 	pub fn into_owned(self) -> NonPositiveIntegerValue {
 		match self {
 			Self::NonPositiveInteger(value) => {
@@ -2890,14 +3113,21 @@ impl<'a> fmt::Display for NonPositiveIntegerValueRef<'a> {
 /// Any specialized [`NonNegativeInteger`] value.
 #[derive(Debug, Clone, PartialEq, Eq, PartialOrd, Ord, Hash)]
 pub enum NonNegativeIntegerValue {
+	/// A `NonNegativeInteger` value.
 	NonNegativeInteger(NonNegativeInteger),
+	/// A `PositiveInteger` value.
 	PositiveInteger(PositiveInteger),
+	/// An `UnsignedLong` value.
 	UnsignedLong(UnsignedLong),
+	/// An `UnsignedInt` value.
 	UnsignedInt(UnsignedInt),
+	/// An `UnsignedShort` value.
 	UnsignedShort(UnsignedShort),
+	/// An `UnsignedByte` value.
 	UnsignedByte(UnsignedByte),
 }
 impl NonNegativeIntegerValue {
+	/// Returns the specific datatype of this value.
 	pub fn datatype(&self) -> NonNegativeIntegerDatatype {
 		match self {
 			Self::NonNegativeInteger(_) => NonNegativeIntegerDatatype::NonNegativeInteger,
@@ -3001,10 +3231,13 @@ impl TryFrom<NonNegativeIntegerValue> for UnsignedShortValue {
 /// [`UnsignedLong`] datatype variants.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash)]
 pub enum UnsignedLongDatatype {
+	/// The plain `UnsignedLong` datatype, not any of the specializations below.
 	UnsignedLong,
+	/// An `UnsignedInt` (or further specialized) datatype.
 	UnsignedInt(UnsignedIntDatatype),
 }
 impl UnsignedLongDatatype {
+	/// Returns the `UnsignedLong` datatype (or specialization) matching `iri`, if any.
 	pub fn from_iri(iri: &Iri) -> Option<Self> {
 		if iri == XSD_UNSIGNED_LONG {
 			return Some(Self::UnsignedLong);
@@ -3014,12 +3247,14 @@ impl UnsignedLongDatatype {
 		}
 		None
 	}
+	/// Returns the IRI naming this datatype.
 	pub fn iri(&self) -> &'static Iri {
 		match self {
 			Self::UnsignedLong => XSD_UNSIGNED_LONG,
 			Self::UnsignedInt(t) => t.iri(),
 		}
 	}
+	/// Parses `value` as a lexical representation of this specific datatype.
 	pub fn parse(&self, value: &str) -> Result<UnsignedLongValue, ParseXsdError> {
 		match self {
 			Self::UnsignedLong => ParseXsd::parse_xsd(value).map(UnsignedLongValue::UnsignedLong),
@@ -3060,14 +3295,21 @@ impl TryFrom<UnsignedLongDatatype> for UnsignedShortDatatype {
 /// Any specialized [`NonNegativeInteger`] value reference.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash)]
 pub enum NonNegativeIntegerValueRef<'a> {
+	/// A reference to a `NonNegativeInteger` value.
 	NonNegativeInteger(&'a NonNegativeInteger),
+	/// A reference to a `PositiveInteger` value.
 	PositiveInteger(&'a PositiveInteger),
+	/// A reference to an `UnsignedLong` value.
 	UnsignedLong(UnsignedLong),
+	/// A reference to an `UnsignedInt` value.
 	UnsignedInt(UnsignedInt),
+	/// A reference to an `UnsignedShort` value.
 	UnsignedShort(UnsignedShort),
+	/// A reference to an `UnsignedByte` value.
 	UnsignedByte(UnsignedByte),
 }
 impl NonNegativeIntegerValue {
+	/// Borrows this value.
 	pub fn as_ref(&self) -> NonNegativeIntegerValueRef<'_> {
 		match self {
 			Self::NonNegativeInteger(value) => {
@@ -3082,6 +3324,7 @@ impl NonNegativeIntegerValue {
 	}
 }
 impl<'a> NonNegativeIntegerValueRef<'a> {
+	/// Returns the specific datatype of this value.
 	pub fn datatype(&self) -> NonNegativeIntegerDatatype {
 		match self {
 			Self::NonNegativeInteger(_) => NonNegativeIntegerDatatype::NonNegativeInteger,
@@ -3104,6 +3347,7 @@ impl<'a> NonNegativeIntegerValueRef<'a> {
 			}
 		}
 	}
+	/// Clones the referenced data into an owned value.
 	pub fn into_owned(self) -> NonNegativeIntegerValue {
 		match self {
 			Self::NonNegativeInteger(value) => {
@@ -3139,12 +3383,17 @@ impl<'a> fmt::Display for NonNegativeIntegerValueRef<'a> {
 /// Any specialized [`UnsignedLong`] value.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash)]
 pub enum UnsignedLongValue {
+	/// An `UnsignedLong` value.
 	UnsignedLong(UnsignedLong),
+	/// An `UnsignedInt` value.
 	UnsignedInt(UnsignedInt),
+	/// An `UnsignedShort` value.
 	UnsignedShort(UnsignedShort),
+	/// An `UnsignedByte` value.
 	UnsignedByte(UnsignedByte),
 }
 impl UnsignedLongValue {
+	/// Returns the specific datatype of this value.
 	pub fn datatype(&self) -> UnsignedLongDatatype {
 		match self {
 			Self::UnsignedLong(_) => UnsignedLongDatatype::UnsignedLong,
@@ -3216,10 +3465,13 @@ impl TryFrom<UnsignedLongValue> for UnsignedShortValue {
 /// [`UnsignedInt`] datatype variants.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash)]
 pub enum UnsignedIntDatatype {
+	/// The plain `UnsignedInt` datatype, not any of the specializations below.
 	UnsignedInt,
+	/// An `UnsignedShort` (or further specialized) datatype.
 	UnsignedShort(UnsignedShortDatatype),
 }
 impl UnsignedIntDatatype {
+	/// Returns the `UnsignedInt` datatype (or specialization) matching `iri`, if any.
 	pub fn from_iri(iri: &Iri) -> Option<Self> {
 		if iri == XSD_UNSIGNED_INT {
 			return Some(Self::UnsignedInt);
@@ -3229,12 +3481,14 @@ impl UnsignedIntDatatype {
 		}
 		None
 	}
+	/// Returns the IRI naming this datatype.
 	pub fn iri(&self) -> &'static Iri {
 		match self {
 			Self::UnsignedInt => XSD_UNSIGNED_INT,
 			Self::UnsignedShort(t) => t.iri(),
 		}
 	}
+	/// Parses `value` as a lexical representation of this specific datatype.
 	pub fn parse(&self, value: &str) -> Result<UnsignedIntValue, ParseXsdError> {
 		match self {
 			Self::UnsignedInt => ParseXsd::parse_xsd(value).map(UnsignedIntValue::UnsignedInt),
@@ -3259,11 +3513,15 @@ impl TryFrom<UnsignedIntDatatype> for UnsignedShortDatatype {
 /// Any specialized [`UnsignedInt`] value.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash)]
 pub enum UnsignedIntValue {
+	/// An `UnsignedInt` value.
 	UnsignedInt(UnsignedInt),
+	/// An `UnsignedShort` value.
 	UnsignedShort(UnsignedShort),
+	/// An `UnsignedByte` value.
 	UnsignedByte(UnsignedByte),
 }
 impl UnsignedIntValue {
+	/// Returns the specific datatype of this value.
 	pub fn datatype(&self) -> UnsignedIntDatatype {
 		match self {
 			Self::UnsignedInt(_) => UnsignedIntDatatype::UnsignedInt,
@@ -3311,10 +3569,13 @@ impl TryFrom<UnsignedIntValue> for UnsignedShortValue {
 /// [`UnsignedShort`] datatype variants.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash)]
 pub enum UnsignedShortDatatype {
+	/// The plain `UnsignedShort` datatype, not any of the specializations below.
 	UnsignedShort,
+	/// The `UnsignedByte` datatype.
 	UnsignedByte,
 }
 impl UnsignedShortDatatype {
+	/// Returns the `UnsignedShort` datatype (or specialization) matching `iri`, if any.
 	pub fn from_iri(iri: &Iri) -> Option<Self> {
 		if iri == XSD_UNSIGNED_SHORT {
 			return Some(Self::UnsignedShort);
@@ -3324,12 +3585,14 @@ impl UnsignedShortDatatype {
 		}
 		None
 	}
+	/// Returns the IRI naming this datatype.
 	pub fn iri(&self) -> &'static Iri {
 		match self {
 			Self::UnsignedShort => XSD_UNSIGNED_SHORT,
 			Self::UnsignedByte => XSD_UNSIGNED_BYTE,
 		}
 	}
+	/// Parses `value` as a lexical representation of this specific datatype.
 	pub fn parse(&self, value: &str) -> Result<UnsignedShortValue, ParseXsdError> {
 		match self {
 			Self::UnsignedShort => {
@@ -3342,10 +3605,13 @@ impl UnsignedShortDatatype {
 /// Any specialized [`UnsignedShort`] value.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash)]
 pub enum UnsignedShortValue {
+	/// An `UnsignedShort` value.
 	UnsignedShort(UnsignedShort),
+	/// An `UnsignedByte` value.
 	UnsignedByte(UnsignedByte),
 }
 impl UnsignedShortValue {
+	/// Returns the specific datatype of this value.
 	pub fn datatype(&self) -> UnsignedShortDatatype {
 		match self {
 			Self::UnsignedShort(_) => UnsignedShortDatatype::UnsignedShort,
@@ -3369,12 +3635,17 @@ impl fmt::Display for UnsignedShortValue {
 /// Any specialized [`Long`] value.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash)]
 pub enum LongValue {
+	/// A `Long` value.
 	Long(Long),
+	/// An `Int` value.
 	Int(Int),
+	/// A `Short` value.
 	Short(Short),
+	/// A `Byte` value.
 	Byte(Byte),
 }
 impl LongValue {
+	/// Returns the specific datatype of this value.
 	pub fn datatype(&self) -> LongDatatype {
 		match self {
 			Self::Long(_) => LongDatatype::Long,
@@ -3440,10 +3711,13 @@ impl TryFrom<LongValue> for ShortValue {
 /// [`Int`] datatype variants.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash)]
 pub enum IntDatatype {
+	/// The plain `Int` datatype, not any of the specializations below.
 	Int,
+	/// A `Short` (or further specialized) datatype.
 	Short(ShortDatatype),
 }
 impl IntDatatype {
+	/// Returns the `Int` datatype (or specialization) matching `iri`, if any.
 	pub fn from_iri(iri: &Iri) -> Option<Self> {
 		if iri == XSD_INT {
 			return Some(Self::Int);
@@ -3453,12 +3727,14 @@ impl IntDatatype {
 		}
 		None
 	}
+	/// Returns the IRI naming this datatype.
 	pub fn iri(&self) -> &'static Iri {
 		match self {
 			Self::Int => XSD_INT,
 			Self::Short(t) => t.iri(),
 		}
 	}
+	/// Parses `value` as a lexical representation of this specific datatype.
 	pub fn parse(&self, value: &str) -> Result<IntValue, ParseXsdError> {
 		match self {
 			Self::Int => ParseXsd::parse_xsd(value).map(IntValue::Int),
@@ -3483,11 +3759,15 @@ impl TryFrom<IntDatatype> for ShortDatatype {
 /// Any specialized [`Int`] value.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash)]
 pub enum IntValue {
+	/// An `Int` value.
 	Int(Int),
+	/// A `Short` value.
 	Short(Short),
+	/// A `Byte` value.
 	Byte(Byte),
 }
 impl IntValue {
+	/// Returns the specific datatype of this value.
 	pub fn datatype(&self) -> IntDatatype {
 		match self {
 			Self::Int(_) => IntDatatype::Int,
@@ -3531,10 +3811,13 @@ impl TryFrom<IntValue> for ShortValue {
 /// [`Short`] datatype variants.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash)]
 pub enum ShortDatatype {
+	/// The plain `Short` datatype, not any of the specializations below.
 	Short,
+	/// The `Byte` datatype.
 	Byte,
 }
 impl ShortDatatype {
+	/// Returns the `Short` datatype (or specialization) matching `iri`, if any.
 	pub fn from_iri(iri: &Iri) -> Option<Self> {
 		if iri == XSD_SHORT {
 			return Some(Self::Short);
@@ -3544,12 +3827,14 @@ impl ShortDatatype {
 		}
 		None
 	}
+	/// Returns the IRI naming this datatype.
 	pub fn iri(&self) -> &'static Iri {
 		match self {
 			Self::Short => XSD_SHORT,
 			Self::Byte => XSD_BYTE,
 		}
 	}
+	/// Parses `value` as a lexical representation of this specific datatype.
 	pub fn parse(&self, value: &str) -> Result<ShortValue, ParseXsdError> {
 		match self {
 			Self::Short => ParseXsd::parse_xsd(value).map(ShortValue::Short),
@@ -3560,10 +3845,13 @@ impl ShortDatatype {
 /// Any specialized [`Short`] value.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash)]
 pub enum ShortValue {
+	/// A `Short` value.
 	Short(Short),
+	/// A `Byte` value.
 	Byte(Byte),
 }
 impl ShortValue {
+	/// Returns the specific datatype of this value.
 	pub fn datatype(&self) -> ShortDatatype {
 		match self {
 			Self::Short(_) => ShortDatatype::Short,
@@ -3933,17 +4221,27 @@ impl<'a> TryFrom<ValueRef<'a>> for NCNameValueRef<'a> {
 /// Any specialized [`str`] value.
 #[derive(Debug, Clone, PartialEq, Eq, PartialOrd, Ord, Hash)]
 pub enum StringValue {
+	/// A `String` value.
 	String(String),
+	/// A `NormalizedString` value.
 	NormalizedString(NormalizedString),
+	/// A `Token` value.
 	Token(TokenBuf),
+	/// A `Language` value.
 	Language(LanguageBuf),
+	/// A `Name` value.
 	Name(NameBuf),
+	/// A `NCName` value.
 	NCName(NCNameBuf),
+	/// An `Id` value.
 	Id(IdBuf),
+	/// An `IdRef` value.
 	IdRef(IdRefBuf),
+	/// A `NMToken` value.
 	NMToken(NMTokenBuf),
 }
 impl StringValue {
+	/// Returns the specific datatype of this value.
 	pub fn datatype(&self) -> StringDatatype {
 		match self {
 			Self::String(_) => StringDatatype::String,
@@ -4097,10 +4395,13 @@ impl TryFrom<StringValue> for NCNameValue {
 /// [`NormalizedStr`] datatype variants.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash)]
 pub enum NormalizedStringDatatype {
+	/// The plain `NormalizedString` datatype, not any of the specializations below.
 	NormalizedString,
+	/// A `Token` (or further specialized) datatype.
 	Token(TokenDatatype),
 }
 impl NormalizedStringDatatype {
+	/// Returns the `NormalizedString` datatype (or specialization) matching `iri`, if any.
 	pub fn from_iri(iri: &Iri) -> Option<Self> {
 		if iri == XSD_NORMALIZED_STRING {
 			return Some(Self::NormalizedString);
@@ -4110,12 +4411,14 @@ impl NormalizedStringDatatype {
 		}
 		None
 	}
+	/// Returns the IRI naming this datatype.
 	pub fn iri(&self) -> &'static Iri {
 		match self {
 			Self::NormalizedString => XSD_NORMALIZED_STRING,
 			Self::Token(t) => t.iri(),
 		}
 	}
+	/// Parses `value` as a lexical representation of this specific datatype.
 	pub fn parse(&self, value: &str) -> Result<NormalizedStringValue, ParseXsdError> {
 		match self {
 			Self::NormalizedString => {
@@ -4172,17 +4475,27 @@ impl TryFrom<NormalizedStringDatatype> for NCNameDatatype {
 /// Any specialized [`str`] value reference.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash)]
 pub enum StringValueRef<'a> {
+	/// A reference to a `String` value.
 	String(&'a str),
+	/// A reference to a `NormalizedString` value.
 	NormalizedString(&'a NormalizedStr),
+	/// A reference to a `Token` value.
 	Token(&'a Token),
+	/// A reference to a `Language` value.
 	Language(&'a Language),
+	/// A reference to a `Name` value.
 	Name(&'a Name),
+	/// A reference to a `NCName` value.
 	NCName(&'a NCName),
+	/// A reference to an `Id` value.
 	Id(&'a Id),
+	/// A reference to an `IdRef` value.
 	IdRef(&'a IdRef),
+	/// A reference to a `NMToken` value.
 	NMToken(&'a NMToken),
 }
 impl StringValue {
+	/// Borrows this value.
 	pub fn as_ref(&self) -> StringValueRef<'_> {
 		match self {
 			Self::String(value) => StringValueRef::String(value),
@@ -4198,6 +4511,7 @@ impl StringValue {
 	}
 }
 impl<'a> StringValueRef<'a> {
+	/// Returns the specific datatype of this value.
 	pub fn datatype(&self) -> StringDatatype {
 		match self {
 			Self::String(_) => StringDatatype::String,
@@ -4227,6 +4541,7 @@ impl<'a> StringValueRef<'a> {
 			)),
 		}
 	}
+	/// Clones the referenced data into an owned value.
 	pub fn into_owned(self) -> StringValue {
 		match self {
 			Self::String(value) => StringValue::String(value.to_owned()),
@@ -4364,16 +4679,25 @@ impl<'a> TryFrom<StringValueRef<'a>> for NCNameValueRef<'a> {
 /// Any specialized [`NormalizedStr`] value.
 #[derive(Debug, Clone, PartialEq, Eq, PartialOrd, Ord, Hash)]
 pub enum NormalizedStringValue {
+	/// A `NormalizedString` value.
 	NormalizedString(NormalizedString),
+	/// A `Token` value.
 	Token(TokenBuf),
+	/// A `Language` value.
 	Language(LanguageBuf),
+	/// A `Name` value.
 	Name(NameBuf),
+	/// A `NCName` value.
 	NCName(NCNameBuf),
+	/// An `Id` value.
 	Id(IdBuf),
+	/// An `IdRef` value.
 	IdRef(IdRefBuf),
+	/// A `NMToken` value.
 	NMToken(NMTokenBuf),
 }
 impl NormalizedStringValue {
+	/// Returns the specific datatype of this value.
 	pub fn datatype(&self) -> NormalizedStringDatatype {
 		match self {
 			Self::NormalizedString(_) => NormalizedStringDatatype::NormalizedString,
@@ -4487,12 +4811,17 @@ impl TryFrom<NormalizedStringValue> for NCNameValue {
 /// [`Token`] datatype variants.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash)]
 pub enum TokenDatatype {
+	/// The plain `Token` datatype, not any of the specializations below.
 	Token,
+	/// The `Language` datatype.
 	Language,
+	/// A `Name` (or further specialized) datatype.
 	Name(NameDatatype),
+	/// The `NMToken` datatype.
 	NMToken,
 }
 impl TokenDatatype {
+	/// Returns the `Token` datatype (or specialization) matching `iri`, if any.
 	pub fn from_iri(iri: &Iri) -> Option<Self> {
 		if iri == XSD_TOKEN {
 			return Some(Self::Token);
@@ -4508,6 +4837,7 @@ impl TokenDatatype {
 		}
 		None
 	}
+	/// Returns the IRI naming this datatype.
 	pub fn iri(&self) -> &'static Iri {
 		match self {
 			Self::Token => XSD_TOKEN,
@@ -4516,6 +4846,7 @@ impl TokenDatatype {
 			Self::NMToken => XSD_NMTOKEN,
 		}
 	}
+	/// Parses `value` as a lexical representation of this specific datatype.
 	pub fn parse(&self, value: &str) -> Result<TokenValue, ParseXsdError> {
 		match self {
 			Self::Token => ParseXsd::parse_xsd(value).map(TokenValue::Token),
@@ -4556,16 +4887,25 @@ impl TryFrom<TokenDatatype> for NCNameDatatype {
 /// Any specialized [`NormalizedStr`] value reference.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash)]
 pub enum NormalizedStringValueRef<'a> {
+	/// A reference to a `NormalizedString` value.
 	NormalizedString(&'a NormalizedStr),
+	/// A reference to a `Token` value.
 	Token(&'a Token),
+	/// A reference to a `Language` value.
 	Language(&'a Language),
+	/// A reference to a `Name` value.
 	Name(&'a Name),
+	/// A reference to a `NCName` value.
 	NCName(&'a NCName),
+	/// A reference to an `Id` value.
 	Id(&'a Id),
+	/// A reference to an `IdRef` value.
 	IdRef(&'a IdRef),
+	/// A reference to a `NMToken` value.
 	NMToken(&'a NMToken),
 }
 impl NormalizedStringValue {
+	/// Borrows this value.
 	pub fn as_ref(&self) -> NormalizedStringValueRef<'_> {
 		match self {
 			Self::NormalizedString(value) => NormalizedStringValueRef::NormalizedString(value),
@@ -4580,6 +4920,7 @@ impl NormalizedStringValue {
 	}
 }
 impl<'a> NormalizedStringValueRef<'a> {
+	/// Returns the specific datatype of this value.
 	pub fn datatype(&self) -> NormalizedStringDatatype {
 		match self {
 			Self::NormalizedString(_) => NormalizedStringDatatype::NormalizedString,
@@ -4600,6 +4941,7 @@ impl<'a> NormalizedStringValueRef<'a> {
 			Self::NMToken(_) => NormalizedStringDatatype::Token(TokenDatatype::NMToken),
 		}
 	}
+	/// Clones the referenced data into an owned value.
 	pub fn into_owned(self) -> NormalizedStringValue {
 		match self {
 			Self::NormalizedString(value) => {
@@ -4707,15 +5049,23 @@ impl<'a> TryFrom<NormalizedStringValueRef<'a>> for NCNameValueRef<'a> {
 /// Any specialized [`Token`] value.
 #[derive(Debug, Clone, PartialEq, Eq, PartialOrd, Ord, Hash)]
 pub enum TokenValue {
+	/// A `Token` value.
 	Token(TokenBuf),
+	/// A `Language` value.
 	Language(LanguageBuf),
+	/// A `Name` value.
 	Name(NameBuf),
+	/// A `NCName` value.
 	NCName(NCNameBuf),
+	/// An `Id` value.
 	Id(IdBuf),
+	/// An `IdRef` value.
 	IdRef(IdRefBuf),
+	/// A `NMToken` value.
 	NMToken(NMTokenBuf),
 }
 impl TokenValue {
+	/// Returns the specific datatype of this value.
 	pub fn datatype(&self) -> TokenDatatype {
 		match self {
 			Self::Token(_) => TokenDatatype::Token,
@@ -4791,10 +5141,13 @@ impl TryFrom<TokenValue> for NCNameValue {
 /// [`Name`] datatype variants.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash)]
 pub enum NameDatatype {
+	/// The plain `Name` datatype, not any of the specializations below.
 	Name,
+	/// A `NCName` (or further specialized) datatype.
 	NCName(NCNameDatatype),
 }
 impl NameDatatype {
+	/// Returns the `Name` datatype (or specialization) matching `iri`, if any.
 	pub fn from_iri(iri: &Iri) -> Option<Self> {
 		if iri == XSD_NAME {
 			return Some(Self::Name);
@@ -4804,12 +5157,14 @@ impl NameDatatype {
 		}
 		None
 	}
+	/// Returns the IRI naming this datatype.
 	pub fn iri(&self) -> &'static Iri {
 		match self {
 			Self::Name => XSD_NAME,
 			Self::NCName(t) => t.iri(),
 		}
 	}
+	/// Parses `value` as a lexical representation of this specific datatype.
 	pub fn parse(&self, value: &str) -> Result<NameValue, ParseXsdError> {
 		match self {
 			Self::Name => ParseXsd::parse_xsd(value).map(NameValue::Name),
@@ -4834,15 +5189,23 @@ impl TryFrom<NameDatatype> for NCNameDatatype {
 /// Any specialized [`Token`] value reference.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash)]
 pub enum TokenValueRef<'a> {
+	/// A reference to a `Token` value.
 	Token(&'a Token),
+	/// A reference to a `Language` value.
 	Language(&'a Language),
+	/// A reference to a `Name` value.
 	Name(&'a Name),
+	/// A reference to a `NCName` value.
 	NCName(&'a NCName),
+	/// A reference to an `Id` value.
 	Id(&'a Id),
+	/// A reference to an `IdRef` value.
 	IdRef(&'a IdRef),
+	/// A reference to a `NMToken` value.
 	NMToken(&'a NMToken),
 }
 impl TokenValue {
+	/// Borrows this value.
 	pub fn as_ref(&self) -> TokenValueRef<'_> {
 		match self {
 			Self::Token(value) => TokenValueRef::Token(value),
@@ -4856,6 +5219,7 @@ impl TokenValue {
 	}
 }
 impl<'a> TokenValueRef<'a> {
+	/// Returns the specific datatype of this value.
 	pub fn datatype(&self) -> TokenDatatype {
 		match self {
 			Self::Token(_) => TokenDatatype::Token,
@@ -4867,6 +5231,7 @@ impl<'a> TokenValueRef<'a> {
 			Self::NMToken(_) => TokenDatatype::NMToken,
 		}
 	}
+	/// Clones the referenced data into an owned value.
 	pub fn into_owned(self) -> TokenValue {
 		match self {
 			Self::Token(value) => TokenValue::Token(value.to_owned()),
@@ -4942,12 +5307,17 @@ impl<'a> TryFrom<TokenValueRef<'a>> for NCNameValueRef<'a> {
 /// Any specialized [`Name`] value.
 #[derive(Debug, Clone, PartialEq, Eq, PartialOrd, Ord, Hash)]
 pub enum NameValue {
+	/// A `Name` value.
 	Name(NameBuf),
+	/// A `NCName` value.
 	NCName(NCNameBuf),
+	/// An `Id` value.
 	Id(IdBuf),
+	/// An `IdRef` value.
 	IdRef(IdRefBuf),
 }
 impl NameValue {
+	/// Returns the specific datatype of this value.
 	pub fn datatype(&self) -> NameDatatype {
 		match self {
 			Self::Name(_) => NameDatatype::Name,
@@ -4995,11 +5365,15 @@ impl TryFrom<NameValue> for NCNameValue {
 /// [`NCName`] datatype variants.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash)]
 pub enum NCNameDatatype {
+	/// The plain `NCName` datatype, not any of the specializations below.
 	NCName,
+	/// The `Id` datatype.
 	Id,
+	/// The `IdRef` datatype.
 	IdRef,
 }
 impl NCNameDatatype {
+	/// Returns the `NCName` datatype (or specialization) matching `iri`, if any.
 	pub fn from_iri(iri: &Iri) -> Option<Self> {
 		if iri == XSD_NC_NAME {
 			return Some(Self::NCName);
@@ -5012,6 +5386,7 @@ impl NCNameDatatype {
 		}
 		None
 	}
+	/// Returns the IRI naming this datatype.
 	pub fn iri(&self) -> &'static Iri {
 		match self {
 			Self::NCName => XSD_NC_NAME,
@@ -5019,6 +5394,7 @@ impl NCNameDatatype {
 			Self::IdRef => XSD_IDREF,
 		}
 	}
+	/// Parses `value` as a lexical representation of this specific datatype.
 	pub fn parse(&self, value: &str) -> Result<NCNameValue, ParseXsdError> {
 		match self {
 			Self::NCName => ParseXsd::parse_xsd(value).map(NCNameValue::NCName),
@@ -5030,12 +5406,17 @@ impl NCNameDatatype {
 /// Any specialized [`Name`] value reference.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash)]
 pub enum NameValueRef<'a> {
+	/// A reference to a `Name` value.
 	Name(&'a Name),
+	/// A reference to a `NCName` value.
 	NCName(&'a NCName),
+	/// A reference to an `Id` value.
 	Id(&'a Id),
+	/// A reference to an `IdRef` value.
 	IdRef(&'a IdRef),
 }
 impl NameValue {
+	/// Borrows this value.
 	pub fn as_ref(&self) -> NameValueRef<'_> {
 		match self {
 			Self::Name(value) => NameValueRef::Name(value),
@@ -5046,6 +5427,7 @@ impl NameValue {
 	}
 }
 impl<'a> NameValueRef<'a> {
+	/// Returns the specific datatype of this value.
 	pub fn datatype(&self) -> NameDatatype {
 		match self {
 			Self::Name(_) => NameDatatype::Name,
@@ -5054,6 +5436,7 @@ impl<'a> NameValueRef<'a> {
 			Self::IdRef(_) => NameDatatype::NCName(NCNameDatatype::IdRef),
 		}
 	}
+	/// Clones the referenced data into an owned value.
 	pub fn into_owned(self) -> NameValue {
 		match self {
 			Self::Name(value) => NameValue::Name(value.to_owned()),
@@ -5101,11 +5484,15 @@ impl<'a> TryFrom<NameValueRef<'a>> for NCNameValueRef<'a> {
 /// Any specialized [`NCName`] value.
 #[derive(Debug, Clone, PartialEq, Eq, PartialOrd, Ord, Hash)]
 pub enum NCNameValue {
+	/// A `NCName` value.
 	NCName(NCNameBuf),
+	/// An `Id` value.
 	Id(IdBuf),
+	/// An `IdRef` value.
 	IdRef(IdRefBuf),
 }
 impl NCNameValue {
+	/// Returns the specific datatype of this value.
 	pub fn datatype(&self) -> NCNameDatatype {
 		match self {
 			Self::NCName(_) => NCNameDatatype::NCName,
@@ -5131,11 +5518,15 @@ impl fmt::Display for NCNameValue {
 /// Any specialized [`NCName`] value reference.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash)]
 pub enum NCNameValueRef<'a> {
+	/// A reference to a `NCName` value.
 	NCName(&'a NCName),
+	/// A reference to an `Id` value.
 	Id(&'a Id),
+	/// A reference to an `IdRef` value.
 	IdRef(&'a IdRef),
 }
 impl NCNameValue {
+	/// Borrows this value.
 	pub fn as_ref(&self) -> NCNameValueRef<'_> {
 		match self {
 			Self::NCName(value) => NCNameValueRef::NCName(value),
@@ -5145,6 +5536,7 @@ impl NCNameValue {
 	}
 }
 impl<'a> NCNameValueRef<'a> {
+	/// Returns the specific datatype of this value.
 	pub fn datatype(&self) -> NCNameDatatype {
 		match self {
 			Self::NCName(_) => NCNameDatatype::NCName,
@@ -5152,6 +5544,7 @@ impl<'a> NCNameValueRef<'a> {
 			Self::IdRef(_) => NCNameDatatype::IdRef,
 		}
 	}
+	/// Clones the referenced data into an owned value.
 	pub fn into_owned(self) -> NCNameValue {
 		match self {
 			Self::NCName(value) => NCNameValue::NCName(value.to_owned()),
@@ -5211,11 +5604,15 @@ impl TryFrom<Value> for DurationValue {
 /// Any specialized [`Duration`] value.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Hash)]
 pub enum DurationValue {
+	/// A `Duration` value.
 	Duration(Duration),
+	/// A `DayTimeDuration` value.
 	DayTimeDuration(DayTimeDuration),
+	/// A `YearMonthDuration` value.
 	YearMonthDuration(YearMonthDuration),
 }
 impl DurationValue {
+	/// Returns the specific datatype of this value.
 	pub fn datatype(&self) -> DurationDatatype {
 		match self {
 			Self::Duration(_) => DurationDatatype::Duration,
@@ -5273,10 +5670,13 @@ impl TryFrom<Value> for DateTimeValue {
 /// Any specialized [`DateTime`] value.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Hash)]
 pub enum DateTimeValue {
+	/// A `DateTime` value.
 	DateTime(DateTime),
+	/// A `DateTimeStamp` value.
 	DateTimeStamp(DateTimeStamp),
 }
 impl DateTimeValue {
+	/// Returns the specific datatype of this value.
 	pub fn datatype(&self) -> DateTimeDatatype {
 		match self {
 			Self::DateTime(_) => DateTimeDatatype::DateTime,

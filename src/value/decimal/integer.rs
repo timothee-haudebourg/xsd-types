@@ -24,6 +24,13 @@ pub use non_negative_integer::*;
 pub use non_positive_integer::*;
 
 /// Integer number.
+///
+/// This is the value-space counterpart of [`lexical::Integer`]. Like its
+/// lexical form, `integer` has no numbered grammar production of its own
+/// in the XSD 1.1 Datatypes specification: it is defined by restricting
+/// [`Decimal`](crate::Decimal)'s value space to numbers with no fractional
+/// part.
+/// See: <https://www.w3.org/TR/xmlschema11-2/#integer>.
 #[derive(Clone, PartialEq, Eq, PartialOrd, Ord, Hash, Debug)]
 #[repr(transparent)]
 pub struct Integer(BigInt);
@@ -45,42 +52,56 @@ impl Integer {
 		Self(n)
 	}
 
+	/// Creates an integer from its sign and unsigned big-endian bytes
+	/// representation.
 	pub fn from_bytes_be(sign: Sign, bytes: &[u8]) -> Self {
 		Self(BigInt::from_bytes_be(sign, bytes))
 	}
 
+	/// Creates an integer from its sign and unsigned little-endian bytes
+	/// representation.
 	pub fn from_bytes_le(sign: Sign, bytes: &[u8]) -> Self {
 		Self(BigInt::from_bytes_le(sign, bytes))
 	}
 
+	/// Creates an integer from its two's-complement big-endian bytes
+	/// representation.
 	pub fn from_signed_bytes_be(bytes: &[u8]) -> Self {
 		Self(BigInt::from_signed_bytes_be(bytes))
 	}
 
+	/// Creates an integer from its two's-complement little-endian bytes
+	/// representation.
 	pub fn from_signed_bytes_le(bytes: &[u8]) -> Self {
 		Self(BigInt::from_signed_bytes_le(bytes))
 	}
 
+	/// Returns the integer `0`.
 	#[inline(always)]
 	pub fn zero() -> Self {
 		Self(BigInt::zero())
 	}
 
+	/// Returns `true` if this value is zero.
 	#[inline(always)]
 	pub fn is_zero(&self) -> bool {
 		self.0.is_zero()
 	}
 
+	/// Returns `true` if this value is strictly positive.
 	#[inline(always)]
 	pub fn is_positive(&self) -> bool {
 		self.0.is_positive()
 	}
 
+	/// Returns `true` if this value is strictly negative.
 	#[inline(always)]
 	pub fn is_negative(&self) -> bool {
 		self.0.is_negative()
 	}
 
+	/// Returns the most specific XSD integer-derived datatype that can
+	/// represent this value (e.g. `byte`, `int`, `nonNegativeInteger`, ...).
 	pub fn integer_type(&self) -> IntegerDatatype {
 		if self.0 >= BigInt::zero() {
 			if self.0 > BigInt::zero() {
@@ -121,18 +142,26 @@ impl Integer {
 		}
 	}
 
+	/// Returns the sign and unsigned big-endian bytes representation of this
+	/// value.
 	pub fn to_bytes_be(&self) -> (Sign, Vec<u8>) {
 		self.0.to_bytes_be()
 	}
 
+	/// Returns the sign and unsigned little-endian bytes representation of
+	/// this value.
 	pub fn to_bytes_le(&self) -> (Sign, Vec<u8>) {
 		self.0.to_bytes_le()
 	}
 
+	/// Returns the two's-complement big-endian bytes representation of this
+	/// value.
 	pub fn to_signed_bytes_be(&self) -> Vec<u8> {
 		self.0.to_signed_bytes_be()
 	}
 
+	/// Returns the two's-complement little-endian bytes representation of
+	/// this value.
 	pub fn to_signed_bytes_le(&self) -> Vec<u8> {
 		self.0.to_signed_bytes_le()
 	}
@@ -266,6 +295,8 @@ impl Borrow<BigInt> for Integer {
 	}
 }
 
+/// Error raised when converting an [`Integer`] into a smaller target
+/// integer type that cannot represent its value.
 #[derive(Debug, thiserror::Error)]
 #[error("integer out of supported bounds: {0}")]
 pub struct IntegerOutOfTargetBounds(pub Integer);

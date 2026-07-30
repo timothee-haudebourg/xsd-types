@@ -5,6 +5,8 @@ use crate::lexical::{Lexical, LexicalFormOf};
 
 /// ID.
 ///
+/// See: <https://www.w3.org/TR/xmlschema11-2/#ID>.
+///
 /// ```abnf
 /// NCName        = (Letter / "_") *NCNameChar
 /// NCNameChar    = Letter / Digit / "." / "-" / "_" / CombiningChar / Extender
