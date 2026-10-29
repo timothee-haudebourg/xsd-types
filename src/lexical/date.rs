@@ -1,9 +1,9 @@
 use static_automata::Validate;
 use str_newtype::StrNewType;
 
-use crate::{lexical::parse_timezone, utils::byte_index_of};
+use crate::{lexical::parse_timezone, utils::byte_index_of, XsdError};
 
-use super::{Lexical, LexicalFormOf};
+use super::XsdLexicalForm;
 
 /// Date.
 ///
@@ -37,19 +37,21 @@ impl Date {
 	}
 }
 
-impl Lexical for Date {
-	type Error = InvalidDate<String>;
+impl XsdLexicalForm for Date {
+	type Value = crate::Date;
+}
 
-	fn parse(value: &str) -> Result<&Self, Self::Error> {
-		Self::new(value).map_err(|_| InvalidDate(value.to_owned()))
+impl<'a> crate::XsdFromStr<'a> for &'a Date {
+	fn xsd_from_str(value: &'a str) -> Result<Self, XsdError> {
+		Date::new(value).map_err(|_| XsdError::lexical_form(InvalidDate(value)))
 	}
 }
 
-impl LexicalFormOf<crate::Date> for Date {
-	type ValueError = crate::InvalidDateValue;
+impl<'a> TryFrom<&'a Date> for crate::Date {
+	type Error = crate::InvalidDateValue;
 
-	fn try_as_value(&self) -> Result<crate::Date, Self::ValueError> {
-		self.parts().to_date()
+	fn try_from(value: &'a Date) -> Result<crate::Date, Self::Error> {
+		value.parts().to_date()
 	}
 }
 
@@ -114,7 +116,7 @@ mod tests {
 			let lexical_repr = Date::new(input).unwrap();
 			assert_eq!(lexical_repr.parts(), parts);
 
-			let value = lexical_repr.try_as_value().unwrap();
+			let value = crate::Date::try_from(lexical_repr).unwrap();
 			assert_eq!(value.to_string().as_str(), input)
 		}
 	}
@@ -150,7 +152,7 @@ mod tests {
 			let lexical_repr = Date::new(input).unwrap();
 			assert_eq!(lexical_repr.parts(), parts);
 
-			let value = lexical_repr.try_as_value().unwrap();
+			let value = crate::Date::try_from(lexical_repr).unwrap();
 			assert_eq!(value.to_string().as_str(), input)
 		}
 	}

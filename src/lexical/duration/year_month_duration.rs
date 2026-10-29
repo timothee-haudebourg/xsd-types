@@ -1,4 +1,5 @@
-use super::{Lexical, LexicalFormOf};
+use super::XsdLexicalForm;
+use crate::XsdError;
 use static_automata::Validate;
 use str_newtype::StrNewType;
 
@@ -71,19 +72,20 @@ impl YearMonthDuration {
 	}
 }
 
-impl Lexical for YearMonthDuration {
-	type Error = InvalidYearMonthDuration<String>;
+impl XsdLexicalForm for YearMonthDuration {
+	type Value = crate::YearMonthDuration;
+}
 
-	fn parse(value: &str) -> Result<&Self, Self::Error> {
-		Self::new(value).map_err(|_| InvalidYearMonthDuration(value.to_owned()))
+impl<'a> crate::XsdFromStr<'a> for &'a YearMonthDuration {
+	fn xsd_from_str(value: &'a str) -> Result<Self, XsdError> {
+		YearMonthDuration::new(value)
+			.map_err(|_| XsdError::lexical_form(InvalidYearMonthDuration(value)))
 	}
 }
 
-impl LexicalFormOf<crate::YearMonthDuration> for YearMonthDuration {
-	type ValueError = std::convert::Infallible;
-
-	fn try_as_value(&self) -> Result<crate::YearMonthDuration, Self::ValueError> {
-		Ok(self.parts().to_duration())
+impl<'a> From<&'a YearMonthDuration> for crate::YearMonthDuration {
+	fn from(value: &'a YearMonthDuration) -> crate::YearMonthDuration {
+		value.parts().to_duration()
 	}
 }
 
@@ -135,7 +137,7 @@ mod tests {
 			let lexical_repr = YearMonthDuration::new(input).unwrap();
 			assert_eq!(lexical_repr.parts(), parts);
 
-			let value = lexical_repr.try_as_value().unwrap();
+			let value: crate::YearMonthDuration = lexical_repr.into();
 			assert_eq!(value.to_string().as_str(), normalized)
 		}
 	}

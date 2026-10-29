@@ -9,11 +9,10 @@ use num_bigint::{BigInt, TryFromBigIntError};
 use num_traits::{Signed, Zero};
 
 use crate::{
-	impl_integer_arithmetic,
-	lexical::{self, Lexical, LexicalFormOf},
+	impl_integer_arithmetic, lexical,
 	value::decimal::{U16_MAX, U32_MAX, U64_MAX, U8_MAX},
-	Datatype, Integer, NonNegativeIntegerDatatype, ParseXsd, UnsignedIntDatatype,
-	UnsignedLongDatatype, UnsignedShortDatatype, XsdValue,
+	Datatype, Integer, NonNegativeIntegerDatatype, UnsignedIntDatatype, UnsignedLongDatatype,
+	UnsignedShortDatatype, XsdFromStr, XsdTyped, XsdValue,
 };
 
 use super::Sign;
@@ -118,16 +117,6 @@ impl NonNegativeInteger {
 		}
 	}
 
-	/// Returns a lexical representation of this non negative integer.
-	#[inline(always)]
-	pub fn lexical_representation(&self) -> lexical::NonNegativeIntegerBuf {
-		unsafe {
-			// This is safe because the `Display::fmt` method matches the
-			// XSD lexical representation.
-			lexical::NonNegativeIntegerBuf::new_unchecked(format!("{}", self))
-		}
-	}
-
 	/// Returns the sign and unsigned big-endian bytes representation of this
 	/// value.
 	pub fn to_bytes_be(&self) -> (Sign, Vec<u8>) {
@@ -153,21 +142,23 @@ impl NonNegativeInteger {
 	}
 }
 
-impl XsdValue for NonNegativeInteger {
+impl XsdTyped for NonNegativeInteger {
 	fn datatype(&self) -> Datatype {
 		self.non_negative_integer_type().into()
 	}
 }
 
-impl ParseXsd for NonNegativeInteger {
+impl XsdValue for NonNegativeInteger {
 	type LexicalForm = lexical::NonNegativeInteger;
+
+	fn to_lexical_form(&self) -> lexical::NonNegativeIntegerBuf {
+		canonical_integer_lexical_form!(lexical::NonNegativeIntegerBuf, self)
+	}
 }
 
-impl LexicalFormOf<NonNegativeInteger> for lexical::NonNegativeInteger {
-	type ValueError = std::convert::Infallible;
-
-	fn try_as_value(&self) -> Result<NonNegativeInteger, Self::ValueError> {
-		Ok(self.value())
+impl<'a> XsdFromStr<'a> for NonNegativeInteger {
+	fn xsd_from_str(lexical_value: &'a str) -> Result<Self, crate::XsdError> {
+		crate::xsd_parse_via::<lexical::NonNegativeInteger, Self>(lexical_value)
 	}
 }
 
@@ -196,8 +187,9 @@ impl FromStr for NonNegativeInteger {
 
 	#[inline(always)]
 	fn from_str(s: &str) -> Result<Self, Self::Err> {
-		let l = lexical::NonNegativeInteger::parse(s)?;
-		Ok(l.as_value())
+		let l = lexical::NonNegativeInteger::new(s)
+			.map_err(|_| lexical::InvalidNonNegativeInteger(s.to_owned()))?;
+		Ok(l.into())
 	}
 }
 
@@ -352,21 +344,23 @@ impl XsdUnsignedLong for UnsignedLong {
 	}
 }
 
-impl XsdValue for UnsignedLong {
+impl XsdTyped for UnsignedLong {
 	fn datatype(&self) -> Datatype {
 		self.unsigned_long_type().into()
 	}
 }
 
-impl ParseXsd for UnsignedLong {
+impl XsdValue for UnsignedLong {
 	type LexicalForm = lexical::NonNegativeInteger;
+
+	fn to_lexical_form(&self) -> lexical::NonNegativeIntegerBuf {
+		canonical_integer_lexical_form!(lexical::NonNegativeIntegerBuf, self)
+	}
 }
 
-impl LexicalFormOf<UnsignedLong> for lexical::NonNegativeInteger {
-	type ValueError = NonNegativeIntegerOutOfTargetBounds;
-
-	fn try_as_value(&self) -> Result<UnsignedLong, Self::ValueError> {
-		self.value().try_into()
+impl<'a> XsdFromStr<'a> for UnsignedLong {
+	fn xsd_from_str(lexical_value: &'a str) -> Result<Self, crate::XsdError> {
+		crate::xsd_parse_via::<lexical::NonNegativeInteger, Self>(lexical_value)
 	}
 }
 
@@ -388,21 +382,23 @@ impl XsdUnsignedInt for UnsignedInt {
 	}
 }
 
-impl XsdValue for UnsignedInt {
+impl XsdTyped for UnsignedInt {
 	fn datatype(&self) -> Datatype {
 		self.unsigned_int_type().into()
 	}
 }
 
-impl ParseXsd for UnsignedInt {
+impl XsdValue for UnsignedInt {
 	type LexicalForm = lexical::NonNegativeInteger;
+
+	fn to_lexical_form(&self) -> lexical::NonNegativeIntegerBuf {
+		canonical_integer_lexical_form!(lexical::NonNegativeIntegerBuf, self)
+	}
 }
 
-impl LexicalFormOf<UnsignedInt> for lexical::NonNegativeInteger {
-	type ValueError = NonNegativeIntegerOutOfTargetBounds;
-
-	fn try_as_value(&self) -> Result<UnsignedInt, Self::ValueError> {
-		self.value().try_into()
+impl<'a> XsdFromStr<'a> for UnsignedInt {
+	fn xsd_from_str(lexical_value: &'a str) -> Result<Self, crate::XsdError> {
+		crate::xsd_parse_via::<lexical::NonNegativeInteger, Self>(lexical_value)
 	}
 }
 
@@ -422,41 +418,45 @@ impl XsdUnsignedShort for UnsignedShort {
 	}
 }
 
-impl XsdValue for UnsignedShort {
+impl XsdTyped for UnsignedShort {
 	fn datatype(&self) -> Datatype {
 		self.unsigned_short_type().into()
 	}
 }
 
-impl ParseXsd for UnsignedShort {
+impl XsdValue for UnsignedShort {
 	type LexicalForm = lexical::NonNegativeInteger;
+
+	fn to_lexical_form(&self) -> lexical::NonNegativeIntegerBuf {
+		canonical_integer_lexical_form!(lexical::NonNegativeIntegerBuf, self)
+	}
 }
 
-impl LexicalFormOf<UnsignedShort> for lexical::NonNegativeInteger {
-	type ValueError = NonNegativeIntegerOutOfTargetBounds;
-
-	fn try_as_value(&self) -> Result<UnsignedShort, Self::ValueError> {
-		self.value().try_into()
+impl<'a> XsdFromStr<'a> for UnsignedShort {
+	fn xsd_from_str(lexical_value: &'a str) -> Result<Self, crate::XsdError> {
+		crate::xsd_parse_via::<lexical::NonNegativeInteger, Self>(lexical_value)
 	}
 }
 
 pub type UnsignedByte = u8;
 
-impl XsdValue for UnsignedByte {
+impl XsdTyped for UnsignedByte {
 	fn datatype(&self) -> Datatype {
 		UnsignedShortDatatype::UnsignedByte.into()
 	}
 }
 
-impl ParseXsd for UnsignedByte {
+impl XsdValue for UnsignedByte {
 	type LexicalForm = lexical::NonNegativeInteger;
+
+	fn to_lexical_form(&self) -> lexical::NonNegativeIntegerBuf {
+		canonical_integer_lexical_form!(lexical::NonNegativeIntegerBuf, self)
+	}
 }
 
-impl LexicalFormOf<UnsignedByte> for lexical::NonNegativeInteger {
-	type ValueError = NonNegativeIntegerOutOfTargetBounds;
-
-	fn try_as_value(&self) -> Result<UnsignedByte, Self::ValueError> {
-		self.value().try_into()
+impl<'a> XsdFromStr<'a> for UnsignedByte {
+	fn xsd_from_str(lexical_value: &'a str) -> Result<Self, crate::XsdError> {
+		crate::xsd_parse_via::<lexical::NonNegativeInteger, Self>(lexical_value)
 	}
 }
 
@@ -548,21 +548,29 @@ impl PositiveInteger {
 	}
 }
 
-impl XsdValue for PositiveInteger {
+impl XsdTyped for PositiveInteger {
 	fn datatype(&self) -> Datatype {
 		NonNegativeIntegerDatatype::PositiveInteger.into()
 	}
 }
 
-impl ParseXsd for PositiveInteger {
+impl XsdValue for PositiveInteger {
 	type LexicalForm = lexical::PositiveInteger;
+
+	fn to_lexical_form(&self) -> lexical::PositiveIntegerBuf {
+		canonical_integer_lexical_form!(lexical::PositiveIntegerBuf, self)
+	}
 }
 
-impl LexicalFormOf<PositiveInteger> for lexical::PositiveInteger {
-	type ValueError = std::convert::Infallible;
+impl<'a> XsdFromStr<'a> for PositiveInteger {
+	fn xsd_from_str(lexical_value: &'a str) -> Result<Self, crate::XsdError> {
+		crate::xsd_parse_via::<lexical::PositiveInteger, Self>(lexical_value)
+	}
+}
 
-	fn try_as_value(&self) -> Result<PositiveInteger, Self::ValueError> {
-		Ok(self.value())
+impl<'a> From<&'a lexical::PositiveInteger> for PositiveInteger {
+	fn from(value: &'a lexical::PositiveInteger) -> Self {
+		value.value()
 	}
 }
 
@@ -571,8 +579,9 @@ impl FromStr for PositiveInteger {
 
 	#[inline(always)]
 	fn from_str(s: &str) -> Result<Self, Self::Err> {
-		let l = lexical::PositiveInteger::parse(s)?;
-		Ok(l.as_value())
+		let l = lexical::PositiveInteger::new(s)
+			.map_err(|_| lexical::InvalidPositiveInteger(s.to_owned()))?;
+		Ok(l.into())
 	}
 }
 
@@ -660,5 +669,68 @@ mod tests {
 			Integer::zero().integer_type(),
 			UnsignedShortDatatype::UnsignedByte.into()
 		);
+	}
+
+	/// Parses `canonical`, checks that `to_lexical_form` gives it back and that
+	/// the result parses to an equal value.
+	macro_rules! check {
+		($ty:ty, $canonical:expr) => {{
+			let canonical: &str = $canonical;
+			let value = <$ty as crate::XsdFromStr>::xsd_from_str(canonical).unwrap();
+			let lexical = value.to_lexical_form();
+			assert_eq!(lexical.as_str(), canonical);
+			assert_eq!(
+				<$ty as crate::XsdFromStr>::xsd_from_str(lexical.as_str()).unwrap(),
+				value
+			);
+		}};
+	}
+
+	#[test]
+	fn non_negative_integer_to_lexical_form() {
+		for s in ["0", "7", "123456789012345678901234567890123456789"] {
+			check!(NonNegativeInteger, s);
+		}
+
+		let value: NonNegativeInteger = "+007".parse().unwrap();
+		assert_eq!(value.to_lexical_form().as_str(), "7");
+	}
+
+	#[test]
+	fn unsigned_long_to_lexical_form() {
+		for s in ["0", "1", "18446744073709551615"] {
+			check!(UnsignedLong, s);
+		}
+	}
+
+	#[test]
+	fn unsigned_int_to_lexical_form() {
+		for s in ["0", "1", "4294967295"] {
+			check!(UnsignedInt, s);
+		}
+	}
+
+	#[test]
+	fn unsigned_short_to_lexical_form() {
+		for s in ["0", "1", "65535"] {
+			check!(UnsignedShort, s);
+		}
+	}
+
+	#[test]
+	fn unsigned_byte_to_lexical_form() {
+		for s in ["0", "1", "255"] {
+			check!(UnsignedByte, s);
+		}
+	}
+
+	#[test]
+	fn positive_integer_to_lexical_form() {
+		for s in ["1", "42", "123456789012345678901234567890123456789"] {
+			check!(PositiveInteger, s);
+		}
+
+		let value: PositiveInteger = "+007".parse().unwrap();
+		assert_eq!(value.to_lexical_form().as_str(), "7");
 	}
 }

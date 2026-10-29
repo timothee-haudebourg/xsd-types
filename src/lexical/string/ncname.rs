@@ -1,7 +1,7 @@
 use static_automata::Validate;
 use str_newtype::StrNewType;
 
-use crate::lexical::{Lexical, LexicalFormOf};
+use crate::{lexical::XsdLexicalForm, XsdError};
 
 /// NCName.
 ///
@@ -24,18 +24,20 @@ use crate::lexical::{Lexical, LexicalFormOf};
 #[cfg_attr(feature = "serde", newtype(serde))]
 pub struct NCName(str);
 
-impl Lexical for NCName {
-	type Error = InvalidNCName<String>;
+impl XsdLexicalForm for NCName {
+	type Value = NCNameBuf;
+}
 
-	fn parse(value: &str) -> Result<&Self, Self::Error> {
-		Self::new(value).map_err(|_| InvalidNCName(value.to_owned()))
+impl<'a> crate::XsdFromStr<'a> for &'a NCName {
+	fn xsd_from_str(value: &'a str) -> Result<Self, XsdError> {
+		NCName::new(value).map_err(|_| XsdError::lexical_form(InvalidNCName(value)))
 	}
 }
 
-impl LexicalFormOf<NCNameBuf> for NCName {
-	type ValueError = InvalidNCName<String>;
+impl<'a> TryFrom<&'a NCName> for NCNameBuf {
+	type Error = InvalidNCName<String>;
 
-	fn try_as_value(&self) -> Result<NCNameBuf, Self::ValueError> {
-		self.as_str().parse()
+	fn try_from(value: &'a NCName) -> Result<NCNameBuf, Self::Error> {
+		value.as_str().parse()
 	}
 }

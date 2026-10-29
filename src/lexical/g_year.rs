@@ -1,9 +1,9 @@
 use static_automata::Validate;
 use str_newtype::StrNewType;
 
-use crate::{lexical::parse_timezone, utils::byte_index_of};
+use crate::{lexical::parse_timezone, utils::byte_index_of, XsdError};
 
-use super::{Lexical, LexicalFormOf};
+use super::XsdLexicalForm;
 
 /// GYear.
 ///
@@ -34,19 +34,19 @@ impl GYear {
 	}
 }
 
-impl Lexical for GYear {
-	type Error = InvalidGYear<String>;
+impl XsdLexicalForm for GYear {
+	type Value = crate::GYear;
+}
 
-	fn parse(value: &str) -> Result<&Self, Self::Error> {
-		Self::new(value).map_err(|_| InvalidGYear(value.to_owned()))
+impl<'a> crate::XsdFromStr<'a> for &'a GYear {
+	fn xsd_from_str(value: &'a str) -> Result<Self, XsdError> {
+		GYear::new(value).map_err(|_| XsdError::lexical_form(InvalidGYear(value)))
 	}
 }
 
-impl LexicalFormOf<crate::GYear> for GYear {
-	type ValueError = std::convert::Infallible;
-
-	fn try_as_value(&self) -> Result<crate::GYear, Self::ValueError> {
-		Ok(self.parts().to_g_year_month())
+impl<'a> From<&'a GYear> for crate::GYear {
+	fn from(value: &'a GYear) -> crate::GYear {
+		value.parts().to_g_year_month()
 	}
 }
 
@@ -88,7 +88,7 @@ mod tests {
 			let lexical_repr = GYear::new(input).unwrap();
 			assert_eq!(lexical_repr.parts(), parts);
 
-			let value = lexical_repr.try_as_value().unwrap();
+			let value: crate::GYear = lexical_repr.into();
 			assert_eq!(value.to_string().as_str(), input)
 		}
 	}

@@ -1,9 +1,9 @@
 use static_automata::Validate;
 use str_newtype::StrNewType;
 
-use crate::lexical::parse_timezone;
+use crate::{lexical::parse_timezone, XsdError};
 
-use super::{Lexical, LexicalFormOf};
+use super::XsdLexicalForm;
 
 /// GMonthDay.
 ///
@@ -33,19 +33,19 @@ impl GMonthDay {
 	}
 }
 
-impl Lexical for GMonthDay {
-	type Error = InvalidGMonthDay<String>;
+impl XsdLexicalForm for GMonthDay {
+	type Value = crate::GMonthDay;
+}
 
-	fn parse(value: &str) -> Result<&Self, Self::Error> {
-		Self::new(value).map_err(|_| InvalidGMonthDay(value.to_owned()))
+impl<'a> crate::XsdFromStr<'a> for &'a GMonthDay {
+	fn xsd_from_str(value: &'a str) -> Result<Self, XsdError> {
+		GMonthDay::new(value).map_err(|_| XsdError::lexical_form(InvalidGMonthDay(value)))
 	}
 }
 
-impl LexicalFormOf<crate::GMonthDay> for GMonthDay {
-	type ValueError = std::convert::Infallible;
-
-	fn try_as_value(&self) -> Result<crate::GMonthDay, Self::ValueError> {
-		Ok(self.parts().to_g_month_day())
+impl<'a> From<&'a GMonthDay> for crate::GMonthDay {
+	fn from(value: &'a GMonthDay) -> crate::GMonthDay {
+		value.parts().to_g_month_day()
 	}
 }
 
@@ -91,7 +91,7 @@ mod tests {
 			let lexical_repr = GMonthDay::new(input).unwrap();
 			assert_eq!(lexical_repr.parts(), parts);
 
-			let value = lexical_repr.try_as_value().unwrap();
+			let value: crate::GMonthDay = lexical_repr.into();
 			assert_eq!(value.to_string().as_str(), input)
 		}
 	}

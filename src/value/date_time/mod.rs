@@ -1,9 +1,8 @@
 use std::{cmp::Ordering, fmt, hash::Hash, str::FromStr};
 
 use crate::{
-	lexical::{InvalidDateTime, Lexical, LexicalFormOf},
-	utils::div_rem,
-	Datatype, DateTimeDatatype, ParseXsd, XsdValue,
+	lexical::InvalidDateTime, utils::div_rem, Datatype, DateTimeDatatype, XsdFromStr, XsdTyped,
+	XsdValue,
 };
 
 mod date_time_stamp;
@@ -245,14 +244,27 @@ pub(crate) fn seven_property_model_partial_cmp(
 	}
 }
 
-impl XsdValue for DateTime {
+impl XsdTyped for DateTime {
 	fn datatype(&self) -> Datatype {
 		Datatype::DateTime(DateTimeDatatype::DateTime)
 	}
 }
 
-impl ParseXsd for DateTime {
+impl XsdValue for DateTime {
 	type LexicalForm = crate::lexical::DateTime;
+
+	fn to_lexical_form(&self) -> crate::lexical::DateTimeBuf {
+		// `Display` emits the canonical lexical form by contract, so it is
+		// always valid and this cannot panic.
+		crate::lexical::DateTimeBuf::new(self.to_string())
+			.expect("Display emits a valid dateTime lexical form")
+	}
+}
+
+impl<'a> XsdFromStr<'a> for DateTime {
+	fn xsd_from_str(lexical_value: &'a str) -> Result<Self, crate::XsdError> {
+		crate::xsd_parse_via::<crate::lexical::DateTime, Self>(lexical_value)
+	}
 }
 
 impl fmt::Display for DateTime {
@@ -359,8 +371,9 @@ impl FromStr for DateTime {
 	type Err = DateTimeFromStrError;
 
 	fn from_str(s: &str) -> Result<Self, Self::Err> {
-		let lexical_value = crate::lexical::DateTime::parse(s)?;
-		lexical_value.try_as_value().map_err(Into::into)
+		let lexical_value =
+			crate::lexical::DateTime::new(s).map_err(|_| InvalidDateTime(s.to_owned()))?;
+		Self::try_from(lexical_value).map_err(Into::into)
 	}
 }
 
@@ -474,6 +487,22 @@ impl<'de> serde::Deserialize<'de> for DateTime {
 #[cfg(test)]
 mod tests {
 	use super::{seven_property_model_date_time, DateTime, DateTimeStamp};
+	use crate::XsdValue;
+
+	#[test]
+	fn to_lexical_form_roundtrip() {
+		for s in [
+			"2024-02-29T12:30:45",
+			"-0044-03-15T00:00:00Z",
+			"2000-01-01T23:59:59.000000001-05:30",
+			"1999-12-31T13:07:12.5+14:00",
+		] {
+			let value: DateTime = s.parse().unwrap();
+			let lexical = value.to_lexical_form();
+			assert_eq!(lexical.as_str(), s);
+			assert_eq!(lexical.as_str().parse::<DateTime>().unwrap(), value);
+		}
+	}
 
 	/// Per <https://www.w3.org/TR/xmlschema11-2/#dt-dateTime> (Appendix
 	/// D.2.1), an absent `day` takes the last day permitted in the

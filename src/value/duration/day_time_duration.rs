@@ -1,7 +1,6 @@
 use crate::{
-	format_nanoseconds,
-	lexical::{duration::InvalidDayTimeDuration, Lexical, LexicalFormOf},
-	Datatype, DurationDatatype, ParseXsd, XsdValue,
+	format_nanoseconds, lexical::duration::InvalidDayTimeDuration, Datatype, DurationDatatype,
+	XsdFromStr, XsdTyped, XsdValue,
 };
 use core::fmt;
 use std::{cmp::Ordering, hash::Hash, str::FromStr};
@@ -98,27 +97,46 @@ impl Ord for DayTimeDuration {
 	}
 }
 
-impl XsdValue for DayTimeDuration {
+impl XsdTyped for DayTimeDuration {
 	fn datatype(&self) -> Datatype {
 		Datatype::Duration(DurationDatatype::DayTimeDuration)
 	}
 }
 
-impl ParseXsd for DayTimeDuration {
+impl XsdValue for DayTimeDuration {
 	type LexicalForm = crate::lexical::DayTimeDuration;
+
+	fn to_lexical_form(&self) -> crate::lexical::DayTimeDurationBuf {
+		// `Display` emits the canonical lexical form by contract, so it is
+		// always valid and this cannot panic.
+		crate::lexical::DayTimeDurationBuf::new(self.to_string())
+			.expect("Display emits a valid dayTimeDuration lexical form")
+	}
+}
+
+impl<'a> XsdFromStr<'a> for DayTimeDuration {
+	fn xsd_from_str(lexical_value: &'a str) -> Result<Self, crate::XsdError> {
+		crate::xsd_parse_via::<crate::lexical::DayTimeDuration, Self>(lexical_value)
+	}
 }
 
 impl FromStr for DayTimeDuration {
 	type Err = InvalidDayTimeDuration<String>;
 
 	fn from_str(s: &str) -> Result<Self, Self::Err> {
-		let lexical_value = crate::lexical::DayTimeDuration::parse(s)?;
-		Ok(lexical_value.as_value())
+		let lexical_value = crate::lexical::DayTimeDuration::new(s)
+			.map_err(|_| InvalidDayTimeDuration(s.to_owned()))?;
+		Ok(lexical_value.into())
 	}
 }
 
 impl fmt::Display for DayTimeDuration {
 	fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+		if self.seconds == 0 && self.nano_seconds == 0 {
+			// The canonical form of the zero duration has no sign.
+			return f.write_str("PT0S");
+		}
+
 		let mut minute = self.seconds / 60;
 		let second = self.seconds - minute * 60;
 
@@ -150,10 +168,7 @@ impl fmt::Display for DayTimeDuration {
 			}
 
 			if second > 0 || self.nano_seconds > 0 {
-				if second > 0 {
-					second.fmt(f)?;
-				}
-
+				second.fmt(f)?;
 				format_nanoseconds(self.nano_seconds, f)?;
 				write!(f, "S")?;
 			}
@@ -197,5 +212,47 @@ impl<'de> serde::Deserialize<'de> for DayTimeDuration {
 		}
 
 		deserializer.deserialize_str(Visitor)
+	}
+}
+
+#[cfg(test)]
+mod tests {
+	use super::*;
+
+	fn assert_lexical_form_round_trip(input: &str) {
+		let value = <DayTimeDuration as XsdFromStr>::xsd_from_str(input).unwrap();
+		let lexical = value.to_lexical_form();
+		assert_eq!(lexical.as_str(), input);
+		assert_eq!(DayTimeDuration::from_str(lexical.as_str()).unwrap(), value);
+	}
+
+	#[test]
+	fn to_lexical_form_round_trips() {
+		for input in [
+			"P3DT4H5M6S",
+			"-P3DT4H5M6.5S",
+			"P1D",
+			"-PT4H",
+			"PT5M",
+			"PT6.123456789S",
+			"PT1M6.5S",
+		] {
+			assert_lexical_form_round_trip(input);
+		}
+	}
+
+	#[test]
+	fn to_lexical_form_of_zero_is_pt0s() {
+		for input in ["PT0S", "-PT0S", "P0D"] {
+			let value = DayTimeDuration::from_str(input).unwrap();
+			assert_eq!(value.to_lexical_form().as_str(), "PT0S");
+			assert_eq!(value.to_string(), "PT0S");
+		}
+	}
+
+	#[test]
+	fn to_lexical_form_round_trips_fractional_seconds_only() {
+		assert_lexical_form_round_trip("PT0.5S");
+		assert_lexical_form_round_trip("-PT0.000000001S");
 	}
 }

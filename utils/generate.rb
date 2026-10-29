@@ -111,12 +111,12 @@ class Datatype
 		puts "\t\t}"
 		puts "\t}"
 		puts "\t/// Parses `value` as a lexical representation of this specific datatype."
-		puts "\tpub fn parse(&self, value: &str) -> Result<#{@name}Value, ParseXsdError> {"
+		puts "\tpub fn parse(&self, value: &str) -> Result<#{@name}Value, XsdError> {"
 		puts "\t\tmatch self {"
-		puts "\t\t\tSelf::#{@name} => ParseXsd::parse_xsd(value).map(#{@name}Value::#{@name}),"
+		puts "\t\t\tSelf::#{@name} => XsdFromStr::xsd_from_str(value).map(#{@name}Value::#{@name}),"
 		@subclasses.each do |c|
 			if c.subclasses.empty? then
-				puts "\t\t\tSelf::#{c.name} => ParseXsd::parse_xsd(value).map(#{@name}Value::#{c.name}),"
+				puts "\t\t\tSelf::#{c.name} => XsdFromStr::xsd_from_str(value).map(#{@name}Value::#{c.name}),"
 			else
 				puts "\t\t\tSelf::#{c.name}(t) => t.parse(value).map(Into::into),"
 			end
@@ -159,7 +159,7 @@ class Datatype
 		puts "\t}"
 		puts "}"
 
-		puts "impl XsdValue for #{@name}Value {"
+		puts "impl XsdTyped for #{@name}Value {"
 		puts "\tfn datatype(&self) -> Datatype {"
 		puts "\t\tself.datatype().into()"
 		puts "\t}"
@@ -220,7 +220,7 @@ class Datatype
 			puts "\t}"
 			puts "}"
 
-			puts "impl<'a> XsdValue for #{@name}ValueRef<'a> {"
+			puts "impl<'a> XsdTyped for #{@name}ValueRef<'a> {"
 			puts "\tfn datatype(&self) -> Datatype {"
 			puts "\t\tself.datatype().into()"
 			puts "\t}"
@@ -540,11 +540,11 @@ def generate_datatype_enum(classes)
 	puts "\t\t}"
 	puts "\t}"
 	puts "\t/// Parses `value` as a lexical representation of this specific datatype."
-	puts "\tpub fn parse(&self, value: &str) -> Result<Value, ParseXsdError> {"
+	puts "\tpub fn parse(&self, value: &str) -> Result<Value, XsdError> {"
 	puts "\t\tmatch self {"
 	classes.each do |c|
 		if c.subclasses.empty? then
-			puts "\t\t\tSelf::#{c.name} => ParseXsd::parse_xsd(value).map(Value::#{c.name}),"
+			puts "\t\t\tSelf::#{c.name} => XsdFromStr::xsd_from_str(value).map(Value::#{c.name}),"
 		else
 			puts "\t\t\tSelf::#{c.name}(t) => t.parse(value).map(Into::into),"
 		end
@@ -584,7 +584,7 @@ def generate_value_enum(classes)
 	puts "\t}"
 	puts "}"
 
-	puts "impl XsdValue for Value {"
+	puts "impl XsdTyped for Value {"
 	puts "\tfn datatype(&self) -> Datatype {"
 	puts "\t\tself.datatype()"
 	puts "\t}"
@@ -648,7 +648,7 @@ def generate_value_enum(classes)
 	puts "\t}"
 	puts "}"
 
-	puts "impl<'a> XsdValue for ValueRef<'a> {"
+	puts "impl<'a> XsdTyped for ValueRef<'a> {"
 	puts "\tfn datatype(&self) -> Datatype {"
 	puts "\t\tself.datatype()"
 	puts "\t}"
@@ -673,9 +673,9 @@ puts "//     ruby utils/generate.rb > src/types.rs && cargo fmt"
 puts "use iref::Iri;"
 puts "use std::fmt;"
 puts "use crate::{"
-puts "XsdValue,"
-puts "ParseXsd,"
-puts "ParseXsdError,"
+puts "XsdTyped,"
+puts "XsdFromStr,"
+puts "XsdError,"
 datatypes.each do |t|
 	t.each_subtype do |t|
 		puts "#{t.iri},"

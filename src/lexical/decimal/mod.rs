@@ -1,5 +1,6 @@
 use super::lexical_form;
-use crate::lexical::Lexical;
+use crate::lexical::XsdLexicalForm;
+use crate::XsdError;
 use static_automata::Validate;
 use std::cmp::Ordering;
 use std::hash::{Hash, Hasher};
@@ -55,11 +56,13 @@ pub use integer::*;
 #[newtype(owned(DecimalBuf, derive(PartialEq, Eq)))]
 pub struct Decimal(str);
 
-impl Lexical for Decimal {
-	type Error = InvalidDecimal<String>;
+impl XsdLexicalForm for Decimal {
+	type Value = crate::Decimal;
+}
 
-	fn parse(value: &str) -> Result<&Self, Self::Error> {
-		Self::new(value).map_err(|_| InvalidDecimal(value.to_owned()))
+impl<'a> crate::XsdFromStr<'a> for &'a Decimal {
+	fn xsd_from_str(value: &'a str) -> Result<Self, XsdError> {
+		Decimal::new(value).map_err(|_| XsdError::lexical_form(InvalidDecimal(value)))
 	}
 }
 
@@ -90,16 +93,7 @@ impl Decimal {
 	/// Returns `true` if `self` is negative
 	/// and `false` is the number is zero or positive.
 	pub fn is_negative(&self) -> bool {
-		let mut sign_negative = true;
-		for c in self.0.as_bytes() {
-			match c {
-				b'-' | b'0' | b'.' => (),
-				b'+' => sign_negative = false,
-				_ => return sign_negative,
-			}
-		}
-
-		false
+		self.sign().is_negative()
 	}
 
 	/// Returns `true` if `self` is zero
@@ -411,6 +405,23 @@ impl AsRef<str> for FractionalPart {
 #[cfg(test)]
 mod tests {
 	use super::*;
+
+	#[test]
+	fn sign_predicates() {
+		for (input, negative, positive, zero) in [
+			("3.14", false, true, false),
+			("+3.14", false, true, false),
+			("-3.14", true, false, false),
+			("-0.5", true, false, false),
+			("0.0", false, false, true),
+			("-0.0", false, false, true),
+		] {
+			let d = Decimal::new(input).unwrap();
+			assert_eq!(d.is_negative(), negative, "is_negative({input})");
+			assert_eq!(d.is_positive(), positive, "is_positive({input})");
+			assert_eq!(d.is_zero(), zero, "is_zero({input})");
+		}
+	}
 
 	#[test]
 	fn parse_01() {

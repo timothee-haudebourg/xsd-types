@@ -1,8 +1,7 @@
 use crate::{
-	format_nanoseconds, format_timezone, is_valid_offset,
-	lexical::{InvalidTime, Lexical, LexicalFormOf},
+	format_nanoseconds, format_timezone, is_valid_offset, lexical::InvalidTime,
 	seven_property_model_date_time, seven_property_model_eq, seven_property_model_partial_cmp,
-	Datatype, ParseXsd, XsdValue,
+	Datatype, XsdFromStr, XsdTyped, XsdValue,
 };
 use core::fmt;
 use std::{cmp::Ordering, hash::Hash, str::FromStr};
@@ -91,9 +90,26 @@ impl PartialOrd for Time {
 	}
 }
 
-impl XsdValue for Time {
+impl XsdTyped for Time {
 	fn datatype(&self) -> Datatype {
 		Datatype::Time
+	}
+}
+
+impl XsdValue for Time {
+	type LexicalForm = crate::lexical::Time;
+
+	fn to_lexical_form(&self) -> crate::lexical::TimeBuf {
+		// `Display` emits the canonical lexical form by contract, so it is
+		// always valid and this cannot panic.
+		crate::lexical::TimeBuf::new(self.to_string())
+			.expect("Display emits a valid time lexical form")
+	}
+}
+
+impl<'a> XsdFromStr<'a> for Time {
+	fn xsd_from_str(lexical_value: &'a str) -> Result<Self, crate::XsdError> {
+		crate::xsd_parse_via::<crate::lexical::Time, Self>(lexical_value)
 	}
 }
 
@@ -113,13 +129,9 @@ impl FromStr for Time {
 	type Err = TimeFromStrError;
 
 	fn from_str(s: &str) -> Result<Self, Self::Err> {
-		let lexical_value = crate::lexical::Time::parse(s)?;
-		lexical_value.try_as_value().map_err(Into::into)
+		let lexical_value = crate::lexical::Time::new(s).map_err(|_| InvalidTime(s.to_owned()))?;
+		Self::try_from(lexical_value).map_err(Into::into)
 	}
-}
-
-impl ParseXsd for Time {
-	type LexicalForm = crate::lexical::Time;
 }
 
 impl fmt::Display for Time {
@@ -177,6 +189,22 @@ impl<'de> serde::Deserialize<'de> for Time {
 #[cfg(test)]
 mod tests {
 	use super::Time;
+	use crate::XsdValue;
+
+	#[test]
+	fn to_lexical_form_roundtrip() {
+		for s in [
+			"00:00:00",
+			"13:07:12.5Z",
+			"23:59:59.000000001-05:30",
+			"12:30:45.123+14:00",
+		] {
+			let value: Time = s.parse().unwrap();
+			let lexical = value.to_lexical_form();
+			assert_eq!(lexical.as_str(), s);
+			assert_eq!(lexical.as_str().parse::<Time>().unwrap(), value);
+		}
+	}
 
 	fn time(hour: u8, minute: u8, second: u8) -> time::Time {
 		time::Time::from_hms(hour, minute, second).unwrap()

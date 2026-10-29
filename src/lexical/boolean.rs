@@ -4,7 +4,8 @@ use std::cmp::Ordering;
 use std::hash::{Hash, Hasher};
 use str_newtype::StrNewType;
 
-use crate::lexical::Lexical;
+use crate::lexical::XsdLexicalForm;
+use crate::XsdError;
 
 /// Boolean.
 ///
@@ -19,11 +20,13 @@ use crate::lexical::Lexical;
 #[newtype(owned(BooleanBuf, derive(PartialEq, Eq)))]
 pub struct Boolean(str);
 
-impl Lexical for Boolean {
-	type Error = InvalidBoolean<String>;
+impl XsdLexicalForm for Boolean {
+	type Value = crate::Boolean;
+}
 
-	fn parse(value: &str) -> Result<&Self, Self::Error> {
-		Self::new(value).map_err(|_| InvalidBoolean(value.to_owned()))
+impl<'a> crate::XsdFromStr<'a> for &'a Boolean {
+	fn xsd_from_str(value: &'a str) -> Result<Self, XsdError> {
+		Boolean::new(value).map_err(|_| XsdError::lexical_form(InvalidBoolean(value)))
 	}
 }
 

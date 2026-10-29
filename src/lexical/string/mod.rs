@@ -31,12 +31,15 @@ pub use nmtoken::*;
 pub use normalized::*;
 pub use token::*;
 
-use super::LexicalFormOf;
+use super::XsdLexicalForm;
+use crate::XsdError;
 
-impl LexicalFormOf<String> for str {
-	type ValueError = std::convert::Infallible;
+impl XsdLexicalForm for str {
+	type Value = String;
+}
 
-	fn try_as_value(&self) -> Result<String, Self::ValueError> {
-		Ok(self.to_string())
+impl<'a> crate::XsdFromStr<'a> for &'a str {
+	fn xsd_from_str(value: &'a str) -> Result<Self, XsdError> {
+		Ok(value)
 	}
 }

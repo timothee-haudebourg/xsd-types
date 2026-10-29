@@ -1,6 +1,6 @@
-use crate::lexical::date_time::parse_seconds_decimal;
+use crate::{lexical::date_time::parse_seconds_decimal, XsdError};
 
-use super::{Lexical, LexicalFormOf};
+use super::XsdLexicalForm;
 use static_automata::Validate;
 use str_newtype::StrNewType;
 
@@ -99,19 +99,20 @@ impl DayTimeDuration {
 	}
 }
 
-impl Lexical for DayTimeDuration {
-	type Error = InvalidDayTimeDuration<String>;
+impl XsdLexicalForm for DayTimeDuration {
+	type Value = crate::DayTimeDuration;
+}
 
-	fn parse(value: &str) -> Result<&Self, Self::Error> {
-		Self::new(value).map_err(|_| InvalidDayTimeDuration(value.to_owned()))
+impl<'a> crate::XsdFromStr<'a> for &'a DayTimeDuration {
+	fn xsd_from_str(value: &'a str) -> Result<Self, XsdError> {
+		DayTimeDuration::new(value)
+			.map_err(|_| XsdError::lexical_form(InvalidDayTimeDuration(value)))
 	}
 }
 
-impl LexicalFormOf<crate::DayTimeDuration> for DayTimeDuration {
-	type ValueError = std::convert::Infallible;
-
-	fn try_as_value(&self) -> Result<crate::DayTimeDuration, Self::ValueError> {
-		Ok(self.parts().to_duration())
+impl<'a> From<&'a DayTimeDuration> for crate::DayTimeDuration {
+	fn from(value: &'a DayTimeDuration) -> crate::DayTimeDuration {
+		value.parts().to_duration()
 	}
 }
 
@@ -186,7 +187,7 @@ mod tests {
 			let lexical_repr = DayTimeDuration::new(input).unwrap();
 			assert_eq!(lexical_repr.parts(), parts);
 
-			let value = lexical_repr.try_as_value().unwrap();
+			let value: crate::DayTimeDuration = lexical_repr.into();
 			assert_eq!(value.to_string().as_str(), normalized)
 		}
 	}

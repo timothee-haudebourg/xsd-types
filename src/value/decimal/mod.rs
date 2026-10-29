@@ -1,4 +1,3 @@
-use std::cell::OnceCell;
 use std::fmt;
 use std::hash::Hash;
 use std::ops::Deref;
@@ -10,11 +9,10 @@ use num_bigint::BigInt;
 use num_rational::BigRational;
 use num_traits::{Signed, ToPrimitive, Zero};
 
-use crate::lexical::{Lexical, LexicalFormOf};
 use crate::{
 	lexical, Datatype, DecimalDatatype, Double, Float, IntDatatype, LongDatatype,
-	NonNegativeIntegerDatatype, NonPositiveIntegerDatatype, ParseXsd, ShortDatatype,
-	UnsignedIntDatatype, UnsignedLongDatatype, UnsignedShortDatatype, XsdValue,
+	NonNegativeIntegerDatatype, NonPositiveIntegerDatatype, ShortDatatype, UnsignedIntDatatype,
+	UnsignedLongDatatype, UnsignedShortDatatype, XsdFromStr, XsdTyped, XsdValue,
 };
 
 /// Sign of a decimal or integer value, re-exported from [`num_bigint`].
@@ -53,7 +51,6 @@ static TEN: LazyLock<BigInt> = LazyLock::new(|| 10u32.into());
 #[derive(Clone)]
 pub struct Decimal {
 	data: BigRational,
-	lexical: OnceCell<lexical::DecimalBuf>,
 }
 
 impl PartialEq for Decimal {
@@ -133,7 +130,7 @@ pub fn is_decimal(r: &BigRational) -> bool {
 
 /// Returns the decimal lexical representation of the given rational number, if
 /// any.
-pub fn decimal_lexical_representation(r: &BigRational) -> Option<lexical::DecimalBuf> {
+pub fn decimal_lexical_form(r: &BigRational) -> Option<lexical::DecimalBuf> {
 	use std::fmt::Write;
 
 	let mut fraction = String::new();
@@ -159,7 +156,7 @@ pub fn decimal_lexical_representation(r: &BigRational) -> Option<lexical::Decima
 		String::new()
 	};
 
-	output.push_str(&(r.numer() / r.denom()).to_string());
+	output.push_str(&(r.numer().abs() / r.denom()).to_string());
 
 	if rem.is_zero() {
 		if !fraction.is_empty() {
@@ -179,10 +176,7 @@ impl Decimal {
 	///
 	/// The input rational number must have a finite decimal representation.
 	pub unsafe fn new_unchecked(r: BigRational) -> Self {
-		Self {
-			data: r,
-			lexical: OnceCell::new(),
-		}
+		Self { data: r }
 	}
 
 	/// Returns a reference to the underlying `BigRational` value.
@@ -202,7 +196,6 @@ impl Decimal {
 	pub fn zero() -> Self {
 		Self {
 			data: BigRational::zero(),
-			lexical: OnceCell::new(),
 		}
 	}
 
@@ -280,14 +273,6 @@ impl Decimal {
 		}
 	}
 
-	/// Returns the canonical lexical representation of this decimal number,
-	/// computing and caching it on first access.
-	#[inline(always)]
-	pub fn lexical_representation(&self) -> &lexical::DecimalBuf {
-		self.lexical
-			.get_or_init(|| decimal_lexical_representation(&self.data).unwrap())
-	}
-
 	/// Converts this value to an `f64`, or returns `None` if it cannot be
 	/// represented.
 	pub fn as_f64(&self) -> Option<f64> {
@@ -316,7 +301,7 @@ impl Decimal {
 impl fmt::Display for Decimal {
 	#[inline(always)]
 	fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-		self.lexical_representation().fmt(f)
+		fmt::Display::fmt(&self.to_lexical_form(), f)
 	}
 }
 
@@ -330,8 +315,16 @@ impl<'a> From<&'a lexical::Decimal> for Decimal {
 impl From<lexical::DecimalBuf> for Decimal {
 	#[inline(always)]
 	fn from(value: lexical::DecimalBuf) -> Self {
-		let integer_part: BigInt = value.integer_part().as_str().parse().unwrap();
-		let data = match value.fractional_part() {
+		// The sign belongs to the whole number, not just the integer part:
+		// work on the magnitude and negate at the end (`-0.5` has an integer
+		// part of `-0`, which is zero).
+		let integer_part: BigInt = value
+			.integer_part()
+			.as_str()
+			.parse::<BigInt>()
+			.unwrap()
+			.abs();
+		let magnitude = match value.fractional_part() {
 			Some(fract) => {
 				let numer = fract.as_str().parse().unwrap();
 				let mut denom = BigInt::new(Sign::Plus, vec![1u32]);
@@ -344,10 +337,13 @@ impl From<lexical::DecimalBuf> for Decimal {
 			None => integer_part.into(),
 		};
 
-		Self {
-			data,
-			lexical: value.into(),
-		}
+		let data = if value.is_negative() {
+			-magnitude
+		} else {
+			magnitude
+		};
+
+		Self { data }
 	}
 }
 
@@ -356,7 +352,7 @@ impl FromStr for Decimal {
 
 	#[inline(always)]
 	fn from_str(s: &str) -> Result<Self, Self::Err> {
-		let l = lexical::Decimal::parse(s)?;
+		let l = lexical::Decimal::new(s).map_err(|_| lexical::InvalidDecimal(s.to_owned()))?;
 		Ok(l.value())
 	}
 }
@@ -368,7 +364,6 @@ macro_rules! from_int {
 				fn from(value: $ty) -> Self {
 					Self {
 						data: BigInt::from(value).into(),
-						lexical: OnceCell::new()
 					}
 				}
 			}
@@ -453,10 +448,7 @@ impl TryFrom<Decimal> for Double {
 impl From<BigInt> for Decimal {
 	#[inline(always)]
 	fn from(value: BigInt) -> Self {
-		Self {
-			data: value.into(),
-			lexical: OnceCell::new(),
-		}
+		Self { data: value.into() }
 	}
 }
 
@@ -517,22 +509,30 @@ impl From<Decimal> for BigRational {
 	}
 }
 
-impl XsdValue for Decimal {
+impl XsdTyped for Decimal {
 	#[inline(always)]
 	fn datatype(&self) -> Datatype {
 		self.decimal_type().into()
 	}
 }
 
-impl ParseXsd for Decimal {
+impl XsdValue for Decimal {
 	type LexicalForm = lexical::Decimal;
+
+	/// Returns the canonical lexical form of this decimal number.
+	///
+	/// This is recomputed on every call. Wrap the value in an
+	/// [`XsdLiteral`](crate::XsdLiteral) to cache it.
+	fn to_lexical_form(&self) -> lexical::DecimalBuf {
+		// A `Decimal` always has a finite decimal representation (see
+		// `Decimal::new_unchecked`), so this cannot panic.
+		decimal_lexical_form(&self.data).expect("a `Decimal` has a finite decimal representation")
+	}
 }
 
-impl LexicalFormOf<Decimal> for lexical::Decimal {
-	type ValueError = std::convert::Infallible;
-
-	fn try_as_value(&self) -> Result<Decimal, Self::ValueError> {
-		Ok(self.value())
+impl<'a> XsdFromStr<'a> for Decimal {
+	fn xsd_from_str(lexical_value: &'a str) -> Result<Self, crate::XsdError> {
+		crate::xsd_parse_via::<lexical::Decimal, Self>(lexical_value)
 	}
 }
 
@@ -627,5 +627,61 @@ impl TryFrom<Double> for Decimal {
 		} else {
 			Ok(BigRational::from_float(*value).unwrap().try_into().unwrap())
 		}
+	}
+}
+
+#[cfg(test)]
+mod tests {
+	use super::*;
+
+	#[test]
+	fn to_lexical_form_round_trip() {
+		for canonical in [
+			"0",
+			"1",
+			"3.14",
+			"-0.5",
+			"-42",
+			"-3.25",
+			"123456789012345678901234567890.000001",
+		] {
+			let value: Decimal = canonical.parse().unwrap();
+			let lexical = value.to_lexical_form();
+			assert_eq!(lexical.as_str(), canonical);
+			assert_eq!(lexical.as_str().parse::<Decimal>().unwrap(), value);
+		}
+	}
+
+	#[test]
+	fn to_lexical_form_is_canonical() {
+		// Non-canonical inputs are normalized.
+		for (input, canonical) in [("0.0", "0"), ("+1.50", "1.5"), ("007", "7"), ("-0", "0")] {
+			let value: Decimal = input.parse().unwrap();
+			assert_eq!(value.to_lexical_form().as_str(), canonical);
+		}
+	}
+
+	#[test]
+	fn parse_negative_decimal() {
+		for (input, numer, denom) in [
+			("-0.5", -1, 2),
+			("-3.25", -13, 4),
+			("-42", -42, 1),
+			("+3.25", 13, 4),
+			("-0.0", 0, 1),
+		] {
+			let value: Decimal = input.parse().unwrap();
+			assert_eq!(
+				BigRational::from(value),
+				BigRational::new(numer.into(), denom.into()),
+				"{input}"
+			);
+		}
+	}
+
+	#[test]
+	fn to_lexical_form_from_xsd_parse() {
+		let value = <Decimal as XsdFromStr>::xsd_from_str("3.14").unwrap();
+		assert_eq!(value.to_lexical_form().as_str(), "3.14");
 	}
 }

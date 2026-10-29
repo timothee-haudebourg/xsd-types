@@ -27,8 +27,7 @@
 //! let lexical_repr = xsd_types::lexical::Decimal::new(string).unwrap();
 //!
 //! // Interprets the lexical representation (value domain).
-//! use xsd_types::lexical::LexicalFormOf;
-//! let value_repr: xsd_types::Decimal = lexical_repr.try_as_value().unwrap();
+//! let value_repr: xsd_types::Decimal = lexical_repr.into();
 //! ```
 //!
 //! Of course it is possible to parse the value directly into the value domain
@@ -53,14 +52,48 @@ pub use iref;
 
 use iref::{iri, Iri};
 
+mod error;
 pub mod lexical;
+mod literal;
 mod types;
 pub(crate) mod utils;
 pub mod value;
 
-use lexical::{Lexical, LexicalFormOf};
+pub use error::*;
+pub use literal::*;
 pub use types::*;
 pub use value::*;
+
+pub trait XsdFromStr<'a>: Sized {
+	fn xsd_from_str(lexical_value: &'a str) -> Result<Self, XsdError>;
+}
+
+pub trait XsdParse {
+	fn xsd_parse<'a, T>(&'a self) -> Result<T, XsdError>
+	where
+		T: XsdFromStr<'a>;
+}
+
+impl XsdParse for str {
+	fn xsd_parse<'a, T>(&'a self) -> Result<T, XsdError>
+	where
+		T: XsdFromStr<'a>,
+	{
+		T::xsd_from_str(self)
+	}
+}
+
+/// Parses a value `V` by first parsing the lexical form `L`, then converting
+/// it into the value space.
+pub(crate) fn xsd_parse_via<'a, L, V>(lexical_value: &'a str) -> Result<V, XsdError>
+where
+	L: ?Sized + 'a,
+	&'a L: XsdFromStr<'a>,
+	V: TryFrom<&'a L>,
+	<V as TryFrom<&'a L>>::Error: Into<XsdError>,
+{
+	V::try_from(<&'a L as XsdFromStr<'a>>::xsd_from_str(lexical_value)?).map_err(Into::into)
+}
 
 /// XSD primitive datatype.
 pub enum PrimitiveDatatype {
@@ -228,35 +261,3 @@ pub const XSD_UNSIGNED_BYTE: &Iri = iri!("http://www.w3.org/2001/XMLSchema#unsig
 
 /// <http://www.w3.org/2001/XMLSchema#positiveInteger> datatype IRI.
 pub const XSD_POSITIVE_INTEGER: &Iri = iri!("http://www.w3.org/2001/XMLSchema#positiveInteger");
-
-/// Parse a value directly from its XSD lexical form.
-pub trait ParseXsd: Sized {
-	type LexicalForm: LexicalFormOf<Self> + ?Sized;
-
-	fn parse_xsd(lexical_value: &str) -> Result<Self, ParseXsdError> {
-		Self::LexicalForm::parse(lexical_value)
-			.map_err(ParseXsdError::lexical_form)?
-			.try_as_value()
-			.map_err(ParseXsdError::value)
-	}
-}
-
-/// XSD lexical parse error.
-#[derive(Debug, thiserror::Error)]
-pub enum ParseXsdError {
-	#[error("invalid lexical form: {0}")]
-	LexicalForm(String),
-
-	#[error("invalid value: {0}")]
-	Value(String),
-}
-
-impl ParseXsdError {
-	pub fn lexical_form(e: impl ToString) -> Self {
-		Self::LexicalForm(e.to_string())
-	}
-
-	pub fn value(e: impl ToString) -> Self {
-		Self::Value(e.to_string())
-	}
-}

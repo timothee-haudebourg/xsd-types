@@ -1,8 +1,7 @@
 use crate::{
-	format_timezone, is_valid_offset,
-	lexical::{InvalidGYearMonth, Lexical, LexicalFormOf},
-	seven_property_model_date_time, seven_property_model_eq, seven_property_model_partial_cmp,
-	Datatype, DisplayYear, ParseXsd, XsdValue,
+	format_timezone, is_valid_offset, lexical::InvalidGYearMonth, seven_property_model_date_time,
+	seven_property_model_eq, seven_property_model_partial_cmp, Datatype, DisplayYear, XsdFromStr,
+	XsdTyped, XsdValue,
 };
 use core::fmt;
 use std::{cmp::Ordering, hash::Hash, str::FromStr};
@@ -72,8 +71,9 @@ impl FromStr for GYearMonth {
 	type Err = InvalidGYearMonth<String>;
 
 	fn from_str(s: &str) -> Result<Self, Self::Err> {
-		let lexical_value = crate::lexical::GYearMonth::parse(s)?;
-		Ok(lexical_value.as_value())
+		let lexical_value =
+			crate::lexical::GYearMonth::new(s).map_err(|_| InvalidGYearMonth(s.to_owned()))?;
+		Ok(lexical_value.into())
 	}
 }
 
@@ -119,14 +119,27 @@ impl Ord for GYearMonth {
 	}
 }
 
-impl XsdValue for GYearMonth {
+impl XsdTyped for GYearMonth {
 	fn datatype(&self) -> Datatype {
 		Datatype::GYearMonth
 	}
 }
 
-impl ParseXsd for GYearMonth {
+impl XsdValue for GYearMonth {
 	type LexicalForm = crate::lexical::GYearMonth;
+
+	fn to_lexical_form(&self) -> crate::lexical::GYearMonthBuf {
+		// `Display` emits the canonical lexical form by contract, so it is
+		// always valid and this cannot panic.
+		crate::lexical::GYearMonthBuf::new(self.to_string())
+			.expect("Display emits a valid gYearMonth lexical form")
+	}
+}
+
+impl<'a> XsdFromStr<'a> for GYearMonth {
+	fn xsd_from_str(lexical_value: &'a str) -> Result<Self, crate::XsdError> {
+		crate::xsd_parse_via::<crate::lexical::GYearMonth, Self>(lexical_value)
+	}
 }
 
 impl fmt::Display for GYearMonth {
@@ -177,6 +190,17 @@ impl<'de> serde::Deserialize<'de> for GYearMonth {
 #[cfg(test)]
 mod tests {
 	use super::GYearMonth;
+	use crate::XsdValue;
+
+	#[test]
+	fn to_lexical_form_roundtrip() {
+		for s in ["2024-02", "-0044-12Z", "1999-01-05:30", "0001-07+14:00"] {
+			let value: GYearMonth = s.parse().unwrap();
+			let lexical = value.to_lexical_form();
+			assert_eq!(lexical.as_str(), s);
+			assert_eq!(lexical.as_str().parse::<GYearMonth>().unwrap(), value);
+		}
+	}
 
 	#[test]
 	fn ord_without_offset_is_direct() {

@@ -1,7 +1,6 @@
 use crate::{
-	format_nanoseconds,
-	lexical::{InvalidDuration, Lexical, LexicalFormOf},
-	Datatype, DurationDatatype, ParseXsd, XsdValue,
+	format_nanoseconds, lexical::InvalidDuration, Datatype, DurationDatatype, XsdFromStr, XsdTyped,
+	XsdValue,
 };
 use core::fmt;
 use std::{cmp::Ordering, hash::Hash, str::FromStr};
@@ -185,27 +184,46 @@ impl PartialOrd for Duration {
 	}
 }
 
-impl XsdValue for Duration {
+impl XsdTyped for Duration {
 	fn datatype(&self) -> Datatype {
 		Datatype::Duration(DurationDatatype::Duration)
 	}
 }
 
-impl ParseXsd for Duration {
+impl XsdValue for Duration {
 	type LexicalForm = crate::lexical::Duration;
+
+	fn to_lexical_form(&self) -> crate::lexical::DurationBuf {
+		// `Display` emits the canonical lexical form by contract, so it is
+		// always valid and this cannot panic.
+		crate::lexical::DurationBuf::new(self.to_string())
+			.expect("Display emits a valid duration lexical form")
+	}
+}
+
+impl<'a> XsdFromStr<'a> for Duration {
+	fn xsd_from_str(lexical_value: &'a str) -> Result<Self, crate::XsdError> {
+		crate::xsd_parse_via::<crate::lexical::Duration, Self>(lexical_value)
+	}
 }
 
 impl FromStr for Duration {
 	type Err = InvalidDuration<String>;
 
 	fn from_str(s: &str) -> Result<Self, Self::Err> {
-		let lexical_value = crate::lexical::Duration::parse(s)?;
-		Ok(lexical_value.as_value())
+		let lexical_value =
+			crate::lexical::Duration::new(s).map_err(|_| InvalidDuration(s.to_owned()))?;
+		Ok(lexical_value.into())
 	}
 }
 
 impl fmt::Display for Duration {
 	fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+		if self.months == 0 && self.seconds == 0 && self.nano_seconds == 0 {
+			// The canonical form of the zero duration has no sign.
+			return f.write_str("PT0S");
+		}
+
 		let year = self.months / 12;
 		let month = self.months - year * 12;
 
@@ -248,10 +266,7 @@ impl fmt::Display for Duration {
 			}
 
 			if second > 0 || self.nano_seconds > 0 {
-				if second > 0 {
-					second.fmt(f)?;
-				}
-
+				second.fmt(f)?;
 				format_nanoseconds(self.nano_seconds, f)?;
 				write!(f, "S")?;
 			}
@@ -341,5 +356,45 @@ mod tests {
 		let a = Duration::from_str("-P1D").unwrap();
 		let b = Duration::from_str("P1D").unwrap();
 		assert!(a < b);
+	}
+
+	fn assert_lexical_form_round_trip(input: &str) {
+		let value = <Duration as XsdFromStr>::xsd_from_str(input).unwrap();
+		let lexical = value.to_lexical_form();
+		assert_eq!(lexical.as_str(), input);
+		assert_eq!(Duration::from_str(lexical.as_str()).unwrap(), value);
+	}
+
+	#[test]
+	fn to_lexical_form_round_trips() {
+		for input in [
+			"P1Y2M3DT4H5M6S",
+			"-P1Y2M3DT4H5M6.5S",
+			"P1Y",
+			"P2M",
+			"-P3D",
+			"PT4H",
+			"PT5M",
+			"PT6.123456789S",
+			"PT1M6.5S",
+		] {
+			assert_lexical_form_round_trip(input);
+		}
+	}
+
+	#[test]
+	fn to_lexical_form_of_zero_is_pt0s() {
+		for input in ["PT0S", "-PT0S", "P0Y", "P0D"] {
+			let value = Duration::from_str(input).unwrap();
+			assert_eq!(value.to_lexical_form().as_str(), "PT0S");
+			assert_eq!(value.to_string(), "PT0S");
+		}
+	}
+
+	#[test]
+	fn to_lexical_form_round_trips_fractional_seconds_only() {
+		assert_lexical_form_round_trip("PT0.5S");
+		assert_lexical_form_round_trip("-PT0.000000001S");
+		assert_lexical_form_round_trip("P1YT0.5S");
 	}
 }

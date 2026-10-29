@@ -1,9 +1,9 @@
 use static_automata::Validate;
 use str_newtype::StrNewType;
 
-use crate::{lexical::parse_timezone, utils::byte_index_of};
+use crate::{lexical::parse_timezone, utils::byte_index_of, XsdError};
 
-use super::{Lexical, LexicalFormOf};
+use super::XsdLexicalForm;
 
 /// GYearMonth.
 ///
@@ -36,19 +36,19 @@ impl GYearMonth {
 	}
 }
 
-impl Lexical for GYearMonth {
-	type Error = InvalidGYearMonth<String>;
+impl XsdLexicalForm for GYearMonth {
+	type Value = crate::GYearMonth;
+}
 
-	fn parse(value: &str) -> Result<&Self, Self::Error> {
-		Self::new(value).map_err(|_| InvalidGYearMonth(value.to_owned()))
+impl<'a> crate::XsdFromStr<'a> for &'a GYearMonth {
+	fn xsd_from_str(value: &'a str) -> Result<Self, XsdError> {
+		GYearMonth::new(value).map_err(|_| XsdError::lexical_form(InvalidGYearMonth(value)))
 	}
 }
 
-impl LexicalFormOf<crate::GYearMonth> for GYearMonth {
-	type ValueError = std::convert::Infallible;
-
-	fn try_as_value(&self) -> Result<crate::GYearMonth, Self::ValueError> {
-		Ok(self.parts().to_g_year_month())
+impl<'a> From<&'a GYearMonth> for crate::GYearMonth {
+	fn from(value: &'a GYearMonth) -> crate::GYearMonth {
+		value.parts().to_g_year_month()
 	}
 }
 
@@ -94,7 +94,7 @@ mod tests {
 			let lexical_repr = GYearMonth::new(input).unwrap();
 			assert_eq!(lexical_repr.parts(), parts);
 
-			let value = lexical_repr.try_as_value().unwrap();
+			let value: crate::GYearMonth = lexical_repr.into();
 			assert_eq!(value.to_string().as_str(), input)
 		}
 	}

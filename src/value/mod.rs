@@ -37,9 +37,25 @@ pub use q_name::*;
 pub use string::*;
 pub use time::*;
 
-use crate::{Datatype, Value, ValueRef};
+use crate::{lexical::XsdLexicalForm, Datatype, Value, ValueRef};
 
-pub trait XsdValue {
+pub trait XsdValue: XsdTyped {
+	type LexicalForm: ?Sized + XsdLexicalForm;
+
+	fn to_lexical_form(&self) -> <Self::LexicalForm as ToOwned>::Owned;
+}
+
+pub trait SizedXsdValue:
+	Sized + XsdValue + for<'a> TryFrom<&'a Self::LexicalForm, Error: ToString>
+{
+}
+
+impl<T> SizedXsdValue for T where
+	T: Sized + XsdValue + for<'a> TryFrom<&'a Self::LexicalForm, Error: ToString>
+{
+}
+
+pub trait XsdTyped {
 	/// Returns the XSD datatype that best describes the value.
 	fn datatype(&self) -> Datatype;
 }
@@ -82,7 +98,7 @@ impl<'a> CowValue<'a> {
 	}
 }
 
-impl<'a> XsdValue for CowValue<'a> {
+impl<'a> XsdTyped for CowValue<'a> {
 	fn datatype(&self) -> Datatype {
 		match self {
 			Self::Borrowed(v) => v.datatype(),

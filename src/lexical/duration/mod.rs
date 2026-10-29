@@ -1,4 +1,5 @@
-use super::{date_time::parse_seconds_decimal, Lexical, LexicalFormOf};
+use super::{date_time::parse_seconds_decimal, XsdLexicalForm};
+use crate::XsdError;
 use static_automata::Validate;
 use str_newtype::StrNewType;
 
@@ -121,19 +122,19 @@ impl Duration {
 	}
 }
 
-impl Lexical for Duration {
-	type Error = InvalidDuration<String>;
+impl XsdLexicalForm for Duration {
+	type Value = crate::Duration;
+}
 
-	fn parse(value: &str) -> Result<&Self, Self::Error> {
-		Self::new(value).map_err(|_| InvalidDuration(value.to_owned()))
+impl<'a> crate::XsdFromStr<'a> for &'a Duration {
+	fn xsd_from_str(value: &'a str) -> Result<Self, XsdError> {
+		Duration::new(value).map_err(|_| XsdError::lexical_form(InvalidDuration(value)))
 	}
 }
 
-impl LexicalFormOf<crate::Duration> for Duration {
-	type ValueError = std::convert::Infallible;
-
-	fn try_as_value(&self) -> Result<crate::Duration, Self::ValueError> {
-		Ok(self.parts().to_duration())
+impl<'a> From<&'a Duration> for crate::Duration {
+	fn from(value: &'a Duration) -> crate::Duration {
+		value.parts().to_duration()
 	}
 }
 
@@ -246,7 +247,7 @@ mod tests {
 			let lexical_repr = Duration::new(input).unwrap();
 			assert_eq!(lexical_repr.parts(), parts);
 
-			let value = lexical_repr.try_as_value().unwrap();
+			let value: crate::Duration = lexical_repr.into();
 			assert_eq!(value.to_string().as_str(), normalized)
 		}
 	}

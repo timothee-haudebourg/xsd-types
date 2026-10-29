@@ -1,9 +1,6 @@
 use core::{fmt, str::FromStr};
 
-use crate::{
-	lexical::{self, Lexical, LexicalFormOf},
-	Datatype, ParseXsd, XsdValue,
-};
+use crate::{lexical, Datatype, XsdFromStr, XsdTyped, XsdValue};
 
 /// Boolean value.
 ///
@@ -24,30 +21,32 @@ impl From<Boolean> for bool {
 	}
 }
 
-impl XsdValue for Boolean {
+impl XsdTyped for Boolean {
 	fn datatype(&self) -> Datatype {
 		Datatype::Boolean
 	}
 }
 
-impl LexicalFormOf<Boolean> for lexical::Boolean {
-	type ValueError = std::convert::Infallible;
+impl XsdValue for Boolean {
+	type LexicalForm = lexical::Boolean;
 
-	fn try_as_value(&self) -> Result<Boolean, Self::ValueError> {
-		Ok(self.value())
+	fn to_lexical_form(&self) -> lexical::BooleanBuf {
+		lexical::BooleanBuf::from(self.0)
 	}
 }
 
-impl ParseXsd for Boolean {
-	type LexicalForm = lexical::Boolean;
+impl<'a> XsdFromStr<'a> for Boolean {
+	fn xsd_from_str(lexical_value: &'a str) -> Result<Self, crate::XsdError> {
+		crate::xsd_parse_via::<lexical::Boolean, Self>(lexical_value)
+	}
 }
 
 impl FromStr for Boolean {
 	type Err = lexical::InvalidBoolean<String>;
 
 	fn from_str(s: &str) -> Result<Self, Self::Err> {
-		let l = lexical::Boolean::parse(s)?;
-		Ok(l.as_value())
+		let l = lexical::Boolean::new(s).map_err(|_| lexical::InvalidBoolean(s.to_owned()))?;
+		Ok(l.into())
 	}
 }
 
@@ -58,6 +57,33 @@ impl fmt::Display for Boolean {
 		} else {
 			write!(f, "false")
 		}
+	}
+}
+
+#[cfg(test)]
+mod tests {
+	use super::Boolean;
+	use crate::XsdValue;
+
+	#[test]
+	fn to_lexical_form_roundtrip() {
+		for s in ["true", "false"] {
+			let value: Boolean = s.parse().unwrap();
+			let lexical = value.to_lexical_form();
+			assert_eq!(lexical.as_str(), s);
+			assert_eq!(lexical.as_str().parse::<Boolean>().unwrap(), value);
+		}
+	}
+
+	#[test]
+	fn to_lexical_form_is_canonical() {
+		// `1` and `0` are valid lexical forms, but the canonical ones are
+		// `true` and `false`.
+		let value: Boolean = "1".parse().unwrap();
+		assert_eq!(value.to_lexical_form().as_str(), "true");
+
+		let value: Boolean = "0".parse().unwrap();
+		assert_eq!(value.to_lexical_form().as_str(), "false");
 	}
 }
 

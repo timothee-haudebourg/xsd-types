@@ -1,19 +1,21 @@
-use crate::lexical::{Lexical, LexicalFormOf};
-use crate::InvalidNormalizedStr;
+use crate::lexical::XsdLexicalForm;
+use crate::{InvalidNormalizedStr, XsdError};
 pub use crate::{NormalizedStr, NormalizedString};
 
-impl Lexical for NormalizedStr {
-	type Error = InvalidNormalizedStr<String>;
+impl XsdLexicalForm for NormalizedStr {
+	type Value = crate::NormalizedString;
+}
 
-	fn parse(value: &str) -> Result<&Self, Self::Error> {
-		Self::new(value).map_err(|_| InvalidNormalizedStr(value.to_owned()))
+impl<'a> crate::XsdFromStr<'a> for &'a NormalizedStr {
+	fn xsd_from_str(value: &'a str) -> Result<Self, XsdError> {
+		NormalizedStr::new(value).map_err(|_| XsdError::lexical_form(InvalidNormalizedStr(value)))
 	}
 }
 
-impl LexicalFormOf<crate::NormalizedString> for NormalizedStr {
-	type ValueError = InvalidNormalizedStr<String>;
+impl<'a> TryFrom<&'a NormalizedStr> for crate::NormalizedString {
+	type Error = InvalidNormalizedStr<String>;
 
-	fn try_as_value(&self) -> Result<crate::NormalizedString, Self::ValueError> {
-		self.as_str().parse()
+	fn try_from(value: &'a NormalizedStr) -> Result<crate::NormalizedString, Self::Error> {
+		value.as_str().parse()
 	}
 }

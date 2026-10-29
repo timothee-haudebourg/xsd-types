@@ -1,8 +1,7 @@
 use crate::{
-	format_timezone, is_valid_offset,
-	lexical::{InvalidGDay, Lexical, LexicalFormOf},
-	seven_property_model_date_time, seven_property_model_eq, seven_property_model_partial_cmp,
-	Datatype, ParseXsd, XsdValue,
+	format_timezone, is_valid_offset, lexical::InvalidGDay, seven_property_model_date_time,
+	seven_property_model_eq, seven_property_model_partial_cmp, Datatype, XsdFromStr, XsdTyped,
+	XsdValue,
 };
 use core::fmt;
 use std::{cmp::Ordering, hash::Hash, str::FromStr};
@@ -57,8 +56,8 @@ impl FromStr for GDay {
 	type Err = InvalidGDay<String>;
 
 	fn from_str(s: &str) -> Result<Self, Self::Err> {
-		let lexical_value = crate::lexical::GDay::parse(s)?;
-		Ok(lexical_value.as_value())
+		let lexical_value = crate::lexical::GDay::new(s).map_err(|_| InvalidGDay(s.to_owned()))?;
+		Ok(lexical_value.into())
 	}
 }
 
@@ -93,14 +92,27 @@ impl PartialOrd for GDay {
 	}
 }
 
-impl XsdValue for GDay {
+impl XsdTyped for GDay {
 	fn datatype(&self) -> Datatype {
 		Datatype::GDay
 	}
 }
 
-impl ParseXsd for GDay {
+impl XsdValue for GDay {
 	type LexicalForm = crate::lexical::GDay;
+
+	fn to_lexical_form(&self) -> crate::lexical::GDayBuf {
+		// `Display` emits the canonical lexical form by contract, so it is
+		// always valid and this cannot panic.
+		crate::lexical::GDayBuf::new(self.to_string())
+			.expect("Display emits a valid gDay lexical form")
+	}
+}
+
+impl<'a> XsdFromStr<'a> for GDay {
+	fn xsd_from_str(lexical_value: &'a str) -> Result<Self, crate::XsdError> {
+		crate::xsd_parse_via::<crate::lexical::GDay, Self>(lexical_value)
+	}
 }
 
 impl fmt::Display for GDay {
@@ -151,6 +163,17 @@ impl<'de> serde::Deserialize<'de> for GDay {
 #[cfg(test)]
 mod tests {
 	use super::GDay;
+	use crate::XsdValue;
+
+	#[test]
+	fn to_lexical_form_roundtrip() {
+		for s in ["---01", "---31Z", "---15-14:00", "---09+05:30"] {
+			let value: GDay = s.parse().unwrap();
+			let lexical = value.to_lexical_form();
+			assert_eq!(lexical.as_str(), s);
+			assert_eq!(lexical.as_str().parse::<GDay>().unwrap(), value);
+		}
+	}
 
 	fn offset(hours: i8) -> time::UtcOffset {
 		time::UtcOffset::from_hms(hours, 0, 0).unwrap()

@@ -5,10 +5,7 @@ use std::{
 	str::FromStr,
 };
 
-use crate::{
-	lexical::{self, Lexical, LexicalFormOf},
-	Datatype, ParseXsd, XsdValue,
-};
+use crate::{lexical, Datatype, XsdFromStr, XsdTyped, XsdValue};
 
 const CHARS: [char; 16] = [
 	'0', '1', '2', '3', '4', '5', '6', '7', '8', '9', 'A', 'B', 'C', 'D', 'E', 'F',
@@ -104,8 +101,8 @@ impl FromStr for HexBinaryBuf {
 	type Err = lexical::InvalidHexBinary<String>;
 
 	fn from_str(s: &str) -> Result<Self, Self::Err> {
-		let l = lexical::HexBinary::parse(s)?;
-		Ok(l.value())
+		let l = lexical::HexBinary::new(s).map_err(|_| lexical::InvalidHexBinary(s.to_owned()))?;
+		Ok(l.into())
 	}
 }
 
@@ -141,21 +138,32 @@ impl DerefMut for HexBinaryBuf {
 	}
 }
 
-impl XsdValue for HexBinaryBuf {
+impl XsdTyped for HexBinaryBuf {
 	fn datatype(&self) -> Datatype {
 		Datatype::HexBinary
 	}
 }
 
-impl ParseXsd for HexBinaryBuf {
+impl XsdValue for HexBinaryBuf {
 	type LexicalForm = lexical::HexBinary;
+
+	fn to_lexical_form(&self) -> lexical::HexBinaryBuf {
+		// `Display` emits the canonical lexical form by contract (upper case
+		// hexadecimal digits), so it is always valid and this cannot panic.
+		lexical::HexBinaryBuf::new(self.to_string())
+			.expect("Display emits a valid hexBinary lexical form")
+	}
 }
 
-impl LexicalFormOf<HexBinaryBuf> for lexical::HexBinary {
-	type ValueError = std::convert::Infallible;
+impl<'a> XsdFromStr<'a> for HexBinaryBuf {
+	fn xsd_from_str(lexical_value: &'a str) -> Result<Self, crate::XsdError> {
+		crate::xsd_parse_via::<lexical::HexBinary, Self>(lexical_value)
+	}
+}
 
-	fn try_as_value(&self) -> Result<HexBinaryBuf, Self::ValueError> {
-		Ok(self.value())
+impl<'a> From<&'a lexical::HexBinary> for HexBinaryBuf {
+	fn from(value: &'a lexical::HexBinary) -> HexBinaryBuf {
+		value.value()
 	}
 }
 
@@ -268,7 +276,7 @@ impl ToOwned for HexBinary {
 	}
 }
 
-impl XsdValue for HexBinary {
+impl XsdTyped for HexBinary {
 	fn datatype(&self) -> Datatype {
 		Datatype::HexBinary
 	}
@@ -330,5 +338,21 @@ mod tests {
 			let output = HexBinaryBuf::decode(input).unwrap();
 			assert_eq!(output.as_bytes(), expected)
 		}
+	}
+
+	#[test]
+	fn to_lexical_form_round_trips() {
+		for input in ["", "00", "FF00", "4D616E", "DEADBEEF"] {
+			let value = <HexBinaryBuf as XsdFromStr>::xsd_from_str(input).unwrap();
+			let lexical = value.to_lexical_form();
+			assert_eq!(lexical.as_str(), input);
+			assert_eq!(HexBinaryBuf::from_str(lexical.as_str()).unwrap(), value);
+		}
+	}
+
+	#[test]
+	fn to_lexical_form_is_upper_case() {
+		let value = HexBinaryBuf::from_str("deadbeef").unwrap();
+		assert_eq!(value.to_lexical_form().as_str(), "DEADBEEF");
 	}
 }

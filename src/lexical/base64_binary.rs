@@ -4,7 +4,8 @@ use std::cmp::Ordering;
 use std::hash::{Hash, Hasher};
 use str_newtype::StrNewType;
 
-use crate::lexical::Lexical;
+use crate::lexical::XsdLexicalForm;
+use crate::XsdError;
 
 /// Base 64 string.
 ///
@@ -44,11 +45,13 @@ use crate::lexical::Lexical;
 #[newtype(owned(Base64BinaryBuf, derive(PartialEq, Eq)))]
 pub struct Base64Binary(str);
 
-impl Lexical for Base64Binary {
-	type Error = InvalidBase64Binary<String>;
+impl XsdLexicalForm for Base64Binary {
+	type Value = crate::Base64BinaryBuf;
+}
 
-	fn parse(value: &str) -> Result<&Self, Self::Error> {
-		Self::new(value).map_err(|_| InvalidBase64Binary(value.to_owned()))
+impl<'a> crate::XsdFromStr<'a> for &'a Base64Binary {
+	fn xsd_from_str(value: &'a str) -> Result<Self, XsdError> {
+		Base64Binary::new(value).map_err(|_| XsdError::lexical_form(InvalidBase64Binary(value)))
 	}
 }
 

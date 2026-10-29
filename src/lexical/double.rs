@@ -1,5 +1,6 @@
 use super::{lexical_form, Decimal, Float, FloatBuf, Integer, Overflow};
-use crate::lexical::Lexical;
+use crate::lexical::XsdLexicalForm;
+use crate::XsdError;
 use static_automata::Validate;
 use std::hash::Hash;
 use str_newtype::StrNewType;
@@ -23,11 +24,13 @@ use str_newtype::StrNewType;
 #[newtype(owned(DoubleBuf, derive(PartialEq, Eq)))]
 pub struct Double(str);
 
-impl Lexical for Double {
-	type Error = InvalidDouble<String>;
+impl XsdLexicalForm for Double {
+	type Value = crate::Double;
+}
 
-	fn parse(value: &str) -> Result<&Self, Self::Error> {
-		Self::new(value).map_err(|_| InvalidDouble(value.to_owned()))
+impl<'a> crate::XsdFromStr<'a> for &'a Double {
+	fn xsd_from_str(value: &'a str) -> Result<Self, XsdError> {
+		Double::new(value).map_err(|_| XsdError::lexical_form(InvalidDouble(value)))
 	}
 }
 

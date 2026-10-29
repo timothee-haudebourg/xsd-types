@@ -1,8 +1,7 @@
 use crate::{
-	format_timezone, is_valid_offset,
-	lexical::{InvalidGYear, Lexical, LexicalFormOf},
-	seven_property_model_date_time, seven_property_model_eq, seven_property_model_partial_cmp,
-	Datatype, DisplayYear, ParseXsd, XsdValue,
+	format_timezone, is_valid_offset, lexical::InvalidGYear, seven_property_model_date_time,
+	seven_property_model_eq, seven_property_model_partial_cmp, Datatype, DisplayYear, XsdFromStr,
+	XsdTyped, XsdValue,
 };
 use core::fmt;
 use std::{cmp::Ordering, hash::Hash, str::FromStr};
@@ -56,8 +55,9 @@ impl FromStr for GYear {
 	type Err = InvalidGYear<String>;
 
 	fn from_str(s: &str) -> Result<Self, Self::Err> {
-		let lexical_value = crate::lexical::GYear::parse(s)?;
-		Ok(lexical_value.as_value())
+		let lexical_value =
+			crate::lexical::GYear::new(s).map_err(|_| InvalidGYear(s.to_owned()))?;
+		Ok(lexical_value.into())
 	}
 }
 
@@ -102,14 +102,27 @@ impl Ord for GYear {
 	}
 }
 
-impl XsdValue for GYear {
+impl XsdTyped for GYear {
 	fn datatype(&self) -> Datatype {
 		Datatype::GYear
 	}
 }
 
-impl ParseXsd for GYear {
+impl XsdValue for GYear {
 	type LexicalForm = crate::lexical::GYear;
+
+	fn to_lexical_form(&self) -> crate::lexical::GYearBuf {
+		// `Display` emits the canonical lexical form by contract, so it is
+		// always valid and this cannot panic.
+		crate::lexical::GYearBuf::new(self.to_string())
+			.expect("Display emits a valid gYear lexical form")
+	}
+}
+
+impl<'a> XsdFromStr<'a> for GYear {
+	fn xsd_from_str(lexical_value: &'a str) -> Result<Self, crate::XsdError> {
+		crate::xsd_parse_via::<crate::lexical::GYear, Self>(lexical_value)
+	}
 }
 
 impl fmt::Display for GYear {
@@ -159,6 +172,17 @@ impl<'de> serde::Deserialize<'de> for GYear {
 #[cfg(test)]
 mod tests {
 	use super::GYear;
+	use crate::XsdValue;
+
+	#[test]
+	fn to_lexical_form_roundtrip() {
+		for s in ["2024", "-0044Z", "0001+14:00", "1999-05:30"] {
+			let value: GYear = s.parse().unwrap();
+			let lexical = value.to_lexical_form();
+			assert_eq!(lexical.as_str(), s);
+			assert_eq!(lexical.as_str().parse::<GYear>().unwrap(), value);
+		}
+	}
 
 	#[test]
 	fn ord_without_offset_is_direct() {

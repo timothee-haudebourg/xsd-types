@@ -34,8 +34,7 @@ let string = "3.141592653589793";
 let lexical_repr = xsd_types::lexical::Decimal::new(string).unwrap();
 
 // Interprets the lexical representation (value domain).
-use xsd_types::lexical::LexicalFormOf;
-let value_repr: xsd_types::Decimal = lexical_repr.try_as_value().unwrap();
+let value_repr: xsd_types::Decimal = lexical_repr.into();
 ```
 
 Of course it is possible to parse the value directly into the value domain

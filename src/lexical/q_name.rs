@@ -1,7 +1,9 @@
 use static_automata::Validate;
 use str_newtype::StrNewType;
 
-use super::{Lexical, LexicalFormOf};
+use crate::XsdError;
+
+use super::XsdLexicalForm;
 
 /// Qualified Name.
 ///
@@ -28,18 +30,18 @@ use super::{Lexical, LexicalFormOf};
 #[cfg_attr(feature = "serde", newtype(serde))]
 pub struct QName(str);
 
-impl Lexical for QName {
-	type Error = InvalidQName<String>;
+impl XsdLexicalForm for QName {
+	type Value = QNameBuf;
+}
 
-	fn parse(value: &str) -> Result<&Self, Self::Error> {
-		Self::new(value).map_err(|_| InvalidQName(value.to_owned()))
+impl<'a> crate::XsdFromStr<'a> for &'a QName {
+	fn xsd_from_str(value: &'a str) -> Result<Self, XsdError> {
+		QName::new(value).map_err(|_| XsdError::lexical_form(InvalidQName(value)))
 	}
 }
 
-impl LexicalFormOf<QNameBuf> for QName {
-	type ValueError = std::convert::Infallible;
-
-	fn try_as_value(&self) -> Result<QNameBuf, Self::ValueError> {
-		Ok(self.to_owned())
+impl<'a> From<&'a QName> for QNameBuf {
+	fn from(value: &'a QName) -> QNameBuf {
+		value.to_owned()
 	}
 }

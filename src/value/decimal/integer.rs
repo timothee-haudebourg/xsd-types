@@ -9,13 +9,26 @@ use num_bigint::{BigInt, TryFromBigIntError};
 use num_traits::{Signed, Zero};
 
 use crate::{
-	lexical::{self, Lexical, LexicalFormOf},
-	Datatype, IntDatatype, IntegerDatatype, LongDatatype, NonNegativeIntegerDatatype,
-	NonPositiveIntegerDatatype, ParseXsd, ShortDatatype, UnsignedIntDatatype, UnsignedLongDatatype,
-	UnsignedShortDatatype, XsdValue,
+	lexical, Datatype, IntDatatype, IntegerDatatype, LongDatatype, NonNegativeIntegerDatatype,
+	NonPositiveIntegerDatatype, ShortDatatype, UnsignedIntDatatype, UnsignedLongDatatype,
+	UnsignedShortDatatype, XsdFromStr, XsdTyped, XsdValue,
 };
 
 use super::{Sign, I16_MIN, I32_MIN, I64_MIN, I8_MIN, U16_MAX, U32_MAX, U64_MAX, U8_MAX};
+
+/// Builds the canonical owned lexical form (`$buf`) of an integer-like value
+/// from its `Display` output.
+///
+/// The integer `Display` output (no `+` sign, no leading zeros, `0` for zero)
+/// is always a valid lexical form of the value's datatype: the value is
+/// already known to belong to the datatype (e.g. a negative value can never be
+/// a `nonNegativeInteger`), so the checked constructor cannot fail.
+macro_rules! canonical_integer_lexical_form {
+	($buf:ty, $value:expr) => {
+		<$buf>::new($value.to_string())
+			.expect("integer `Display` output is a valid lexical form of its datatype")
+	};
+}
 
 mod non_negative_integer;
 mod non_positive_integer;
@@ -132,16 +145,6 @@ impl Integer {
 		}
 	}
 
-	/// Returns a lexical representation of this integer.
-	#[inline(always)]
-	pub fn lexical_representation(&self) -> lexical::IntegerBuf {
-		unsafe {
-			// This is safe because the `Display::fmt` method matches the
-			// XSD lexical representation.
-			lexical::IntegerBuf::new_unchecked(format!("{}", self))
-		}
-	}
-
 	/// Returns the sign and unsigned big-endian bytes representation of this
 	/// value.
 	pub fn to_bytes_be(&self) -> (Sign, Vec<u8>) {
@@ -167,22 +170,24 @@ impl Integer {
 	}
 }
 
-impl XsdValue for Integer {
+impl XsdTyped for Integer {
 	#[inline(always)]
 	fn datatype(&self) -> Datatype {
 		self.integer_type().into()
 	}
 }
 
-impl ParseXsd for Integer {
+impl XsdValue for Integer {
 	type LexicalForm = lexical::Integer;
+
+	fn to_lexical_form(&self) -> lexical::IntegerBuf {
+		canonical_integer_lexical_form!(lexical::IntegerBuf, self)
+	}
 }
 
-impl LexicalFormOf<Integer> for lexical::Integer {
-	type ValueError = std::convert::Infallible;
-
-	fn try_as_value(&self) -> Result<Integer, Self::ValueError> {
-		Ok(self.value())
+impl<'a> XsdFromStr<'a> for Integer {
+	fn xsd_from_str(lexical_value: &'a str) -> Result<Self, crate::XsdError> {
+		crate::xsd_parse_via::<lexical::Integer, Self>(lexical_value)
 	}
 }
 
@@ -219,7 +224,7 @@ impl FromStr for Integer {
 
 	#[inline(always)]
 	fn from_str(s: &str) -> Result<Self, Self::Err> {
-		let l = lexical::Integer::parse(s)?;
+		let l = lexical::Integer::new(s).map_err(|_| lexical::InvalidInteger(s.to_owned()))?;
 		Ok(l.into())
 	}
 }
@@ -359,21 +364,23 @@ impl XsdLong for Long {
 	}
 }
 
-impl XsdValue for Long {
+impl XsdTyped for Long {
 	fn datatype(&self) -> Datatype {
 		self.long_type().into()
 	}
 }
 
-impl ParseXsd for Long {
+impl XsdValue for Long {
 	type LexicalForm = lexical::Integer;
+
+	fn to_lexical_form(&self) -> lexical::IntegerBuf {
+		canonical_integer_lexical_form!(lexical::IntegerBuf, self)
+	}
 }
 
-impl LexicalFormOf<Long> for lexical::Integer {
-	type ValueError = IntegerOutOfTargetBounds;
-
-	fn try_as_value(&self) -> Result<Long, Self::ValueError> {
-		self.value().try_into()
+impl<'a> XsdFromStr<'a> for Long {
+	fn xsd_from_str(lexical_value: &'a str) -> Result<Self, crate::XsdError> {
+		crate::xsd_parse_via::<lexical::Integer, Self>(lexical_value)
 	}
 }
 
@@ -395,21 +402,23 @@ impl XsdInt for Int {
 	}
 }
 
-impl XsdValue for Int {
+impl XsdTyped for Int {
 	fn datatype(&self) -> Datatype {
 		self.int_type().into()
 	}
 }
 
-impl ParseXsd for Int {
+impl XsdValue for Int {
 	type LexicalForm = lexical::Integer;
+
+	fn to_lexical_form(&self) -> lexical::IntegerBuf {
+		canonical_integer_lexical_form!(lexical::IntegerBuf, self)
+	}
 }
 
-impl LexicalFormOf<Int> for lexical::Integer {
-	type ValueError = IntegerOutOfTargetBounds;
-
-	fn try_as_value(&self) -> Result<Int, Self::ValueError> {
-		self.value().try_into()
+impl<'a> XsdFromStr<'a> for Int {
+	fn xsd_from_str(lexical_value: &'a str) -> Result<Self, crate::XsdError> {
+		crate::xsd_parse_via::<lexical::Integer, Self>(lexical_value)
 	}
 }
 
@@ -429,41 +438,45 @@ impl XsdShort for Short {
 	}
 }
 
-impl XsdValue for Short {
+impl XsdTyped for Short {
 	fn datatype(&self) -> Datatype {
 		self.short_type().into()
 	}
 }
 
-impl ParseXsd for Short {
+impl XsdValue for Short {
 	type LexicalForm = lexical::Integer;
+
+	fn to_lexical_form(&self) -> lexical::IntegerBuf {
+		canonical_integer_lexical_form!(lexical::IntegerBuf, self)
+	}
 }
 
-impl LexicalFormOf<Short> for lexical::Integer {
-	type ValueError = IntegerOutOfTargetBounds;
-
-	fn try_as_value(&self) -> Result<Short, Self::ValueError> {
-		self.value().try_into()
+impl<'a> XsdFromStr<'a> for Short {
+	fn xsd_from_str(lexical_value: &'a str) -> Result<Self, crate::XsdError> {
+		crate::xsd_parse_via::<lexical::Integer, Self>(lexical_value)
 	}
 }
 
 pub type Byte = i8;
 
-impl XsdValue for Byte {
+impl XsdTyped for Byte {
 	fn datatype(&self) -> Datatype {
 		ShortDatatype::Byte.into()
 	}
 }
 
-impl ParseXsd for Byte {
+impl XsdValue for Byte {
 	type LexicalForm = lexical::Integer;
+
+	fn to_lexical_form(&self) -> lexical::IntegerBuf {
+		canonical_integer_lexical_form!(lexical::IntegerBuf, self)
+	}
 }
 
-impl LexicalFormOf<Byte> for lexical::Integer {
-	type ValueError = IntegerOutOfTargetBounds;
-
-	fn try_as_value(&self) -> Result<Byte, Self::ValueError> {
-		self.value().try_into()
+impl<'a> XsdFromStr<'a> for Byte {
+	fn xsd_from_str(lexical_value: &'a str) -> Result<Self, crate::XsdError> {
+		crate::xsd_parse_via::<lexical::Integer, Self>(lexical_value)
 	}
 }
 
@@ -538,5 +551,75 @@ pub(crate) use impl_integer_arithmetic;
 impl_integer_arithmetic! {
 	for Integer where r (true) {
 		Integer [.0], i8, i16, i32, i64, isize, u8, u16, u32, u64, usize
+	}
+}
+
+#[cfg(test)]
+mod tests {
+	use super::*;
+
+	/// Parses `canonical`, checks that `to_lexical_form` gives it back and that
+	/// the result parses to an equal value.
+	macro_rules! check {
+		($ty:ty, $canonical:expr) => {{
+			let canonical: &str = $canonical;
+			let value = <$ty as crate::XsdFromStr>::xsd_from_str(canonical).unwrap();
+			let lexical = value.to_lexical_form();
+			assert_eq!(lexical.as_str(), canonical);
+			assert_eq!(
+				<$ty as crate::XsdFromStr>::xsd_from_str(lexical.as_str()).unwrap(),
+				value
+			);
+		}};
+	}
+
+	#[test]
+	fn integer_to_lexical_form() {
+		for s in [
+			"0",
+			"-1",
+			"42",
+			"123456789012345678901234567890123456789",
+			"-123456789012345678901234567890123456789",
+		] {
+			check!(Integer, s);
+		}
+	}
+
+	#[test]
+	fn integer_to_lexical_form_is_canonical() {
+		let value: Integer = "+007".parse().unwrap();
+		assert_eq!(value.to_lexical_form().as_str(), "7");
+
+		let value: Integer = "-0".parse().unwrap();
+		assert_eq!(value.to_lexical_form().as_str(), "0");
+	}
+
+	#[test]
+	fn long_to_lexical_form() {
+		for s in ["0", "-1", "9223372036854775807", "-9223372036854775808"] {
+			check!(Long, s);
+		}
+	}
+
+	#[test]
+	fn int_to_lexical_form() {
+		for s in ["0", "-1", "2147483647", "-2147483648"] {
+			check!(Int, s);
+		}
+	}
+
+	#[test]
+	fn short_to_lexical_form() {
+		for s in ["0", "-1", "32767", "-32768"] {
+			check!(Short, s);
+		}
+	}
+
+	#[test]
+	fn byte_to_lexical_form() {
+		for s in ["0", "-1", "127", "-128"] {
+			check!(Byte, s);
+		}
 	}
 }

@@ -1,9 +1,9 @@
 use static_automata::Validate;
 use str_newtype::StrNewType;
 
-use crate::lexical::parse_timezone;
+use crate::{lexical::parse_timezone, XsdError};
 
-use super::{Lexical, LexicalFormOf};
+use super::XsdLexicalForm;
 
 /// GDay.
 ///
@@ -31,19 +31,19 @@ impl GDay {
 	}
 }
 
-impl Lexical for GDay {
-	type Error = InvalidGDay<String>;
+impl XsdLexicalForm for GDay {
+	type Value = crate::GDay;
+}
 
-	fn parse(value: &str) -> Result<&Self, Self::Error> {
-		Self::new(value).map_err(|_| InvalidGDay(value.to_owned()))
+impl<'a> crate::XsdFromStr<'a> for &'a GDay {
+	fn xsd_from_str(value: &'a str) -> Result<Self, XsdError> {
+		GDay::new(value).map_err(|_| XsdError::lexical_form(InvalidGDay(value)))
 	}
 }
 
-impl LexicalFormOf<crate::GDay> for GDay {
-	type ValueError = std::convert::Infallible;
-
-	fn try_as_value(&self) -> Result<crate::GDay, Self::ValueError> {
-		Ok(self.parts().to_g_day())
+impl<'a> From<&'a GDay> for crate::GDay {
+	fn from(value: &'a GDay) -> crate::GDay {
+		value.parts().to_g_day()
 	}
 }
 
@@ -83,7 +83,7 @@ mod tests {
 			let lexical_repr = GDay::new(input).unwrap();
 			assert_eq!(lexical_repr.parts(), parts);
 
-			let value = lexical_repr.try_as_value().unwrap();
+			let value: crate::GDay = lexical_repr.into();
 			assert_eq!(value.to_string().as_str(), input)
 		}
 	}

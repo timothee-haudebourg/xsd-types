@@ -1,6 +1,7 @@
 use crate::lexical::{
-	lexical_form, Decimal, DecimalBuf, Integer, IntegerBuf, Lexical, NonNegativeInteger,
+	lexical_form, Decimal, DecimalBuf, Integer, IntegerBuf, NonNegativeInteger, XsdLexicalForm,
 };
+use crate::XsdError;
 
 use super::{NonPositiveInteger, NonPositiveIntegerBuf, Overflow};
 use static_automata::Validate;
@@ -24,11 +25,14 @@ use str_newtype::StrNewType;
 #[newtype(owned(NegativeIntegerBuf, derive(PartialEq, Eq)))]
 pub struct NegativeInteger(str);
 
-impl Lexical for NegativeInteger {
-	type Error = InvalidNegativeInteger<String>;
+impl XsdLexicalForm for NegativeInteger {
+	type Value = crate::NegativeInteger;
+}
 
-	fn parse(value: &str) -> Result<&Self, Self::Error> {
-		Self::new(value).map_err(|_| InvalidNegativeInteger(value.to_owned()))
+impl<'a> crate::XsdFromStr<'a> for &'a NegativeInteger {
+	fn xsd_from_str(value: &'a str) -> Result<Self, XsdError> {
+		NegativeInteger::new(value)
+			.map_err(|_| XsdError::lexical_form(InvalidNegativeInteger(value)))
 	}
 }
 

@@ -5,10 +5,7 @@ use std::{
 	str::FromStr,
 };
 
-use crate::{
-	lexical::{self, Lexical, LexicalFormOf},
-	Datatype, ParseXsd, XsdValue,
-};
+use crate::{lexical, Datatype, XsdFromStr, XsdTyped, XsdValue};
 
 const CHARS: [char; 64] = [
 	'A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K', 'L', 'M', 'N', 'O', 'P', 'Q', 'R', 'S',
@@ -124,8 +121,9 @@ impl FromStr for Base64BinaryBuf {
 	type Err = lexical::InvalidBase64Binary<String>;
 
 	fn from_str(s: &str) -> Result<Self, Self::Err> {
-		let l = lexical::Base64Binary::parse(s)?;
-		Ok(l.value())
+		let l = lexical::Base64Binary::new(s)
+			.map_err(|_| lexical::InvalidBase64Binary(s.to_owned()))?;
+		Ok(l.into())
 	}
 }
 
@@ -161,21 +159,33 @@ impl DerefMut for Base64BinaryBuf {
 	}
 }
 
-impl XsdValue for Base64BinaryBuf {
+impl XsdTyped for Base64BinaryBuf {
 	fn datatype(&self) -> Datatype {
 		Datatype::Base64Binary
 	}
 }
 
-impl ParseXsd for Base64BinaryBuf {
+impl XsdValue for Base64BinaryBuf {
 	type LexicalForm = lexical::Base64Binary;
+
+	fn to_lexical_form(&self) -> lexical::Base64BinaryBuf {
+		// `Display` emits the canonical lexical form by contract (padded
+		// base64 without whitespace), so it is always valid and this cannot
+		// panic.
+		lexical::Base64BinaryBuf::new(self.to_string())
+			.expect("Display emits a valid base64Binary lexical form")
+	}
 }
 
-impl LexicalFormOf<Base64BinaryBuf> for lexical::Base64Binary {
-	type ValueError = std::convert::Infallible;
+impl<'a> XsdFromStr<'a> for Base64BinaryBuf {
+	fn xsd_from_str(lexical_value: &'a str) -> Result<Self, crate::XsdError> {
+		crate::xsd_parse_via::<lexical::Base64Binary, Self>(lexical_value)
+	}
+}
 
-	fn try_as_value(&self) -> Result<Base64BinaryBuf, Self::ValueError> {
-		Ok(self.value())
+impl<'a> From<&'a lexical::Base64Binary> for Base64BinaryBuf {
+	fn from(value: &'a lexical::Base64Binary) -> Base64BinaryBuf {
+		value.value()
 	}
 }
 
@@ -338,7 +348,7 @@ impl<'a> Iterator for Chars<'a> {
 	}
 }
 
-impl XsdValue for Base64Binary {
+impl XsdTyped for Base64Binary {
 	fn datatype(&self) -> Datatype {
 		Datatype::Base64Binary
 	}
@@ -377,5 +387,30 @@ mod tests {
 			let output = Base64BinaryBuf::decode(input).unwrap();
 			assert_eq!(output.as_bytes(), expected)
 		}
+	}
+
+	#[test]
+	fn to_lexical_form_round_trips() {
+		// Empty, 1 byte (`==` padding), 2 bytes (`=` padding), 3 bytes (no
+		// padding), and a longer value.
+		for input in [
+			"",
+			"TQ==",
+			"TWE=",
+			"TWFu",
+			"TWFueSBoYW5kcyBtYWtlIGxpZ2h0IHdvcmsu",
+		] {
+			let value = <Base64BinaryBuf as XsdFromStr>::xsd_from_str(input).unwrap();
+			let lexical = value.to_lexical_form();
+			assert_eq!(lexical.as_str(), input);
+			assert_eq!(Base64BinaryBuf::from_str(lexical.as_str()).unwrap(), value);
+		}
+	}
+
+	#[test]
+	fn to_lexical_form_of_all_byte_values() {
+		let value = Base64BinaryBuf::from_bytes((0..=255).collect());
+		let lexical = value.to_lexical_form();
+		assert_eq!(Base64BinaryBuf::from_str(lexical.as_str()).unwrap(), value);
 	}
 }

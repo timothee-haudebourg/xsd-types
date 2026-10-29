@@ -4,7 +4,8 @@ use std::cmp::Ordering;
 use std::hash::{Hash, Hasher};
 use str_newtype::StrNewType;
 
-use crate::lexical::Lexical;
+use crate::lexical::XsdLexicalForm;
+use crate::XsdError;
 
 /// Hexadecimal string.
 ///
@@ -23,11 +24,13 @@ use crate::lexical::Lexical;
 #[newtype(owned(HexBinaryBuf, derive(PartialEq, Eq)))]
 pub struct HexBinary(str);
 
-impl Lexical for HexBinary {
-	type Error = InvalidHexBinary<String>;
+impl XsdLexicalForm for HexBinary {
+	type Value = crate::HexBinaryBuf;
+}
 
-	fn parse(value: &str) -> Result<&Self, Self::Error> {
-		Self::new(value).map_err(|_| InvalidHexBinary(value.to_owned()))
+impl<'a> crate::XsdFromStr<'a> for &'a HexBinary {
+	fn xsd_from_str(value: &'a str) -> Result<Self, XsdError> {
+		HexBinary::new(value).map_err(|_| XsdError::lexical_form(InvalidHexBinary(value)))
 	}
 }
 

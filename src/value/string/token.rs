@@ -1,8 +1,6 @@
 use core::fmt;
 use std::{borrow::Borrow, ops::Deref, str::FromStr};
 
-use crate::{lexical::Lexical, ParseXsd};
-
 /// Error raised when a string is not a valid `token` value.
 #[derive(Debug, thiserror::Error)]
 #[error("invalid token `{0}`")]
@@ -144,15 +142,17 @@ impl FromStr for TokenBuf {
 	type Err = InvalidToken;
 
 	fn from_str(s: &str) -> Result<Self, Self::Err> {
-		// Not `try_as_value()`: that goes through `FromStr` too, which would
-		// recurse back here.
-		let lexical_value = Token::parse(s)?;
+		let lexical_value = Token::new(s).map_err(|_| InvalidToken(s.to_owned()))?;
 		Ok(lexical_value.to_owned())
 	}
 }
 
-impl ParseXsd for TokenBuf {
-	type LexicalForm = crate::lexical::Token;
+impl TryFrom<String> for TokenBuf {
+	type Error = InvalidToken<String>;
+
+	fn try_from(value: String) -> Result<Self, Self::Error> {
+		Self::new(value)
+	}
 }
 
 #[cfg(feature = "serde")]
@@ -189,5 +189,41 @@ impl<'de> serde::Deserialize<'de> for TokenBuf {
 		}
 
 		deserializer.deserialize_str(Visitor)
+	}
+}
+
+impl<'a> crate::XsdFromStr<'a> for TokenBuf {
+	fn xsd_from_str(lexical_value: &'a str) -> Result<Self, crate::XsdError> {
+		crate::xsd_parse_via::<Token, Self>(lexical_value)
+	}
+}
+
+impl crate::XsdTyped for TokenBuf {
+	fn datatype(&self) -> crate::Datatype {
+		crate::TokenDatatype::Token.into()
+	}
+}
+
+impl crate::XsdValue for TokenBuf {
+	type LexicalForm = Token;
+
+	fn to_lexical_form(&self) -> TokenBuf {
+		self.clone()
+	}
+}
+
+#[cfg(test)]
+mod tests {
+	use crate::{XsdFromStr, XsdValue};
+
+	use super::TokenBuf;
+
+	#[test]
+	fn lexical_form_round_trip() {
+		let input = "a token string";
+		let value = TokenBuf::xsd_from_str(input).unwrap();
+		let lexical = value.to_lexical_form();
+		assert_eq!(lexical.as_str(), input);
+		assert_eq!(TokenBuf::xsd_from_str(lexical.as_str()).unwrap(), value);
 	}
 }

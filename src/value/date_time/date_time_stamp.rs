@@ -1,9 +1,8 @@
 use std::{cmp::Ordering, fmt, hash::Hash, str::FromStr};
 
 use crate::{
-	format_nanoseconds, format_timezone,
-	lexical::{date_time::InvalidDateTimeStamp, Lexical, LexicalFormOf},
-	Datatype, DateTimeDatatype, DisplayYear, ParseXsd, XsdValue,
+	format_nanoseconds, format_timezone, lexical::date_time::InvalidDateTimeStamp, Datatype,
+	DateTimeDatatype, DisplayYear, XsdFromStr, XsdTyped, XsdValue,
 };
 
 /// Error raised when the components of a [`DateTimeStamp`] do not form a
@@ -163,14 +162,27 @@ impl Ord for DateTimeStamp {
 	}
 }
 
-impl XsdValue for DateTimeStamp {
+impl XsdTyped for DateTimeStamp {
 	fn datatype(&self) -> Datatype {
 		Datatype::DateTime(DateTimeDatatype::DateTimeStamp)
 	}
 }
 
-impl ParseXsd for DateTimeStamp {
+impl XsdValue for DateTimeStamp {
 	type LexicalForm = crate::lexical::DateTimeStamp;
+
+	fn to_lexical_form(&self) -> crate::lexical::DateTimeStampBuf {
+		// `Display` emits the canonical lexical form by contract, so it is
+		// always valid and this cannot panic.
+		crate::lexical::DateTimeStampBuf::new(self.to_string())
+			.expect("Display emits a valid dateTimeStamp lexical form")
+	}
+}
+
+impl<'a> XsdFromStr<'a> for DateTimeStamp {
+	fn xsd_from_str(lexical_value: &'a str) -> Result<Self, crate::XsdError> {
+		crate::xsd_parse_via::<crate::lexical::DateTimeStamp, Self>(lexical_value)
+	}
 }
 
 impl fmt::Display for DateTimeStamp {
@@ -207,8 +219,9 @@ impl FromStr for DateTimeStamp {
 	type Err = DateTimeStampFromStrError;
 
 	fn from_str(s: &str) -> Result<Self, Self::Err> {
-		let lexical_value = crate::lexical::DateTimeStamp::parse(s)?;
-		lexical_value.try_as_value().map_err(Into::into)
+		let lexical_value = crate::lexical::DateTimeStamp::new(s)
+			.map_err(|_| InvalidDateTimeStamp(s.to_owned()))?;
+		Self::try_from(lexical_value).map_err(Into::into)
 	}
 }
 
@@ -307,6 +320,24 @@ impl<'de> serde::Deserialize<'de> for DateTimeStamp {
 
 #[cfg(test)]
 mod tests {
+	#[test]
+	fn to_lexical_form_roundtrip() {
+		use super::DateTimeStamp;
+		use crate::XsdValue;
+
+		for s in [
+			"2024-02-29T12:30:45Z",
+			"-0044-03-15T00:00:00+05:30",
+			"2000-01-01T23:59:59.000000001-14:00",
+			"1999-12-31T13:07:12.5+14:00",
+		] {
+			let value: DateTimeStamp = s.parse().unwrap();
+			let lexical = value.to_lexical_form();
+			assert_eq!(lexical.as_str(), s);
+			assert_eq!(lexical.as_str().parse::<DateTimeStamp>().unwrap(), value);
+		}
+	}
+
 	#[test]
 	fn new_rejects_out_of_range_offset() {
 		use super::DateTimeStamp;

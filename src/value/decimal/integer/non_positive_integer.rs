@@ -9,9 +9,8 @@ use num_bigint::{BigInt, TryFromBigIntError};
 use num_traits::{Signed, Zero};
 
 use crate::{
-	impl_integer_arithmetic,
-	lexical::{self, Lexical, LexicalFormOf},
-	Datatype, Integer, NonPositiveIntegerDatatype, ParseXsd, XsdValue,
+	impl_integer_arithmetic, lexical, Datatype, Integer, NonPositiveIntegerDatatype, XsdFromStr,
+	XsdTyped, XsdValue,
 };
 
 use super::Sign;
@@ -108,16 +107,6 @@ impl NonPositiveInteger {
 		}
 	}
 
-	/// Returns a lexical representation of this non positive integer.
-	#[inline(always)]
-	pub fn lexical_representation(&self) -> lexical::NonPositiveIntegerBuf {
-		unsafe {
-			// This is safe because the `Display::fmt` method matches the
-			// XSD lexical representation.
-			lexical::NonPositiveIntegerBuf::new_unchecked(format!("{}", self))
-		}
-	}
-
 	/// Returns the sign and unsigned big-endian bytes representation of this
 	/// value.
 	pub fn to_bytes_be(&self) -> (Sign, Vec<u8>) {
@@ -143,22 +132,24 @@ impl NonPositiveInteger {
 	}
 }
 
-impl XsdValue for NonPositiveInteger {
+impl XsdTyped for NonPositiveInteger {
 	#[inline(always)]
 	fn datatype(&self) -> Datatype {
 		self.non_positive_integer_type().into()
 	}
 }
 
-impl ParseXsd for NonPositiveInteger {
+impl XsdValue for NonPositiveInteger {
 	type LexicalForm = lexical::NonPositiveInteger;
+
+	fn to_lexical_form(&self) -> lexical::NonPositiveIntegerBuf {
+		canonical_integer_lexical_form!(lexical::NonPositiveIntegerBuf, self)
+	}
 }
 
-impl LexicalFormOf<NonPositiveInteger> for lexical::NonPositiveInteger {
-	type ValueError = std::convert::Infallible;
-
-	fn try_as_value(&self) -> Result<NonPositiveInteger, Self::ValueError> {
-		Ok(self.value())
+impl<'a> XsdFromStr<'a> for NonPositiveInteger {
+	fn xsd_from_str(lexical_value: &'a str) -> Result<Self, crate::XsdError> {
+		crate::xsd_parse_via::<lexical::NonPositiveInteger, Self>(lexical_value)
 	}
 }
 
@@ -187,8 +178,9 @@ impl FromStr for NonPositiveInteger {
 
 	#[inline(always)]
 	fn from_str(s: &str) -> Result<Self, Self::Err> {
-		let l = lexical::NonPositiveInteger::parse(s)?;
-		Ok(l.as_value())
+		let l = lexical::NonPositiveInteger::new(s)
+			.map_err(|_| lexical::InvalidNonPositiveInteger(s.to_owned()))?;
+		Ok(l.into())
 	}
 }
 
@@ -405,21 +397,29 @@ impl NegativeInteger {
 	}
 }
 
-impl XsdValue for NegativeInteger {
+impl XsdTyped for NegativeInteger {
 	fn datatype(&self) -> Datatype {
 		NonPositiveIntegerDatatype::NegativeInteger.into()
 	}
 }
 
-impl ParseXsd for NegativeInteger {
+impl XsdValue for NegativeInteger {
 	type LexicalForm = lexical::NegativeInteger;
+
+	fn to_lexical_form(&self) -> lexical::NegativeIntegerBuf {
+		canonical_integer_lexical_form!(lexical::NegativeIntegerBuf, self)
+	}
 }
 
-impl LexicalFormOf<NegativeInteger> for lexical::NegativeInteger {
-	type ValueError = std::convert::Infallible;
+impl<'a> XsdFromStr<'a> for NegativeInteger {
+	fn xsd_from_str(lexical_value: &'a str) -> Result<Self, crate::XsdError> {
+		crate::xsd_parse_via::<lexical::NegativeInteger, Self>(lexical_value)
+	}
+}
 
-	fn try_as_value(&self) -> Result<NegativeInteger, Self::ValueError> {
-		Ok(self.value())
+impl<'a> From<&'a lexical::NegativeInteger> for NegativeInteger {
+	fn from(value: &'a lexical::NegativeInteger) -> Self {
+		value.value()
 	}
 }
 
@@ -428,8 +428,9 @@ impl FromStr for NegativeInteger {
 
 	#[inline(always)]
 	fn from_str(s: &str) -> Result<Self, Self::Err> {
-		let l = lexical::NegativeInteger::parse(s)?;
-		Ok(l.as_value())
+		let l = lexical::NegativeInteger::new(s)
+			.map_err(|_| lexical::InvalidNegativeInteger(s.to_owned()))?;
+		Ok(l.into())
 	}
 }
 
@@ -501,3 +502,38 @@ impl_integer_arithmetic!(
 		usize
 	}
 );
+
+#[cfg(test)]
+mod tests {
+	use super::*;
+
+	macro_rules! check {
+		($ty:ty, $canonical:expr) => {{
+			let canonical: &str = $canonical;
+			let value = <$ty as crate::XsdFromStr>::xsd_from_str(canonical).unwrap();
+			let lexical = value.to_lexical_form();
+			assert_eq!(lexical.as_str(), canonical);
+			assert_eq!(
+				<$ty as crate::XsdFromStr>::xsd_from_str(lexical.as_str()).unwrap(),
+				value
+			);
+		}};
+	}
+
+	#[test]
+	fn non_positive_integer_to_lexical_form() {
+		for s in ["0", "-1", "-123456789012345678901234567890123456789"] {
+			check!(NonPositiveInteger, s);
+		}
+
+		let value: NonPositiveInteger = "-0".parse().unwrap();
+		assert_eq!(value.to_lexical_form().as_str(), "0");
+	}
+
+	#[test]
+	fn negative_integer_to_lexical_form() {
+		for s in ["-1", "-42", "-123456789012345678901234567890123456789"] {
+			check!(NegativeInteger, s);
+		}
+	}
+}

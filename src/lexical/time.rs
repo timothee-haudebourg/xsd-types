@@ -1,9 +1,9 @@
 use static_automata::Validate;
 use str_newtype::StrNewType;
 
-use crate::{utils::byte_index_of, InvalidTimeValue};
+use crate::{utils::byte_index_of, InvalidTimeValue, XsdError};
 
-use super::{date_time::parse_seconds_decimal, parse_timezone, Lexical, LexicalFormOf};
+use super::{date_time::parse_seconds_decimal, parse_timezone, XsdLexicalForm};
 
 /// Time.
 ///
@@ -37,19 +37,21 @@ impl Time {
 	}
 }
 
-impl Lexical for Time {
-	type Error = InvalidTime<String>;
+impl XsdLexicalForm for Time {
+	type Value = crate::Time;
+}
 
-	fn parse(value: &str) -> Result<&Self, Self::Error> {
-		Self::new(value).map_err(|_| InvalidTime(value.to_owned()))
+impl<'a> crate::XsdFromStr<'a> for &'a Time {
+	fn xsd_from_str(value: &'a str) -> Result<Self, XsdError> {
+		Time::new(value).map_err(|_| XsdError::lexical_form(InvalidTime(value)))
 	}
 }
 
-impl LexicalFormOf<crate::Time> for Time {
-	type ValueError = InvalidTimeValue;
+impl<'a> TryFrom<&'a Time> for crate::Time {
+	type Error = InvalidTimeValue;
 
-	fn try_as_value(&self) -> Result<crate::Time, Self::ValueError> {
-		self.parts().to_time()
+	fn try_from(value: &'a Time) -> Result<crate::Time, Self::Error> {
+		value.parts().to_time()
 	}
 }
 
@@ -117,7 +119,7 @@ mod tests {
 			let lexical_repr = Time::new(input).unwrap();
 			assert_eq!(lexical_repr.parts(), parts);
 
-			let value = lexical_repr.try_as_value().unwrap();
+			let value = crate::Time::try_from(lexical_repr).unwrap();
 			assert_eq!(value.to_string().as_str(), input)
 		}
 	}

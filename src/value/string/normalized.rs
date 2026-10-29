@@ -1,8 +1,6 @@
 use core::fmt;
 use std::{borrow::Borrow, ops::Deref, str::FromStr};
 
-use crate::{lexical::Lexical, ParseXsd};
-
 /// Error raised when a string is not a valid `normalizedString` value.
 #[derive(Debug, thiserror::Error)]
 #[error("invalid normalized string `{0}`")]
@@ -124,15 +122,18 @@ impl FromStr for NormalizedString {
 	type Err = InvalidNormalizedStr<String>;
 
 	fn from_str(s: &str) -> Result<Self, Self::Err> {
-		// Not `try_as_value()`: that goes through `FromStr` too, which would
-		// recurse back here.
-		let lexical_value = NormalizedStr::parse(s)?;
+		let lexical_value =
+			NormalizedStr::new(s).map_err(|_| InvalidNormalizedStr(s.to_owned()))?;
 		Ok(lexical_value.to_owned())
 	}
 }
 
-impl ParseXsd for NormalizedString {
-	type LexicalForm = crate::lexical::NormalizedStr;
+impl TryFrom<String> for NormalizedString {
+	type Error = InvalidNormalizedStr<String>;
+
+	fn try_from(value: String) -> Result<Self, Self::Error> {
+		Self::new(value)
+	}
 }
 
 #[cfg(feature = "serde")]
@@ -169,5 +170,44 @@ impl<'de> serde::Deserialize<'de> for NormalizedString {
 		}
 
 		deserializer.deserialize_str(Visitor)
+	}
+}
+
+impl<'a> crate::XsdFromStr<'a> for NormalizedString {
+	fn xsd_from_str(lexical_value: &'a str) -> Result<Self, crate::XsdError> {
+		crate::xsd_parse_via::<crate::lexical::NormalizedStr, Self>(lexical_value)
+	}
+}
+
+impl crate::XsdTyped for NormalizedString {
+	fn datatype(&self) -> crate::Datatype {
+		crate::NormalizedStringDatatype::NormalizedString.into()
+	}
+}
+
+impl crate::XsdValue for NormalizedString {
+	type LexicalForm = crate::lexical::NormalizedStr;
+
+	fn to_lexical_form(&self) -> NormalizedString {
+		self.clone()
+	}
+}
+
+#[cfg(test)]
+mod tests {
+	use crate::{XsdFromStr, XsdValue};
+
+	use super::NormalizedString;
+
+	#[test]
+	fn lexical_form_round_trip() {
+		let input = "a normalized  string";
+		let value = NormalizedString::xsd_from_str(input).unwrap();
+		let lexical = value.to_lexical_form();
+		assert_eq!(lexical.as_str(), input);
+		assert_eq!(
+			NormalizedString::xsd_from_str(lexical.as_str()).unwrap(),
+			value
+		);
 	}
 }

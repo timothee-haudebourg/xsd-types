@@ -1,6 +1,6 @@
 use crate::{
-	lexical::{duration::InvalidYearMonthDuration, Lexical, LexicalFormOf},
-	Datatype, DurationDatatype, ParseXsd, XsdValue,
+	lexical::duration::InvalidYearMonthDuration, Datatype, DurationDatatype, XsdFromStr, XsdTyped,
+	XsdValue,
 };
 use core::fmt;
 use std::{cmp::Ordering, hash::Hash, str::FromStr};
@@ -70,27 +70,46 @@ impl Ord for YearMonthDuration {
 	}
 }
 
-impl XsdValue for YearMonthDuration {
+impl XsdTyped for YearMonthDuration {
 	fn datatype(&self) -> Datatype {
 		Datatype::Duration(DurationDatatype::YearMonthDuration)
 	}
 }
 
-impl ParseXsd for YearMonthDuration {
+impl XsdValue for YearMonthDuration {
 	type LexicalForm = crate::lexical::YearMonthDuration;
+
+	fn to_lexical_form(&self) -> crate::lexical::YearMonthDurationBuf {
+		// `Display` emits the canonical lexical form by contract, so it is
+		// always valid and this cannot panic.
+		crate::lexical::YearMonthDurationBuf::new(self.to_string())
+			.expect("Display emits a valid yearMonthDuration lexical form")
+	}
+}
+
+impl<'a> XsdFromStr<'a> for YearMonthDuration {
+	fn xsd_from_str(lexical_value: &'a str) -> Result<Self, crate::XsdError> {
+		crate::xsd_parse_via::<crate::lexical::YearMonthDuration, Self>(lexical_value)
+	}
 }
 
 impl FromStr for YearMonthDuration {
 	type Err = InvalidYearMonthDuration<String>;
 
 	fn from_str(s: &str) -> Result<Self, Self::Err> {
-		let lexical_value = crate::lexical::YearMonthDuration::parse(s)?;
-		Ok(lexical_value.as_value())
+		let lexical_value = crate::lexical::YearMonthDuration::new(s)
+			.map_err(|_| InvalidYearMonthDuration(s.to_owned()))?;
+		Ok(lexical_value.into())
 	}
 }
 
 impl fmt::Display for YearMonthDuration {
 	fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+		if self.months == 0 {
+			// The canonical form of the zero duration has no sign.
+			return f.write_str("P0M");
+		}
+
 		let year = self.months / 12;
 		let month = self.months - year * 12;
 
@@ -146,5 +165,36 @@ impl<'de> serde::Deserialize<'de> for YearMonthDuration {
 		}
 
 		deserializer.deserialize_str(Visitor)
+	}
+}
+
+#[cfg(test)]
+mod tests {
+	use super::*;
+
+	fn assert_lexical_form_round_trip(input: &str) {
+		let value = <YearMonthDuration as XsdFromStr>::xsd_from_str(input).unwrap();
+		let lexical = value.to_lexical_form();
+		assert_eq!(lexical.as_str(), input);
+		assert_eq!(
+			YearMonthDuration::from_str(lexical.as_str()).unwrap(),
+			value
+		);
+	}
+
+	#[test]
+	fn to_lexical_form_round_trips() {
+		for input in ["P1Y2M", "-P1Y2M", "P1Y", "P11M", "-P5Y"] {
+			assert_lexical_form_round_trip(input);
+		}
+	}
+
+	#[test]
+	fn to_lexical_form_of_zero_is_p0m() {
+		for input in ["P0M", "-P0M", "P0Y"] {
+			let value = YearMonthDuration::from_str(input).unwrap();
+			assert_eq!(value.to_lexical_form().as_str(), "P0M");
+			assert_eq!(value.to_string(), "P0M");
+		}
 	}
 }

@@ -1,7 +1,7 @@
 use static_automata::Validate;
 use str_newtype::StrNewType;
 
-use crate::lexical::{Lexical, LexicalFormOf};
+use crate::{lexical::XsdLexicalForm, XsdError};
 
 /// Language.
 ///
@@ -16,18 +16,20 @@ use crate::lexical::{Lexical, LexicalFormOf};
 #[cfg_attr(feature = "serde", newtype(serde))]
 pub struct Language(str);
 
-impl Lexical for Language {
-	type Error = InvalidLanguage<String>;
+impl XsdLexicalForm for Language {
+	type Value = LanguageBuf;
+}
 
-	fn parse(value: &str) -> Result<&Self, Self::Error> {
-		Self::new(value).map_err(|_| InvalidLanguage(value.to_owned()))
+impl<'a> crate::XsdFromStr<'a> for &'a Language {
+	fn xsd_from_str(value: &'a str) -> Result<Self, XsdError> {
+		Language::new(value).map_err(|_| XsdError::lexical_form(InvalidLanguage(value)))
 	}
 }
 
-impl LexicalFormOf<LanguageBuf> for Language {
-	type ValueError = InvalidLanguage<String>;
+impl<'a> TryFrom<&'a Language> for LanguageBuf {
+	type Error = InvalidLanguage<String>;
 
-	fn try_as_value(&self) -> Result<LanguageBuf, Self::ValueError> {
-		self.as_str().parse()
+	fn try_from(value: &'a Language) -> Result<LanguageBuf, Self::Error> {
+		value.as_str().parse()
 	}
 }

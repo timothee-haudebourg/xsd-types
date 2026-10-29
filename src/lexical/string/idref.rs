@@ -1,7 +1,7 @@
 use static_automata::Validate;
 use str_newtype::StrNewType;
 
-use crate::lexical::{Lexical, LexicalFormOf};
+use crate::{lexical::XsdLexicalForm, XsdError};
 
 /// IDREF.
 ///
@@ -24,18 +24,20 @@ use crate::lexical::{Lexical, LexicalFormOf};
 #[cfg_attr(feature = "serde", newtype(serde))]
 pub struct IdRef(str);
 
-impl Lexical for IdRef {
-	type Error = InvalidIdRef<String>;
+impl XsdLexicalForm for IdRef {
+	type Value = IdRefBuf;
+}
 
-	fn parse(value: &str) -> Result<&Self, Self::Error> {
-		Self::new(value).map_err(|_| InvalidIdRef(value.to_owned()))
+impl<'a> crate::XsdFromStr<'a> for &'a IdRef {
+	fn xsd_from_str(value: &'a str) -> Result<Self, XsdError> {
+		IdRef::new(value).map_err(|_| XsdError::lexical_form(InvalidIdRef(value)))
 	}
 }
 
-impl LexicalFormOf<IdRefBuf> for IdRef {
-	type ValueError = InvalidIdRef<String>;
+impl<'a> TryFrom<&'a IdRef> for IdRefBuf {
+	type Error = InvalidIdRef<String>;
 
-	fn try_as_value(&self) -> Result<IdRefBuf, Self::ValueError> {
-		self.as_str().parse()
+	fn try_from(value: &'a IdRef) -> Result<IdRefBuf, Self::Error> {
+		value.as_str().parse()
 	}
 }

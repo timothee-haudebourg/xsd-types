@@ -1,9 +1,9 @@
 use static_automata::Validate;
 use str_newtype::StrNewType;
 
-use crate::{utils::byte_index_of, InvalidDateTimeValue};
+use crate::{utils::byte_index_of, InvalidDateTimeValue, XsdError};
 
-use super::{Lexical, LexicalFormOf};
+use super::XsdLexicalForm;
 
 pub mod date_time_stamp;
 pub use date_time_stamp::{DateTimeStamp, DateTimeStampBuf, InvalidDateTimeStamp};
@@ -49,19 +49,21 @@ impl DateTime {
 	}
 }
 
-impl Lexical for DateTime {
-	type Error = InvalidDateTime<String>;
+impl XsdLexicalForm for DateTime {
+	type Value = crate::DateTime;
+}
 
-	fn parse(value: &str) -> Result<&Self, Self::Error> {
-		Self::new(value).map_err(|_| InvalidDateTime(value.to_owned()))
+impl<'a> crate::XsdFromStr<'a> for &'a DateTime {
+	fn xsd_from_str(value: &'a str) -> Result<Self, XsdError> {
+		DateTime::new(value).map_err(|_| XsdError::lexical_form(InvalidDateTime(value)))
 	}
 }
 
-impl LexicalFormOf<crate::DateTime> for DateTime {
-	type ValueError = InvalidDateTimeValue;
+impl<'a> TryFrom<&'a DateTime> for crate::DateTime {
+	type Error = InvalidDateTimeValue;
 
-	fn try_as_value(&self) -> Result<crate::DateTime, Self::ValueError> {
-		self.parts().to_datetime()
+	fn try_from(value: &'a DateTime) -> Result<crate::DateTime, Self::Error> {
+		value.parts().to_datetime()
 	}
 }
 
@@ -143,26 +145,61 @@ pub(crate) fn parse_seconds_decimal(decimal: &str) -> (u32, u32) {
 	}
 }
 
-/// Parses a timezone offset, returning `None` if `tz` is not a valid
-/// timezone offset.
+/// Parses a timezone offset (`Z`, or `+hh:mm`/`-hh:mm`), returning `None` if
+/// `tz` is not a valid timezone offset.
+///
+/// The sign applies to the whole offset, not just to the hours: `-05:30` is
+/// `-(5 * 3600 + 30 * 60)` seconds.
 pub(crate) fn parse_timezone(tz: &str) -> Option<time::UtcOffset> {
 	const HOUR: i32 = 3600;
 	const MINUTE: i32 = 60;
 
-	match tz {
-		"Z" => Some(time::UtcOffset::UTC),
-		"14:00" => time::UtcOffset::from_whole_seconds(14 * HOUR).ok(),
-		n => {
-			let (h, m) = n.split_once(':')?;
-			let seconds = h.parse::<i32>().ok()? * HOUR + m.parse::<i32>().ok()? * MINUTE;
-			time::UtcOffset::from_whole_seconds(seconds).ok()
-		}
+	if tz == "Z" {
+		return Some(time::UtcOffset::UTC);
 	}
+
+	let (sign, unsigned) = match tz.as_bytes().first()? {
+		b'+' => (1, &tz[1..]),
+		b'-' => (-1, &tz[1..]),
+		_ => return None,
+	};
+
+	let (h, m) = unsigned.split_once(':')?;
+	let seconds = h.parse::<i32>().ok()? * HOUR + m.parse::<i32>().ok()? * MINUTE;
+	time::UtcOffset::from_whole_seconds(sign * seconds).ok()
 }
 
 #[cfg(test)]
 mod tests {
 	use super::*;
+
+	#[test]
+	fn parse_timezone_applies_sign_to_whole_offset() {
+		for (input, seconds) in [
+			("+05:30", 5 * 3600 + 30 * 60),
+			("-05:30", -(5 * 3600 + 30 * 60)),
+			("-00:30", -30 * 60),
+			("+00:30", 30 * 60),
+			("+14:00", 14 * 3600),
+			("-14:00", -14 * 3600),
+			("Z", 0),
+		] {
+			assert_eq!(
+				parse_timezone(input).map(|o| o.whole_seconds()),
+				Some(seconds),
+				"{input}"
+			);
+		}
+	}
+
+	#[test]
+	fn parse_timezone_rejects_invalid() {
+		// Note: the XSD `±14:00` range is enforced by the value types, not by
+		// this function.
+		for input in ["", "05:30", "+05", "+aa:bb"] {
+			assert_eq!(parse_timezone(input), None, "{input}");
+		}
+	}
 
 	#[test]
 	fn parsing() {
@@ -189,7 +226,7 @@ mod tests {
 			let lexical_repr = DateTime::new(input).unwrap();
 			assert_eq!(lexical_repr.parts(), parts);
 
-			let value = lexical_repr.try_as_value().unwrap();
+			let value = crate::DateTime::try_from(lexical_repr).unwrap();
 			assert_eq!(value.to_string().as_str(), input)
 		}
 	}
@@ -222,7 +259,7 @@ mod tests {
 			let lexical_repr = DateTime::new(input).unwrap();
 			assert_eq!(lexical_repr.parts(), parts);
 
-			let value = lexical_repr.try_as_value().unwrap();
+			let value = crate::DateTime::try_from(lexical_repr).unwrap();
 			assert_eq!(value.to_string().as_str(), input)
 		}
 	}

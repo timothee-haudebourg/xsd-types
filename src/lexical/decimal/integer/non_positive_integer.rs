@@ -1,4 +1,5 @@
-use crate::lexical::{lexical_form, Lexical};
+use crate::lexical::{lexical_form, XsdLexicalForm};
+use crate::XsdError;
 
 use super::{Decimal, DecimalBuf, Integer, IntegerBuf, NonNegativeInteger, Overflow, Sign};
 use static_automata::Validate;
@@ -28,11 +29,14 @@ pub use negative_integer::*;
 #[newtype(owned(NonPositiveIntegerBuf, derive(PartialEq, Eq)))]
 pub struct NonPositiveInteger(str);
 
-impl Lexical for NonPositiveInteger {
-	type Error = InvalidNonPositiveInteger<String>;
+impl XsdLexicalForm for NonPositiveInteger {
+	type Value = crate::NonPositiveInteger;
+}
 
-	fn parse(value: &str) -> Result<&Self, Self::Error> {
-		Self::new(value).map_err(|_| InvalidNonPositiveInteger(value.to_owned()))
+impl<'a> crate::XsdFromStr<'a> for &'a NonPositiveInteger {
+	fn xsd_from_str(value: &'a str) -> Result<Self, XsdError> {
+		NonPositiveInteger::new(value)
+			.map_err(|_| XsdError::lexical_form(InvalidNonPositiveInteger(value)))
 	}
 }
 

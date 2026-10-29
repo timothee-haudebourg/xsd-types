@@ -5,10 +5,7 @@ use std::{
 	str::FromStr,
 };
 
-use crate::{
-	lexical::{self, Lexical, LexicalFormOf},
-	Datatype, ParseXsd, XsdValue,
-};
+use crate::{lexical, Datatype, XsdFromStr, XsdTyped, XsdValue};
 
 /// Value space of the XSD `double` datatype.
 ///
@@ -108,21 +105,33 @@ impl fmt::Display for Double {
 	}
 }
 
-impl XsdValue for Double {
+impl XsdTyped for Double {
 	fn datatype(&self) -> Datatype {
 		Datatype::Double
 	}
 }
 
-impl ParseXsd for Double {
+impl XsdValue for Double {
 	type LexicalForm = lexical::Double;
+
+	fn to_lexical_form(&self) -> lexical::DoubleBuf {
+		if self.0.is_finite() {
+			// `Display` emits the canonical lexical form of finite values by
+			// contract, so it is always valid and this cannot panic.
+			lexical::DoubleBuf::new(self.to_string())
+				.expect("Display emits a valid double lexical form for finite values")
+		} else {
+			// `Display` emits `inf`/`-inf`, which are not valid lexical forms,
+			// so special values go through the infallible conversion instead
+			// (`NaN`, `INF`, `-INF`).
+			lexical::DoubleBuf::from(self.0)
+		}
+	}
 }
 
-impl LexicalFormOf<Double> for lexical::Double {
-	type ValueError = std::convert::Infallible;
-
-	fn try_as_value(&self) -> Result<Double, Self::ValueError> {
-		Ok(self.value())
+impl<'a> XsdFromStr<'a> for Double {
+	fn xsd_from_str(lexical_value: &'a str) -> Result<Self, crate::XsdError> {
+		crate::xsd_parse_via::<lexical::Double, Self>(lexical_value)
 	}
 }
 
@@ -142,8 +151,8 @@ impl FromStr for Double {
 	type Err = lexical::InvalidDouble<String>;
 
 	fn from_str(s: &str) -> Result<Self, Self::Err> {
-		let l = lexical::Double::parse(s)?;
-		Ok(l.as_value())
+		let l = lexical::Double::new(s).map_err(|_| lexical::InvalidDouble(s.to_owned()))?;
+		Ok(l.into())
 	}
 }
 
@@ -282,5 +291,33 @@ mod tests {
 	#[test]
 	fn positive_and_negative_zero_are_equal() {
 		assert_eq!(Double::new(0.0), Double::new(-0.0));
+	}
+
+	fn assert_lexical_form_round_trip(input: &str) {
+		let value: Double = input.parse().unwrap();
+		let lexical = value.to_lexical_form();
+		assert_eq!(lexical.as_str(), input);
+
+		let reparsed = Double::xsd_from_str(lexical.as_str()).unwrap();
+		if value.is_nan() {
+			assert!(reparsed.is_nan());
+		} else {
+			assert_eq!(reparsed, value);
+			assert_eq!(reparsed.is_negative(), value.is_negative());
+		}
+	}
+
+	#[test]
+	fn to_lexical_form_round_trips_finite_values() {
+		for input in ["1.0E0", "-1.5E3", "2.5E-3", "0.0E0", "-0.0E0"] {
+			assert_lexical_form_round_trip(input);
+		}
+	}
+
+	#[test]
+	fn to_lexical_form_round_trips_special_values() {
+		for input in ["INF", "-INF", "NaN"] {
+			assert_lexical_form_round_trip(input);
+		}
 	}
 }

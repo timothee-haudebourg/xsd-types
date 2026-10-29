@@ -11,7 +11,7 @@ use super::{
 	YearMonthDuration,
 };
 use crate::{
-	ParseXsd, ParseXsdError, XsdValue, XSD_ANY_URI, XSD_BASE64_BINARY, XSD_BOOLEAN, XSD_BYTE,
+	XsdError, XsdFromStr, XsdTyped, XSD_ANY_URI, XSD_BASE64_BINARY, XSD_BOOLEAN, XSD_BYTE,
 	XSD_DATE, XSD_DATE_TIME, XSD_DATE_TIME_STAMP, XSD_DAY_TIME_DURATION, XSD_DECIMAL, XSD_DOUBLE,
 	XSD_DURATION, XSD_FLOAT, XSD_G_DAY, XSD_G_MONTH, XSD_G_MONTH_DAY, XSD_G_YEAR, XSD_G_YEAR_MONTH,
 	XSD_HEX_BINARY, XSD_ID, XSD_IDREF, XSD_INT, XSD_INTEGER, XSD_LANGUAGE, XSD_LONG, XSD_NAME,
@@ -145,26 +145,26 @@ impl Datatype {
 		}
 	}
 	/// Parses `value` as a lexical representation of this specific datatype.
-	pub fn parse(&self, value: &str) -> Result<Value, ParseXsdError> {
+	pub fn parse(&self, value: &str) -> Result<Value, XsdError> {
 		match self {
-			Self::Boolean => ParseXsd::parse_xsd(value).map(Value::Boolean),
-			Self::Float => ParseXsd::parse_xsd(value).map(Value::Float),
-			Self::Double => ParseXsd::parse_xsd(value).map(Value::Double),
+			Self::Boolean => XsdFromStr::xsd_from_str(value).map(Value::Boolean),
+			Self::Float => XsdFromStr::xsd_from_str(value).map(Value::Float),
+			Self::Double => XsdFromStr::xsd_from_str(value).map(Value::Double),
 			Self::Decimal(t) => t.parse(value).map(Into::into),
 			Self::String(t) => t.parse(value).map(Into::into),
 			Self::Duration(t) => t.parse(value).map(Into::into),
 			Self::DateTime(t) => t.parse(value).map(Into::into),
-			Self::Time => ParseXsd::parse_xsd(value).map(Value::Time),
-			Self::Date => ParseXsd::parse_xsd(value).map(Value::Date),
-			Self::GYearMonth => ParseXsd::parse_xsd(value).map(Value::GYearMonth),
-			Self::GYear => ParseXsd::parse_xsd(value).map(Value::GYear),
-			Self::GMonthDay => ParseXsd::parse_xsd(value).map(Value::GMonthDay),
-			Self::GDay => ParseXsd::parse_xsd(value).map(Value::GDay),
-			Self::GMonth => ParseXsd::parse_xsd(value).map(Value::GMonth),
-			Self::Base64Binary => ParseXsd::parse_xsd(value).map(Value::Base64Binary),
-			Self::HexBinary => ParseXsd::parse_xsd(value).map(Value::HexBinary),
-			Self::AnyUri => ParseXsd::parse_xsd(value).map(Value::AnyUri),
-			Self::QName => ParseXsd::parse_xsd(value).map(Value::QName),
+			Self::Time => XsdFromStr::xsd_from_str(value).map(Value::Time),
+			Self::Date => XsdFromStr::xsd_from_str(value).map(Value::Date),
+			Self::GYearMonth => XsdFromStr::xsd_from_str(value).map(Value::GYearMonth),
+			Self::GYear => XsdFromStr::xsd_from_str(value).map(Value::GYear),
+			Self::GMonthDay => XsdFromStr::xsd_from_str(value).map(Value::GMonthDay),
+			Self::GDay => XsdFromStr::xsd_from_str(value).map(Value::GDay),
+			Self::GMonth => XsdFromStr::xsd_from_str(value).map(Value::GMonth),
+			Self::Base64Binary => XsdFromStr::xsd_from_str(value).map(Value::Base64Binary),
+			Self::HexBinary => XsdFromStr::xsd_from_str(value).map(Value::HexBinary),
+			Self::AnyUri => XsdFromStr::xsd_from_str(value).map(Value::AnyUri),
+			Self::QName => XsdFromStr::xsd_from_str(value).map(Value::QName),
 		}
 	}
 }
@@ -195,9 +195,9 @@ impl DecimalDatatype {
 		}
 	}
 	/// Parses `value` as a lexical representation of this specific datatype.
-	pub fn parse(&self, value: &str) -> Result<DecimalValue, ParseXsdError> {
+	pub fn parse(&self, value: &str) -> Result<DecimalValue, XsdError> {
 		match self {
-			Self::Decimal => ParseXsd::parse_xsd(value).map(DecimalValue::Decimal),
+			Self::Decimal => XsdFromStr::xsd_from_str(value).map(DecimalValue::Decimal),
 			Self::Integer(t) => t.parse(value).map(Into::into),
 		}
 	}
@@ -375,9 +375,9 @@ impl StringDatatype {
 		}
 	}
 	/// Parses `value` as a lexical representation of this specific datatype.
-	pub fn parse(&self, value: &str) -> Result<StringValue, ParseXsdError> {
+	pub fn parse(&self, value: &str) -> Result<StringValue, XsdError> {
 		match self {
-			Self::String => ParseXsd::parse_xsd(value).map(StringValue::String),
+			Self::String => XsdFromStr::xsd_from_str(value).map(StringValue::String),
 			Self::NormalizedString(t) => t.parse(value).map(Into::into),
 		}
 	}
@@ -477,12 +477,14 @@ impl DurationDatatype {
 		}
 	}
 	/// Parses `value` as a lexical representation of this specific datatype.
-	pub fn parse(&self, value: &str) -> Result<DurationValue, ParseXsdError> {
+	pub fn parse(&self, value: &str) -> Result<DurationValue, XsdError> {
 		match self {
-			Self::Duration => ParseXsd::parse_xsd(value).map(DurationValue::Duration),
-			Self::DayTimeDuration => ParseXsd::parse_xsd(value).map(DurationValue::DayTimeDuration),
+			Self::Duration => XsdFromStr::xsd_from_str(value).map(DurationValue::Duration),
+			Self::DayTimeDuration => {
+				XsdFromStr::xsd_from_str(value).map(DurationValue::DayTimeDuration)
+			}
 			Self::YearMonthDuration => {
-				ParseXsd::parse_xsd(value).map(DurationValue::YearMonthDuration)
+				XsdFromStr::xsd_from_str(value).map(DurationValue::YearMonthDuration)
 			}
 		}
 	}
@@ -514,10 +516,12 @@ impl DateTimeDatatype {
 		}
 	}
 	/// Parses `value` as a lexical representation of this specific datatype.
-	pub fn parse(&self, value: &str) -> Result<DateTimeValue, ParseXsdError> {
+	pub fn parse(&self, value: &str) -> Result<DateTimeValue, XsdError> {
 		match self {
-			Self::DateTime => ParseXsd::parse_xsd(value).map(DateTimeValue::DateTime),
-			Self::DateTimeStamp => ParseXsd::parse_xsd(value).map(DateTimeValue::DateTimeStamp),
+			Self::DateTime => XsdFromStr::xsd_from_str(value).map(DateTimeValue::DateTime),
+			Self::DateTimeStamp => {
+				XsdFromStr::xsd_from_str(value).map(DateTimeValue::DateTimeStamp)
+			}
 		}
 	}
 }
@@ -718,7 +722,7 @@ impl Value {
 		}
 	}
 }
-impl XsdValue for Value {
+impl XsdTyped for Value {
 	fn datatype(&self) -> Datatype {
 		self.datatype()
 	}
@@ -1112,7 +1116,7 @@ impl<'a> ValueRef<'a> {
 		}
 	}
 }
-impl<'a> XsdValue for ValueRef<'a> {
+impl<'a> XsdTyped for ValueRef<'a> {
 	fn datatype(&self) -> Datatype {
 		self.datatype()
 	}
@@ -1750,7 +1754,7 @@ impl DecimalValue {
 		}
 	}
 }
-impl XsdValue for DecimalValue {
+impl XsdTyped for DecimalValue {
 	fn datatype(&self) -> Datatype {
 		self.datatype().into()
 	}
@@ -2018,9 +2022,9 @@ impl IntegerDatatype {
 		}
 	}
 	/// Parses `value` as a lexical representation of this specific datatype.
-	pub fn parse(&self, value: &str) -> Result<IntegerValue, ParseXsdError> {
+	pub fn parse(&self, value: &str) -> Result<IntegerValue, XsdError> {
 		match self {
-			Self::Integer => ParseXsd::parse_xsd(value).map(IntegerValue::Integer),
+			Self::Integer => XsdFromStr::xsd_from_str(value).map(IntegerValue::Integer),
 			Self::NonPositiveInteger(t) => t.parse(value).map(Into::into),
 			Self::NonNegativeInteger(t) => t.parse(value).map(Into::into),
 			Self::Long(t) => t.parse(value).map(Into::into),
@@ -2272,7 +2276,7 @@ impl<'a> DecimalValueRef<'a> {
 		}
 	}
 }
-impl<'a> XsdValue for DecimalValueRef<'a> {
+impl<'a> XsdTyped for DecimalValueRef<'a> {
 	fn datatype(&self) -> Datatype {
 		self.datatype().into()
 	}
@@ -2461,7 +2465,7 @@ impl IntegerValue {
 		}
 	}
 }
-impl XsdValue for IntegerValue {
+impl XsdTyped for IntegerValue {
 	fn datatype(&self) -> Datatype {
 		self.datatype().into()
 	}
@@ -2530,13 +2534,13 @@ impl NonPositiveIntegerDatatype {
 		}
 	}
 	/// Parses `value` as a lexical representation of this specific datatype.
-	pub fn parse(&self, value: &str) -> Result<NonPositiveIntegerValue, ParseXsdError> {
+	pub fn parse(&self, value: &str) -> Result<NonPositiveIntegerValue, XsdError> {
 		match self {
 			Self::NonPositiveInteger => {
-				ParseXsd::parse_xsd(value).map(NonPositiveIntegerValue::NonPositiveInteger)
+				XsdFromStr::xsd_from_str(value).map(NonPositiveIntegerValue::NonPositiveInteger)
 			}
 			Self::NegativeInteger => {
-				ParseXsd::parse_xsd(value).map(NonPositiveIntegerValue::NegativeInteger)
+				XsdFromStr::xsd_from_str(value).map(NonPositiveIntegerValue::NegativeInteger)
 			}
 		}
 	}
@@ -2660,13 +2664,13 @@ impl NonNegativeIntegerDatatype {
 		}
 	}
 	/// Parses `value` as a lexical representation of this specific datatype.
-	pub fn parse(&self, value: &str) -> Result<NonNegativeIntegerValue, ParseXsdError> {
+	pub fn parse(&self, value: &str) -> Result<NonNegativeIntegerValue, XsdError> {
 		match self {
 			Self::NonNegativeInteger => {
-				ParseXsd::parse_xsd(value).map(NonNegativeIntegerValue::NonNegativeInteger)
+				XsdFromStr::xsd_from_str(value).map(NonNegativeIntegerValue::NonNegativeInteger)
 			}
 			Self::PositiveInteger => {
-				ParseXsd::parse_xsd(value).map(NonNegativeIntegerValue::PositiveInteger)
+				XsdFromStr::xsd_from_str(value).map(NonNegativeIntegerValue::PositiveInteger)
 			}
 			Self::UnsignedLong(t) => t.parse(value).map(Into::into),
 		}
@@ -2807,9 +2811,9 @@ impl LongDatatype {
 		}
 	}
 	/// Parses `value` as a lexical representation of this specific datatype.
-	pub fn parse(&self, value: &str) -> Result<LongValue, ParseXsdError> {
+	pub fn parse(&self, value: &str) -> Result<LongValue, XsdError> {
 		match self {
-			Self::Long => ParseXsd::parse_xsd(value).map(LongValue::Long),
+			Self::Long => XsdFromStr::xsd_from_str(value).map(LongValue::Long),
 			Self::Int(t) => t.parse(value).map(Into::into),
 		}
 	}
@@ -2956,7 +2960,7 @@ impl<'a> IntegerValueRef<'a> {
 		}
 	}
 }
-impl<'a> XsdValue for IntegerValueRef<'a> {
+impl<'a> XsdTyped for IntegerValueRef<'a> {
 	fn datatype(&self) -> Datatype {
 		self.datatype().into()
 	}
@@ -3045,7 +3049,7 @@ impl NonPositiveIntegerValue {
 		}
 	}
 }
-impl XsdValue for NonPositiveIntegerValue {
+impl XsdTyped for NonPositiveIntegerValue {
 	fn datatype(&self) -> Datatype {
 		self.datatype().into()
 	}
@@ -3097,7 +3101,7 @@ impl<'a> NonPositiveIntegerValueRef<'a> {
 		}
 	}
 }
-impl<'a> XsdValue for NonPositiveIntegerValueRef<'a> {
+impl<'a> XsdTyped for NonPositiveIntegerValueRef<'a> {
 	fn datatype(&self) -> Datatype {
 		self.datatype().into()
 	}
@@ -3151,7 +3155,7 @@ impl NonNegativeIntegerValue {
 		}
 	}
 }
-impl XsdValue for NonNegativeIntegerValue {
+impl XsdTyped for NonNegativeIntegerValue {
 	fn datatype(&self) -> Datatype {
 		self.datatype().into()
 	}
@@ -3255,9 +3259,11 @@ impl UnsignedLongDatatype {
 		}
 	}
 	/// Parses `value` as a lexical representation of this specific datatype.
-	pub fn parse(&self, value: &str) -> Result<UnsignedLongValue, ParseXsdError> {
+	pub fn parse(&self, value: &str) -> Result<UnsignedLongValue, XsdError> {
 		match self {
-			Self::UnsignedLong => ParseXsd::parse_xsd(value).map(UnsignedLongValue::UnsignedLong),
+			Self::UnsignedLong => {
+				XsdFromStr::xsd_from_str(value).map(UnsignedLongValue::UnsignedLong)
+			}
 			Self::UnsignedInt(t) => t.parse(value).map(Into::into),
 		}
 	}
@@ -3363,7 +3369,7 @@ impl<'a> NonNegativeIntegerValueRef<'a> {
 		}
 	}
 }
-impl<'a> XsdValue for NonNegativeIntegerValueRef<'a> {
+impl<'a> XsdTyped for NonNegativeIntegerValueRef<'a> {
 	fn datatype(&self) -> Datatype {
 		self.datatype().into()
 	}
@@ -3409,7 +3415,7 @@ impl UnsignedLongValue {
 		}
 	}
 }
-impl XsdValue for UnsignedLongValue {
+impl XsdTyped for UnsignedLongValue {
 	fn datatype(&self) -> Datatype {
 		self.datatype().into()
 	}
@@ -3489,9 +3495,9 @@ impl UnsignedIntDatatype {
 		}
 	}
 	/// Parses `value` as a lexical representation of this specific datatype.
-	pub fn parse(&self, value: &str) -> Result<UnsignedIntValue, ParseXsdError> {
+	pub fn parse(&self, value: &str) -> Result<UnsignedIntValue, XsdError> {
 		match self {
-			Self::UnsignedInt => ParseXsd::parse_xsd(value).map(UnsignedIntValue::UnsignedInt),
+			Self::UnsignedInt => XsdFromStr::xsd_from_str(value).map(UnsignedIntValue::UnsignedInt),
 			Self::UnsignedShort(t) => t.parse(value).map(Into::into),
 		}
 	}
@@ -3534,7 +3540,7 @@ impl UnsignedIntValue {
 		}
 	}
 }
-impl XsdValue for UnsignedIntValue {
+impl XsdTyped for UnsignedIntValue {
 	fn datatype(&self) -> Datatype {
 		self.datatype().into()
 	}
@@ -3593,12 +3599,14 @@ impl UnsignedShortDatatype {
 		}
 	}
 	/// Parses `value` as a lexical representation of this specific datatype.
-	pub fn parse(&self, value: &str) -> Result<UnsignedShortValue, ParseXsdError> {
+	pub fn parse(&self, value: &str) -> Result<UnsignedShortValue, XsdError> {
 		match self {
 			Self::UnsignedShort => {
-				ParseXsd::parse_xsd(value).map(UnsignedShortValue::UnsignedShort)
+				XsdFromStr::xsd_from_str(value).map(UnsignedShortValue::UnsignedShort)
 			}
-			Self::UnsignedByte => ParseXsd::parse_xsd(value).map(UnsignedShortValue::UnsignedByte),
+			Self::UnsignedByte => {
+				XsdFromStr::xsd_from_str(value).map(UnsignedShortValue::UnsignedByte)
+			}
 		}
 	}
 }
@@ -3619,7 +3627,7 @@ impl UnsignedShortValue {
 		}
 	}
 }
-impl XsdValue for UnsignedShortValue {
+impl XsdTyped for UnsignedShortValue {
 	fn datatype(&self) -> Datatype {
 		self.datatype().into()
 	}
@@ -3655,7 +3663,7 @@ impl LongValue {
 		}
 	}
 }
-impl XsdValue for LongValue {
+impl XsdTyped for LongValue {
 	fn datatype(&self) -> Datatype {
 		self.datatype().into()
 	}
@@ -3735,9 +3743,9 @@ impl IntDatatype {
 		}
 	}
 	/// Parses `value` as a lexical representation of this specific datatype.
-	pub fn parse(&self, value: &str) -> Result<IntValue, ParseXsdError> {
+	pub fn parse(&self, value: &str) -> Result<IntValue, XsdError> {
 		match self {
-			Self::Int => ParseXsd::parse_xsd(value).map(IntValue::Int),
+			Self::Int => XsdFromStr::xsd_from_str(value).map(IntValue::Int),
 			Self::Short(t) => t.parse(value).map(Into::into),
 		}
 	}
@@ -3776,7 +3784,7 @@ impl IntValue {
 		}
 	}
 }
-impl XsdValue for IntValue {
+impl XsdTyped for IntValue {
 	fn datatype(&self) -> Datatype {
 		self.datatype().into()
 	}
@@ -3835,10 +3843,10 @@ impl ShortDatatype {
 		}
 	}
 	/// Parses `value` as a lexical representation of this specific datatype.
-	pub fn parse(&self, value: &str) -> Result<ShortValue, ParseXsdError> {
+	pub fn parse(&self, value: &str) -> Result<ShortValue, XsdError> {
 		match self {
-			Self::Short => ParseXsd::parse_xsd(value).map(ShortValue::Short),
-			Self::Byte => ParseXsd::parse_xsd(value).map(ShortValue::Byte),
+			Self::Short => XsdFromStr::xsd_from_str(value).map(ShortValue::Short),
+			Self::Byte => XsdFromStr::xsd_from_str(value).map(ShortValue::Byte),
 		}
 	}
 }
@@ -3859,7 +3867,7 @@ impl ShortValue {
 		}
 	}
 }
-impl XsdValue for ShortValue {
+impl XsdTyped for ShortValue {
 	fn datatype(&self) -> Datatype {
 		self.datatype().into()
 	}
@@ -4272,7 +4280,7 @@ impl StringValue {
 		}
 	}
 }
-impl XsdValue for StringValue {
+impl XsdTyped for StringValue {
 	fn datatype(&self) -> Datatype {
 		self.datatype().into()
 	}
@@ -4419,10 +4427,10 @@ impl NormalizedStringDatatype {
 		}
 	}
 	/// Parses `value` as a lexical representation of this specific datatype.
-	pub fn parse(&self, value: &str) -> Result<NormalizedStringValue, ParseXsdError> {
+	pub fn parse(&self, value: &str) -> Result<NormalizedStringValue, XsdError> {
 		match self {
 			Self::NormalizedString => {
-				ParseXsd::parse_xsd(value).map(NormalizedStringValue::NormalizedString)
+				XsdFromStr::xsd_from_str(value).map(NormalizedStringValue::NormalizedString)
 			}
 			Self::Token(t) => t.parse(value).map(Into::into),
 		}
@@ -4556,7 +4564,7 @@ impl<'a> StringValueRef<'a> {
 		}
 	}
 }
-impl<'a> XsdValue for StringValueRef<'a> {
+impl<'a> XsdTyped for StringValueRef<'a> {
 	fn datatype(&self) -> Datatype {
 		self.datatype().into()
 	}
@@ -4719,7 +4727,7 @@ impl NormalizedStringValue {
 		}
 	}
 }
-impl XsdValue for NormalizedStringValue {
+impl XsdTyped for NormalizedStringValue {
 	fn datatype(&self) -> Datatype {
 		self.datatype().into()
 	}
@@ -4847,12 +4855,12 @@ impl TokenDatatype {
 		}
 	}
 	/// Parses `value` as a lexical representation of this specific datatype.
-	pub fn parse(&self, value: &str) -> Result<TokenValue, ParseXsdError> {
+	pub fn parse(&self, value: &str) -> Result<TokenValue, XsdError> {
 		match self {
-			Self::Token => ParseXsd::parse_xsd(value).map(TokenValue::Token),
-			Self::Language => ParseXsd::parse_xsd(value).map(TokenValue::Language),
+			Self::Token => XsdFromStr::xsd_from_str(value).map(TokenValue::Token),
+			Self::Language => XsdFromStr::xsd_from_str(value).map(TokenValue::Language),
 			Self::Name(t) => t.parse(value).map(Into::into),
-			Self::NMToken => ParseXsd::parse_xsd(value).map(TokenValue::NMToken),
+			Self::NMToken => XsdFromStr::xsd_from_str(value).map(TokenValue::NMToken),
 		}
 	}
 }
@@ -4957,7 +4965,7 @@ impl<'a> NormalizedStringValueRef<'a> {
 		}
 	}
 }
-impl<'a> XsdValue for NormalizedStringValueRef<'a> {
+impl<'a> XsdTyped for NormalizedStringValueRef<'a> {
 	fn datatype(&self) -> Datatype {
 		self.datatype().into()
 	}
@@ -5078,7 +5086,7 @@ impl TokenValue {
 		}
 	}
 }
-impl XsdValue for TokenValue {
+impl XsdTyped for TokenValue {
 	fn datatype(&self) -> Datatype {
 		self.datatype().into()
 	}
@@ -5165,9 +5173,9 @@ impl NameDatatype {
 		}
 	}
 	/// Parses `value` as a lexical representation of this specific datatype.
-	pub fn parse(&self, value: &str) -> Result<NameValue, ParseXsdError> {
+	pub fn parse(&self, value: &str) -> Result<NameValue, XsdError> {
 		match self {
-			Self::Name => ParseXsd::parse_xsd(value).map(NameValue::Name),
+			Self::Name => XsdFromStr::xsd_from_str(value).map(NameValue::Name),
 			Self::NCName(t) => t.parse(value).map(Into::into),
 		}
 	}
@@ -5244,7 +5252,7 @@ impl<'a> TokenValueRef<'a> {
 		}
 	}
 }
-impl<'a> XsdValue for TokenValueRef<'a> {
+impl<'a> XsdTyped for TokenValueRef<'a> {
 	fn datatype(&self) -> Datatype {
 		self.datatype().into()
 	}
@@ -5327,7 +5335,7 @@ impl NameValue {
 		}
 	}
 }
-impl XsdValue for NameValue {
+impl XsdTyped for NameValue {
 	fn datatype(&self) -> Datatype {
 		self.datatype().into()
 	}
@@ -5395,11 +5403,11 @@ impl NCNameDatatype {
 		}
 	}
 	/// Parses `value` as a lexical representation of this specific datatype.
-	pub fn parse(&self, value: &str) -> Result<NCNameValue, ParseXsdError> {
+	pub fn parse(&self, value: &str) -> Result<NCNameValue, XsdError> {
 		match self {
-			Self::NCName => ParseXsd::parse_xsd(value).map(NCNameValue::NCName),
-			Self::Id => ParseXsd::parse_xsd(value).map(NCNameValue::Id),
-			Self::IdRef => ParseXsd::parse_xsd(value).map(NCNameValue::IdRef),
+			Self::NCName => XsdFromStr::xsd_from_str(value).map(NCNameValue::NCName),
+			Self::Id => XsdFromStr::xsd_from_str(value).map(NCNameValue::Id),
+			Self::IdRef => XsdFromStr::xsd_from_str(value).map(NCNameValue::IdRef),
 		}
 	}
 }
@@ -5446,7 +5454,7 @@ impl<'a> NameValueRef<'a> {
 		}
 	}
 }
-impl<'a> XsdValue for NameValueRef<'a> {
+impl<'a> XsdTyped for NameValueRef<'a> {
 	fn datatype(&self) -> Datatype {
 		self.datatype().into()
 	}
@@ -5501,7 +5509,7 @@ impl NCNameValue {
 		}
 	}
 }
-impl XsdValue for NCNameValue {
+impl XsdTyped for NCNameValue {
 	fn datatype(&self) -> Datatype {
 		self.datatype().into()
 	}
@@ -5553,7 +5561,7 @@ impl<'a> NCNameValueRef<'a> {
 		}
 	}
 }
-impl<'a> XsdValue for NCNameValueRef<'a> {
+impl<'a> XsdTyped for NCNameValueRef<'a> {
 	fn datatype(&self) -> Datatype {
 		self.datatype().into()
 	}
@@ -5621,7 +5629,7 @@ impl DurationValue {
 		}
 	}
 }
-impl XsdValue for DurationValue {
+impl XsdTyped for DurationValue {
 	fn datatype(&self) -> Datatype {
 		self.datatype().into()
 	}
@@ -5684,7 +5692,7 @@ impl DateTimeValue {
 		}
 	}
 }
-impl XsdValue for DateTimeValue {
+impl XsdTyped for DateTimeValue {
 	fn datatype(&self) -> Datatype {
 		self.datatype().into()
 	}

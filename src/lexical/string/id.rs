@@ -1,7 +1,7 @@
 use static_automata::Validate;
 use str_newtype::StrNewType;
 
-use crate::lexical::{Lexical, LexicalFormOf};
+use crate::{lexical::XsdLexicalForm, XsdError};
 
 /// ID.
 ///
@@ -24,18 +24,20 @@ use crate::lexical::{Lexical, LexicalFormOf};
 #[cfg_attr(feature = "serde", newtype(serde))]
 pub struct Id(str);
 
-impl Lexical for Id {
-	type Error = InvalidId<String>;
+impl XsdLexicalForm for Id {
+	type Value = IdBuf;
+}
 
-	fn parse(value: &str) -> Result<&Self, Self::Error> {
-		Self::new(value).map_err(|_| InvalidId(value.to_owned()))
+impl<'a> crate::XsdFromStr<'a> for &'a Id {
+	fn xsd_from_str(value: &'a str) -> Result<Self, XsdError> {
+		Id::new(value).map_err(|_| XsdError::lexical_form(InvalidId(value)))
 	}
 }
 
-impl LexicalFormOf<IdBuf> for Id {
-	type ValueError = InvalidId<String>;
+impl<'a> TryFrom<&'a Id> for IdBuf {
+	type Error = InvalidId<String>;
 
-	fn try_as_value(&self) -> Result<IdBuf, Self::ValueError> {
-		self.as_str().parse()
+	fn try_from(value: &'a Id) -> Result<IdBuf, Self::Error> {
+		value.as_str().parse()
 	}
 }

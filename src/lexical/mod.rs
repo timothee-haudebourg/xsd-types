@@ -1,5 +1,4 @@
 //! Lexical domain types.
-use std::error::Error;
 
 use static_automata::grammar;
 
@@ -76,34 +75,9 @@ pub use string::*;
 pub use time::{InvalidTime, Time, TimeBuf};
 
 /// Lexical type.
-pub trait Lexical {
-	type Error: Error;
-
-	fn parse(value: &str) -> Result<&Self, Self::Error>;
-}
-
-impl Lexical for str {
-	type Error = std::convert::Infallible;
-
-	fn parse(value: &str) -> Result<&Self, Self::Error> {
-		Ok(value)
-	}
-}
-
-pub trait LexicalFormOf<V>: Lexical {
-	type ValueError: Error;
-
-	fn try_as_value(&self) -> Result<V, Self::ValueError>;
-
-	fn as_value(&self) -> V
-	where
-		Self: LexicalFormOf<V, ValueError = std::convert::Infallible>,
-	{
-		unsafe {
-			// SAFETY: the error type is not constructible.
-			self.try_as_value().unwrap_unchecked()
-		}
-	}
+pub trait XsdLexicalForm: ToOwned<Owned: TryFrom<String, Error: ToString>> {
+	/// XSD value domain.
+	type Value: ?Sized + XsdValue;
 }
 
 macro_rules! lexical_form {
@@ -180,3 +154,5 @@ macro_rules! lexical_form {
 }
 
 pub(crate) use lexical_form;
+
+use crate::XsdValue;

@@ -1,4 +1,5 @@
-use crate::lexical::{lexical_form, Lexical};
+use crate::lexical::{lexical_form, XsdLexicalForm};
+use crate::XsdError;
 
 use super::{Decimal, DecimalBuf, Overflow, Sign};
 use static_automata::Validate;
@@ -29,11 +30,13 @@ pub use non_positive_integer::*;
 #[newtype(owned(IntegerBuf, derive(PartialEq, Eq)))]
 pub struct Integer(str);
 
-impl Lexical for Integer {
-	type Error = InvalidInteger<String>;
+impl XsdLexicalForm for Integer {
+	type Value = crate::Integer;
+}
 
-	fn parse(value: &str) -> Result<&Self, Self::Error> {
-		Self::new(value).map_err(|_| InvalidInteger(value.to_owned()))
+impl<'a> crate::XsdFromStr<'a> for &'a Integer {
+	fn xsd_from_str(value: &'a str) -> Result<Self, XsdError> {
+		Integer::new(value).map_err(|_| XsdError::lexical_form(InvalidInteger(value)))
 	}
 }
 
@@ -66,16 +69,7 @@ impl Integer {
 	/// Returns `true` if `self` is negative
 	/// and `false` is the number is zero or positive.
 	pub fn is_negative(&self) -> bool {
-		let mut sign_negative = true;
-		for c in self.0.as_bytes() {
-			match c {
-				b'-' | b'0' => (),
-				b'+' => sign_negative = false,
-				_ => return sign_negative,
-			}
-		}
-
-		false
+		self.sign().is_negative()
 	}
 
 	/// Returns `true` if `self` is zero
@@ -285,6 +279,22 @@ number_conversion! {
 #[cfg(test)]
 mod tests {
 	use super::*;
+
+	#[test]
+	fn sign_predicates() {
+		for (input, negative, positive, zero) in [
+			("42", false, true, false),
+			("+42", false, true, false),
+			("-42", true, false, false),
+			("0", false, false, true),
+			("-0", false, false, true),
+		] {
+			let i = Integer::new(input).unwrap();
+			assert_eq!(i.is_negative(), negative, "is_negative({input})");
+			assert_eq!(i.is_positive(), positive, "is_positive({input})");
+			assert_eq!(i.is_zero(), zero, "is_zero({input})");
+		}
+	}
 
 	#[test]
 	fn parse_01() {

@@ -1,7 +1,7 @@
 use static_automata::Validate;
 use str_newtype::StrNewType;
 
-use crate::lexical::{Lexical, LexicalFormOf};
+use crate::{lexical::XsdLexicalForm, XsdError};
 
 /// NMTOKEN.
 ///
@@ -24,18 +24,20 @@ use crate::lexical::{Lexical, LexicalFormOf};
 #[cfg_attr(feature = "serde", newtype(serde))]
 pub struct NMToken(str);
 
-impl Lexical for NMToken {
-	type Error = InvalidNMToken<String>;
+impl XsdLexicalForm for NMToken {
+	type Value = NMTokenBuf;
+}
 
-	fn parse(value: &str) -> Result<&Self, Self::Error> {
-		Self::new(value).map_err(|_| InvalidNMToken(value.to_owned()))
+impl<'a> crate::XsdFromStr<'a> for &'a NMToken {
+	fn xsd_from_str(value: &'a str) -> Result<Self, XsdError> {
+		NMToken::new(value).map_err(|_| XsdError::lexical_form(InvalidNMToken(value)))
 	}
 }
 
-impl LexicalFormOf<NMTokenBuf> for NMToken {
-	type ValueError = InvalidNMToken<String>;
+impl<'a> TryFrom<&'a NMToken> for NMTokenBuf {
+	type Error = InvalidNMToken<String>;
 
-	fn try_as_value(&self) -> Result<NMTokenBuf, Self::ValueError> {
-		self.as_str().parse()
+	fn try_from(value: &'a NMToken) -> Result<NMTokenBuf, Self::Error> {
+		value.as_str().parse()
 	}
 }

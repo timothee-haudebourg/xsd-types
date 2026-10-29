@@ -1,9 +1,9 @@
 use static_automata::Validate;
 use str_newtype::StrNewType;
 
-use crate::{utils::byte_index_of, InvalidDateTimeStampValue};
+use crate::{utils::byte_index_of, InvalidDateTimeStampValue, XsdError};
 
-use super::{Lexical, LexicalFormOf};
+use super::{parse_timezone, XsdLexicalForm};
 
 /// Date and time with required timezone offset.
 ///
@@ -43,19 +43,21 @@ impl DateTimeStamp {
 	}
 }
 
-impl Lexical for DateTimeStamp {
-	type Error = InvalidDateTimeStamp<String>;
+impl XsdLexicalForm for DateTimeStamp {
+	type Value = crate::DateTimeStamp;
+}
 
-	fn parse(value: &str) -> Result<&Self, Self::Error> {
-		Self::new(value).map_err(|_| InvalidDateTimeStamp(value.to_owned()))
+impl<'a> crate::XsdFromStr<'a> for &'a DateTimeStamp {
+	fn xsd_from_str(value: &'a str) -> Result<Self, XsdError> {
+		DateTimeStamp::new(value).map_err(|_| XsdError::lexical_form(InvalidDateTimeStamp(value)))
 	}
 }
 
-impl LexicalFormOf<crate::DateTimeStamp> for DateTimeStamp {
-	type ValueError = InvalidDateTimeStampValue;
+impl<'a> TryFrom<&'a DateTimeStamp> for crate::DateTimeStamp {
+	type Error = InvalidDateTimeStampValue;
 
-	fn try_as_value(&self) -> Result<crate::DateTimeStamp, Self::ValueError> {
-		self.parts().to_datetime()
+	fn try_from(value: &'a DateTimeStamp) -> Result<crate::DateTimeStamp, Self::Error> {
+		value.parts().to_datetime()
 	}
 }
 
@@ -114,8 +116,9 @@ impl<'a> Parts<'a> {
 
 		let datetime = time::PrimitiveDateTime::new(date, time);
 
-		crate::DateTimeStamp::new(datetime, parse_timezone(self.timezone))
-			.ok_or(crate::InvalidDateTimeStampValue)
+		let offset = parse_timezone(self.timezone).ok_or(crate::InvalidDateTimeStampValue)?;
+
+		crate::DateTimeStamp::new(datetime, offset).ok_or(crate::InvalidDateTimeStampValue)
 	}
 }
 
@@ -131,23 +134,6 @@ pub(crate) fn parse_seconds_decimal(decimal: &str) -> (u32, u32) {
 			(seconds, nano_seconds)
 		}
 		None => (decimal.parse().unwrap(), 0),
-	}
-}
-
-pub(crate) fn parse_timezone(tz: &str) -> time::UtcOffset {
-	const HOUR: i32 = 3600;
-	const MINUTE: i32 = 60;
-
-	match tz {
-		"Z" => time::UtcOffset::UTC,
-		"14:00" => time::UtcOffset::from_whole_seconds(14 * HOUR).unwrap(),
-		n => {
-			let (h, m) = n.split_once(':').unwrap();
-			time::UtcOffset::from_whole_seconds(
-				h.parse::<i32>().unwrap() * HOUR + m.parse::<i32>().unwrap() * MINUTE,
-			)
-			.unwrap()
-		}
 	}
 }
 
@@ -176,7 +162,7 @@ mod tests {
 			let lexical_repr = DateTimeStamp::new(input).unwrap();
 			assert_eq!(lexical_repr.parts(), parts);
 
-			let value = lexical_repr.try_as_value().unwrap();
+			let value = crate::DateTimeStamp::try_from(lexical_repr).unwrap();
 			assert_eq!(value.to_string().as_str(), input)
 		}
 	}
@@ -201,7 +187,7 @@ mod tests {
 			let lexical_repr = DateTimeStamp::new(input).unwrap();
 			assert_eq!(lexical_repr.parts(), parts);
 
-			let value = lexical_repr.try_as_value().unwrap();
+			let value = crate::DateTimeStamp::try_from(lexical_repr).unwrap();
 			assert_eq!(value.to_string().as_str(), input)
 		}
 	}
