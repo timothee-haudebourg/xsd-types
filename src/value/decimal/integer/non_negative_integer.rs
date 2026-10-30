@@ -9,8 +9,8 @@ use num_bigint::{BigInt, TryFromBigIntError};
 use num_traits::{Signed, Zero};
 
 use crate::{
-	Datatype, NonNegativeIntegerDatatype, UnsignedIntDatatype, UnsignedLongDatatype,
-	UnsignedShortDatatype, XsdFromStr, XsdInteger, XsdTyped, XsdValueDomain,
+	XsdDatatype, XsdFromStr, XsdInteger, XsdNonNegativeIntegerDatatype, XsdTyped,
+	XsdUnsignedIntDatatype, XsdUnsignedLongDatatype, XsdUnsignedShortDatatype, XsdValueDomain,
 	impl_integer_arithmetic, lexical,
 	value::decimal::{U8_MAX, U16_MAX, U32_MAX, U64_MAX},
 };
@@ -103,17 +103,17 @@ impl XsdNonNegativeInteger {
 	/// Returns the most specific XSD non-negative-integer-derived datatype
 	/// that can represent this value (e.g. `unsignedByte`, `unsignedInt`,
 	/// `positiveInteger`, ...).
-	pub fn non_negative_integer_type(&self) -> NonNegativeIntegerDatatype {
+	pub fn non_negative_integer_type(&self) -> XsdNonNegativeIntegerDatatype {
 		if self.0 <= *U8_MAX {
-			UnsignedShortDatatype::UnsignedByte.into()
+			XsdUnsignedShortDatatype::UnsignedByte.into()
 		} else if self.0 <= *U16_MAX {
-			UnsignedShortDatatype::UnsignedShort.into()
+			XsdUnsignedShortDatatype::UnsignedShort.into()
 		} else if self.0 <= *U32_MAX {
-			UnsignedIntDatatype::UnsignedInt.into()
+			XsdUnsignedIntDatatype::UnsignedInt.into()
 		} else if self.0 <= *U64_MAX {
-			UnsignedLongDatatype::UnsignedLong.into()
+			XsdUnsignedLongDatatype::UnsignedLong.into()
 		} else {
-			NonNegativeIntegerDatatype::PositiveInteger
+			XsdNonNegativeIntegerDatatype::PositiveInteger
 		}
 	}
 
@@ -143,7 +143,7 @@ impl XsdNonNegativeInteger {
 }
 
 impl XsdTyped for XsdNonNegativeInteger {
-	fn datatype(&self) -> Datatype {
+	fn datatype(&self) -> XsdDatatype {
 		self.non_negative_integer_type().into()
 	}
 }
@@ -327,25 +327,25 @@ impl_integer_arithmetic!(
 pub type XsdUnsignedLong = u64;
 
 pub trait XsdUnsignedLongSubtype {
-	fn unsigned_long_type(&self) -> UnsignedLongDatatype;
+	fn unsigned_long_type(&self) -> XsdUnsignedLongDatatype;
 }
 
 impl XsdUnsignedLongSubtype for XsdUnsignedLong {
-	fn unsigned_long_type(&self) -> UnsignedLongDatatype {
+	fn unsigned_long_type(&self) -> XsdUnsignedLongDatatype {
 		if *self <= u8::MAX as u64 {
-			UnsignedShortDatatype::UnsignedByte.into()
+			XsdUnsignedShortDatatype::UnsignedByte.into()
 		} else if *self <= u16::MAX as u64 {
-			UnsignedShortDatatype::UnsignedShort.into()
+			XsdUnsignedShortDatatype::UnsignedShort.into()
 		} else if *self <= u32::MAX as u64 {
-			UnsignedIntDatatype::UnsignedInt.into()
+			XsdUnsignedIntDatatype::UnsignedInt.into()
 		} else {
-			UnsignedLongDatatype::UnsignedLong
+			XsdUnsignedLongDatatype::UnsignedLong
 		}
 	}
 }
 
 impl XsdTyped for XsdUnsignedLong {
-	fn datatype(&self) -> Datatype {
+	fn datatype(&self) -> XsdDatatype {
 		self.unsigned_long_type().into()
 	}
 }
@@ -367,23 +367,23 @@ impl<'a> XsdFromStr<'a> for XsdUnsignedLong {
 pub type XsdUnsignedInt = u32;
 
 pub trait XsdUnsignedIntSubtype {
-	fn unsigned_int_type(&self) -> UnsignedIntDatatype;
+	fn unsigned_int_type(&self) -> XsdUnsignedIntDatatype;
 }
 
 impl XsdUnsignedIntSubtype for XsdUnsignedInt {
-	fn unsigned_int_type(&self) -> UnsignedIntDatatype {
+	fn unsigned_int_type(&self) -> XsdUnsignedIntDatatype {
 		if *self <= u8::MAX as u32 {
-			UnsignedShortDatatype::UnsignedByte.into()
+			XsdUnsignedShortDatatype::UnsignedByte.into()
 		} else if *self <= u16::MAX as u32 {
-			UnsignedShortDatatype::UnsignedShort.into()
+			XsdUnsignedShortDatatype::UnsignedShort.into()
 		} else {
-			UnsignedIntDatatype::UnsignedInt
+			XsdUnsignedIntDatatype::UnsignedInt
 		}
 	}
 }
 
 impl XsdTyped for XsdUnsignedInt {
-	fn datatype(&self) -> Datatype {
+	fn datatype(&self) -> XsdDatatype {
 		self.unsigned_int_type().into()
 	}
 }
@@ -405,21 +405,21 @@ impl<'a> XsdFromStr<'a> for XsdUnsignedInt {
 pub type XsdUnsignedShort = u16;
 
 pub trait XsdUnsignedShortSubtype {
-	fn unsigned_short_type(&self) -> UnsignedShortDatatype;
+	fn unsigned_short_type(&self) -> XsdUnsignedShortDatatype;
 }
 
 impl XsdUnsignedShortSubtype for XsdUnsignedShort {
-	fn unsigned_short_type(&self) -> UnsignedShortDatatype {
+	fn unsigned_short_type(&self) -> XsdUnsignedShortDatatype {
 		if *self <= u8::MAX as u16 {
-			UnsignedShortDatatype::UnsignedByte
+			XsdUnsignedShortDatatype::UnsignedByte
 		} else {
-			UnsignedShortDatatype::UnsignedShort
+			XsdUnsignedShortDatatype::UnsignedShort
 		}
 	}
 }
 
 impl XsdTyped for XsdUnsignedShort {
-	fn datatype(&self) -> Datatype {
+	fn datatype(&self) -> XsdDatatype {
 		self.unsigned_short_type().into()
 	}
 }
@@ -441,8 +441,8 @@ impl<'a> XsdFromStr<'a> for XsdUnsignedShort {
 pub type XsdUnsignedByte = u8;
 
 impl XsdTyped for XsdUnsignedByte {
-	fn datatype(&self) -> Datatype {
-		UnsignedShortDatatype::UnsignedByte.into()
+	fn datatype(&self) -> XsdDatatype {
+		XsdUnsignedShortDatatype::UnsignedByte.into()
 	}
 }
 
@@ -549,8 +549,8 @@ impl XsdPositiveInteger {
 }
 
 impl XsdTyped for XsdPositiveInteger {
-	fn datatype(&self) -> Datatype {
-		NonNegativeIntegerDatatype::PositiveInteger.into()
+	fn datatype(&self) -> XsdDatatype {
+		XsdNonNegativeIntegerDatatype::PositiveInteger.into()
 	}
 }
 
@@ -662,12 +662,12 @@ mod tests {
 	fn zero_is_unsigned_byte() {
 		assert_eq!(
 			XsdNonNegativeInteger::zero().non_negative_integer_type(),
-			UnsignedShortDatatype::UnsignedByte.into()
+			XsdUnsignedShortDatatype::UnsignedByte.into()
 		);
 
 		assert_eq!(
 			XsdInteger::zero().integer_type(),
-			UnsignedShortDatatype::UnsignedByte.into()
+			XsdUnsignedShortDatatype::UnsignedByte.into()
 		);
 	}
 

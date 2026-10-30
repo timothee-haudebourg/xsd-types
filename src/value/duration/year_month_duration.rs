@@ -1,5 +1,5 @@
 use crate::{
-	Datatype, DurationDatatype, XsdFromStr, XsdTyped, XsdValueDomain,
+	XsdDatatype, XsdDurationDatatype, XsdFromStr, XsdTyped, XsdValueDomain,
 	lexical::duration::InvalidXsdYearMonthDurationStr,
 };
 use core::fmt;
@@ -71,8 +71,8 @@ impl Ord for XsdYearMonthDuration {
 }
 
 impl XsdTyped for XsdYearMonthDuration {
-	fn datatype(&self) -> Datatype {
-		Datatype::Duration(DurationDatatype::YearMonthDuration)
+	fn datatype(&self) -> XsdDatatype {
+		XsdDatatype::Duration(XsdDurationDatatype::YearMonthDuration)
 	}
 }
 

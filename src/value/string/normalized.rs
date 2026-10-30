@@ -186,8 +186,8 @@ impl<'a> crate::XsdFromStr<'a> for XsdNormalizedString {
 }
 
 impl crate::XsdTyped for XsdNormalizedString {
-	fn datatype(&self) -> crate::Datatype {
-		crate::NormalizedStringDatatype::NormalizedString.into()
+	fn datatype(&self) -> crate::XsdDatatype {
+		crate::XsdNormalizedStringDatatype::NormalizedString.into()
 	}
 }
 

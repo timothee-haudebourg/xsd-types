@@ -1,5 +1,5 @@
 use crate::{
-	Datatype, XsdFromStr, XsdTyped, XsdValueDomain, format_nanoseconds, format_timezone,
+	XsdDatatype, XsdFromStr, XsdTyped, XsdValueDomain, format_nanoseconds, format_timezone,
 	is_valid_offset, lexical::InvalidXsdTimeStr, seven_property_model_date_time,
 	seven_property_model_eq, seven_property_model_partial_cmp,
 };
@@ -91,8 +91,8 @@ impl PartialOrd for XsdTime {
 }
 
 impl XsdTyped for XsdTime {
-	fn datatype(&self) -> Datatype {
-		Datatype::Time
+	fn datatype(&self) -> XsdDatatype {
+		XsdDatatype::Time
 	}
 }
 

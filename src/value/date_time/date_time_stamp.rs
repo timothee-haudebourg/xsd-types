@@ -1,7 +1,7 @@
 use std::{cmp::Ordering, fmt, hash::Hash, str::FromStr};
 
 use crate::{
-	Datatype, DateTimeDatatype, DisplayYear, XsdFromStr, XsdTyped, XsdValueDomain,
+	DisplayYear, XsdDatatype, XsdDateTimeDatatype, XsdFromStr, XsdTyped, XsdValueDomain,
 	format_nanoseconds, format_timezone, lexical::date_time::InvalidXsdDateTimeStampStr,
 };
 
@@ -163,8 +163,8 @@ impl Ord for XsdDateTimeStamp {
 }
 
 impl XsdTyped for XsdDateTimeStamp {
-	fn datatype(&self) -> Datatype {
-		Datatype::DateTime(DateTimeDatatype::DateTimeStamp)
+	fn datatype(&self) -> XsdDatatype {
+		XsdDatatype::DateTime(XsdDateTimeDatatype::DateTimeStamp)
 	}
 }
 

@@ -7,8 +7,8 @@ impl<'a> crate::XsdFromStr<'a> for XsdIdRefBuf {
 }
 
 impl crate::XsdTyped for XsdIdRefBuf {
-	fn datatype(&self) -> crate::Datatype {
-		crate::NCNameDatatype::IdRef.into()
+	fn datatype(&self) -> crate::XsdDatatype {
+		crate::XsdNCNameDatatype::IdRef.into()
 	}
 }
 

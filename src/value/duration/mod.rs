@@ -1,5 +1,5 @@
 use crate::{
-	Datatype, DurationDatatype, XsdFromStr, XsdTyped, XsdValueDomain, format_nanoseconds,
+	XsdDatatype, XsdDurationDatatype, XsdFromStr, XsdTyped, XsdValueDomain, format_nanoseconds,
 	lexical::InvalidXsdDurationStr,
 };
 use core::fmt;
@@ -185,8 +185,8 @@ impl PartialOrd for XsdDuration {
 }
 
 impl XsdTyped for XsdDuration {
-	fn datatype(&self) -> Datatype {
-		Datatype::Duration(DurationDatatype::Duration)
+	fn datatype(&self) -> XsdDatatype {
+		XsdDatatype::Duration(XsdDurationDatatype::Duration)
 	}
 }
 

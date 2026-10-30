@@ -1,6 +1,6 @@
 use core::{fmt, str::FromStr};
 
-use crate::{Datatype, XsdFromStr, XsdTyped, XsdValueDomain, lexical};
+use crate::{XsdDatatype, XsdFromStr, XsdTyped, XsdValueDomain, lexical};
 
 /// Boolean value.
 ///
@@ -22,8 +22,8 @@ impl From<XsdBoolean> for bool {
 }
 
 impl XsdTyped for XsdBoolean {
-	fn datatype(&self) -> Datatype {
-		Datatype::Boolean
+	fn datatype(&self) -> XsdDatatype {
+		XsdDatatype::Boolean
 	}
 }
 

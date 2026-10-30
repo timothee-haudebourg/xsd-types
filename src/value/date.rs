@@ -1,6 +1,7 @@
 use crate::{
-	Datatype, DisplayYear, XsdFromStr, XsdTyped, XsdValueDomain, format_timezone, is_valid_offset,
-	lexical::InvalidXsdDateStr, seven_property_model_eq, seven_property_model_partial_cmp,
+	DisplayYear, XsdDatatype, XsdFromStr, XsdTyped, XsdValueDomain, format_timezone,
+	is_valid_offset, lexical::InvalidXsdDateStr, seven_property_model_eq,
+	seven_property_model_partial_cmp,
 };
 use core::fmt;
 use std::{cmp::Ordering, hash::Hash, str::FromStr};
@@ -112,8 +113,8 @@ impl FromStr for XsdDate {
 }
 
 impl XsdTyped for XsdDate {
-	fn datatype(&self) -> Datatype {
-		Datatype::Date
+	fn datatype(&self) -> XsdDatatype {
+		XsdDatatype::Date
 	}
 }
 

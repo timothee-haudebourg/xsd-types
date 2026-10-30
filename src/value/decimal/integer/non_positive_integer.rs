@@ -9,7 +9,7 @@ use num_bigint::{BigInt, TryFromBigIntError};
 use num_traits::{Signed, Zero};
 
 use crate::{
-	Datatype, NonPositiveIntegerDatatype, XsdFromStr, XsdInteger, XsdTyped, XsdValueDomain,
+	XsdDatatype, XsdFromStr, XsdInteger, XsdNonPositiveIntegerDatatype, XsdTyped, XsdValueDomain,
 	impl_integer_arithmetic, lexical,
 };
 
@@ -99,11 +99,11 @@ impl XsdNonPositiveInteger {
 	}
 
 	#[inline(always)]
-	fn non_positive_integer_type(&self) -> NonPositiveIntegerDatatype {
+	fn non_positive_integer_type(&self) -> XsdNonPositiveIntegerDatatype {
 		if self.0 < BigInt::zero() {
-			NonPositiveIntegerDatatype::NegativeInteger
+			XsdNonPositiveIntegerDatatype::NegativeInteger
 		} else {
-			NonPositiveIntegerDatatype::NonPositiveInteger
+			XsdNonPositiveIntegerDatatype::NonPositiveInteger
 		}
 	}
 
@@ -134,7 +134,7 @@ impl XsdNonPositiveInteger {
 
 impl XsdTyped for XsdNonPositiveInteger {
 	#[inline(always)]
-	fn datatype(&self) -> Datatype {
+	fn datatype(&self) -> XsdDatatype {
 		self.non_positive_integer_type().into()
 	}
 }
@@ -398,8 +398,8 @@ impl XsdNegativeInteger {
 }
 
 impl XsdTyped for XsdNegativeInteger {
-	fn datatype(&self) -> Datatype {
-		NonPositiveIntegerDatatype::NegativeInteger.into()
+	fn datatype(&self) -> XsdDatatype {
+		XsdNonPositiveIntegerDatatype::NegativeInteger.into()
 	}
 }
 

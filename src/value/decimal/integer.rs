@@ -9,9 +9,10 @@ use num_bigint::{BigInt, TryFromBigIntError};
 use num_traits::{Signed, Zero};
 
 use crate::{
-	Datatype, IntDatatype, IntegerDatatype, LongDatatype, NonNegativeIntegerDatatype,
-	NonPositiveIntegerDatatype, ShortDatatype, UnsignedIntDatatype, UnsignedLongDatatype,
-	UnsignedShortDatatype, XsdFromStr, XsdTyped, XsdValueDomain, lexical,
+	XsdDatatype, XsdFromStr, XsdIntDatatype, XsdIntegerDatatype, XsdLongDatatype,
+	XsdNonNegativeIntegerDatatype, XsdNonPositiveIntegerDatatype, XsdShortDatatype, XsdTyped,
+	XsdUnsignedIntDatatype, XsdUnsignedLongDatatype, XsdUnsignedShortDatatype, XsdValueDomain,
+	lexical,
 };
 
 use super::{I8_MIN, I16_MIN, I32_MIN, I64_MIN, Sign, U8_MAX, U16_MAX, U32_MAX, U64_MAX};
@@ -115,33 +116,33 @@ impl XsdInteger {
 
 	/// Returns the most specific XSD integer-derived datatype that can
 	/// represent this value (e.g. `byte`, `int`, `nonNegativeInteger`, ...).
-	pub fn integer_type(&self) -> IntegerDatatype {
+	pub fn integer_type(&self) -> XsdIntegerDatatype {
 		if self.0 >= BigInt::zero() {
 			if self.0 > BigInt::zero() {
 				if self.0 <= *U8_MAX {
-					UnsignedShortDatatype::UnsignedByte.into()
+					XsdUnsignedShortDatatype::UnsignedByte.into()
 				} else if self.0 <= *U16_MAX {
-					UnsignedShortDatatype::UnsignedShort.into()
+					XsdUnsignedShortDatatype::UnsignedShort.into()
 				} else if self.0 <= *U32_MAX {
-					UnsignedIntDatatype::UnsignedInt.into()
+					XsdUnsignedIntDatatype::UnsignedInt.into()
 				} else if self.0 <= *U64_MAX {
-					UnsignedLongDatatype::UnsignedLong.into()
+					XsdUnsignedLongDatatype::UnsignedLong.into()
 				} else {
-					NonNegativeIntegerDatatype::PositiveInteger.into()
+					XsdNonNegativeIntegerDatatype::PositiveInteger.into()
 				}
 			} else {
-				UnsignedShortDatatype::UnsignedByte.into()
+				XsdUnsignedShortDatatype::UnsignedByte.into()
 			}
 		} else if self.0 >= *I8_MIN {
-			ShortDatatype::Byte.into()
+			XsdShortDatatype::Byte.into()
 		} else if self.0 >= *I16_MIN {
-			ShortDatatype::Short.into()
+			XsdShortDatatype::Short.into()
 		} else if self.0 >= *I32_MIN {
-			IntDatatype::Int.into()
+			XsdIntDatatype::Int.into()
 		} else if self.0 >= *I64_MIN {
-			LongDatatype::Long.into()
+			XsdLongDatatype::Long.into()
 		} else {
-			NonPositiveIntegerDatatype::NegativeInteger.into()
+			XsdNonPositiveIntegerDatatype::NegativeInteger.into()
 		}
 	}
 
@@ -172,7 +173,7 @@ impl XsdInteger {
 
 impl XsdTyped for XsdInteger {
 	#[inline(always)]
-	fn datatype(&self) -> Datatype {
+	fn datatype(&self) -> XsdDatatype {
 		self.integer_type().into()
 	}
 }
@@ -348,25 +349,25 @@ try_into!(u8, u16, u32, u64, usize, i8, i16, i32, i64, isize);
 pub type XsdLong = i64;
 
 pub trait XsdLongSubtype {
-	fn long_type(&self) -> LongDatatype;
+	fn long_type(&self) -> XsdLongDatatype;
 }
 
 impl XsdLongSubtype for XsdLong {
-	fn long_type(&self) -> LongDatatype {
+	fn long_type(&self) -> XsdLongDatatype {
 		if (i8::MIN as i64..=i8::MAX as i64).contains(self) {
-			ShortDatatype::Byte.into()
+			XsdShortDatatype::Byte.into()
 		} else if (i16::MIN as i64..=i16::MAX as i64).contains(self) {
-			ShortDatatype::Short.into()
+			XsdShortDatatype::Short.into()
 		} else if (i32::MIN as i64..=i32::MAX as i64).contains(self) {
-			IntDatatype::Int.into()
+			XsdIntDatatype::Int.into()
 		} else {
-			LongDatatype::Long
+			XsdLongDatatype::Long
 		}
 	}
 }
 
 impl XsdTyped for XsdLong {
-	fn datatype(&self) -> Datatype {
+	fn datatype(&self) -> XsdDatatype {
 		self.long_type().into()
 	}
 }
@@ -388,23 +389,23 @@ impl<'a> XsdFromStr<'a> for XsdLong {
 pub type XsdInt = i32;
 
 pub trait XsdIntSubtype {
-	fn int_type(&self) -> IntDatatype;
+	fn int_type(&self) -> XsdIntDatatype;
 }
 
 impl XsdIntSubtype for XsdInt {
-	fn int_type(&self) -> IntDatatype {
+	fn int_type(&self) -> XsdIntDatatype {
 		if (i8::MIN as i32..=i8::MAX as i32).contains(self) {
-			ShortDatatype::Byte.into()
+			XsdShortDatatype::Byte.into()
 		} else if (i16::MIN as i32..=i16::MAX as i32).contains(self) {
-			ShortDatatype::Short.into()
+			XsdShortDatatype::Short.into()
 		} else {
-			IntDatatype::Int
+			XsdIntDatatype::Int
 		}
 	}
 }
 
 impl XsdTyped for XsdInt {
-	fn datatype(&self) -> Datatype {
+	fn datatype(&self) -> XsdDatatype {
 		self.int_type().into()
 	}
 }
@@ -426,21 +427,21 @@ impl<'a> XsdFromStr<'a> for XsdInt {
 pub type XsdShort = i16;
 
 pub trait XsdShortSubtype {
-	fn short_type(&self) -> ShortDatatype;
+	fn short_type(&self) -> XsdShortDatatype;
 }
 
 impl XsdShortSubtype for XsdShort {
-	fn short_type(&self) -> ShortDatatype {
+	fn short_type(&self) -> XsdShortDatatype {
 		if (i8::MIN as i16..=i8::MAX as i16).contains(self) {
-			ShortDatatype::Byte
+			XsdShortDatatype::Byte
 		} else {
-			ShortDatatype::Short
+			XsdShortDatatype::Short
 		}
 	}
 }
 
 impl XsdTyped for XsdShort {
-	fn datatype(&self) -> Datatype {
+	fn datatype(&self) -> XsdDatatype {
 		self.short_type().into()
 	}
 }
@@ -462,8 +463,8 @@ impl<'a> XsdFromStr<'a> for XsdShort {
 pub type XsdByte = i8;
 
 impl XsdTyped for XsdByte {
-	fn datatype(&self) -> Datatype {
-		ShortDatatype::Byte.into()
+	fn datatype(&self) -> XsdDatatype {
+		XsdShortDatatype::Byte.into()
 	}
 }
 

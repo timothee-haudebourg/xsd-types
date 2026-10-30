@@ -1,7 +1,7 @@
 use std::{cmp::Ordering, fmt, hash::Hash, str::FromStr};
 
 use crate::{
-	Datatype, DateTimeDatatype, XsdFromStr, XsdTyped, XsdValueDomain,
+	XsdDatatype, XsdDateTimeDatatype, XsdFromStr, XsdTyped, XsdValueDomain,
 	lexical::InvalidXsdDateTimeStr, utils::div_rem,
 };
 
@@ -245,8 +245,8 @@ pub(crate) fn seven_property_model_partial_cmp(
 }
 
 impl XsdTyped for XsdDateTime {
-	fn datatype(&self) -> Datatype {
-		Datatype::DateTime(DateTimeDatatype::DateTime)
+	fn datatype(&self) -> XsdDatatype {
+		XsdDatatype::DateTime(XsdDateTimeDatatype::DateTime)
 	}
 }
 

@@ -5,7 +5,7 @@ use std::{
 	str::FromStr,
 };
 
-use crate::{Datatype, XsdFromStr, XsdTyped, XsdValueDomain, lexical};
+use crate::{XsdDatatype, XsdFromStr, XsdTyped, XsdValueDomain, lexical};
 
 const CHARS: [char; 64] = [
 	'A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K', 'L', 'M', 'N', 'O', 'P', 'Q', 'R', 'S',
@@ -160,8 +160,8 @@ impl DerefMut for XsdBase64BinaryBuf {
 }
 
 impl XsdTyped for XsdBase64BinaryBuf {
-	fn datatype(&self) -> Datatype {
-		Datatype::Base64Binary
+	fn datatype(&self) -> XsdDatatype {
+		XsdDatatype::Base64Binary
 	}
 }
 
@@ -349,8 +349,8 @@ impl<'a> Iterator for Chars<'a> {
 }
 
 impl XsdTyped for XsdBase64Binary {
-	fn datatype(&self) -> Datatype {
-		Datatype::Base64Binary
+	fn datatype(&self) -> XsdDatatype {
+		XsdDatatype::Base64Binary
 	}
 }
 

@@ -5,7 +5,7 @@ use std::{
 	str::FromStr,
 };
 
-use crate::{Datatype, XsdFromStr, XsdTyped, XsdValueDomain, lexical};
+use crate::{XsdDatatype, XsdFromStr, XsdTyped, XsdValueDomain, lexical};
 
 const CHARS: [char; 16] = [
 	'0', '1', '2', '3', '4', '5', '6', '7', '8', '9', 'A', 'B', 'C', 'D', 'E', 'F',
@@ -140,8 +140,8 @@ impl DerefMut for XsdHexBinaryBuf {
 }
 
 impl XsdTyped for XsdHexBinaryBuf {
-	fn datatype(&self) -> Datatype {
-		Datatype::HexBinary
+	fn datatype(&self) -> XsdDatatype {
+		XsdDatatype::HexBinary
 	}
 }
 
@@ -278,8 +278,8 @@ impl ToOwned for XsdHexBinary {
 }
 
 impl XsdTyped for XsdHexBinary {
-	fn datatype(&self) -> Datatype {
-		Datatype::HexBinary
+	fn datatype(&self) -> XsdDatatype {
+		XsdDatatype::HexBinary
 	}
 }
 

@@ -10,9 +10,10 @@ use num_rational::BigRational;
 use num_traits::{Signed, ToPrimitive, Zero};
 
 use crate::{
-	Datatype, DecimalDatatype, IntDatatype, LongDatatype, NonNegativeIntegerDatatype,
-	NonPositiveIntegerDatatype, ShortDatatype, UnsignedIntDatatype, UnsignedLongDatatype,
-	UnsignedShortDatatype, XsdDouble, XsdFloat, XsdFromStr, XsdTyped, XsdValueDomain, lexical,
+	XsdDatatype, XsdDecimalDatatype, XsdDouble, XsdFloat, XsdFromStr, XsdIntDatatype,
+	XsdLongDatatype, XsdNonNegativeIntegerDatatype, XsdNonPositiveIntegerDatatype,
+	XsdShortDatatype, XsdTyped, XsdUnsignedIntDatatype, XsdUnsignedLongDatatype,
+	XsdUnsignedShortDatatype, XsdValueDomain, lexical,
 };
 
 /// Sign of a decimal or integer value, re-exported from [`num_bigint`].
@@ -239,37 +240,37 @@ impl XsdDecimal {
 	/// Returns the most specific XSD decimal-derived datatype that can
 	/// represent this value (e.g. `int`, `nonNegativeInteger`, or `decimal`
 	/// itself).
-	pub fn decimal_type(&self) -> DecimalDatatype {
+	pub fn decimal_type(&self) -> XsdDecimalDatatype {
 		if self.data.is_integer() {
 			if self.data >= BigRational::zero() {
 				if self.data > BigRational::zero() {
 					if self.data <= *U8_MAX_RATIO {
-						UnsignedShortDatatype::UnsignedByte.into()
+						XsdUnsignedShortDatatype::UnsignedByte.into()
 					} else if self.data <= *U16_MAX_RATIO {
-						UnsignedShortDatatype::UnsignedShort.into()
+						XsdUnsignedShortDatatype::UnsignedShort.into()
 					} else if self.data <= *U32_MAX_RATIO {
-						UnsignedIntDatatype::UnsignedInt.into()
+						XsdUnsignedIntDatatype::UnsignedInt.into()
 					} else if self.data <= *U64_MAX_RATIO {
-						UnsignedLongDatatype::UnsignedLong.into()
+						XsdUnsignedLongDatatype::UnsignedLong.into()
 					} else {
-						NonNegativeIntegerDatatype::PositiveInteger.into()
+						XsdNonNegativeIntegerDatatype::PositiveInteger.into()
 					}
 				} else {
-					UnsignedShortDatatype::UnsignedByte.into()
+					XsdUnsignedShortDatatype::UnsignedByte.into()
 				}
 			} else if self.data >= *I8_MIN_RATIO {
-				ShortDatatype::Byte.into()
+				XsdShortDatatype::Byte.into()
 			} else if self.data >= *I16_MIN_RATIO {
-				ShortDatatype::Short.into()
+				XsdShortDatatype::Short.into()
 			} else if self.data >= *I32_MIN_RATIO {
-				IntDatatype::Int.into()
+				XsdIntDatatype::Int.into()
 			} else if self.data >= *I64_MIN_RATIO {
-				LongDatatype::Long.into()
+				XsdLongDatatype::Long.into()
 			} else {
-				NonPositiveIntegerDatatype::NegativeInteger.into()
+				XsdNonPositiveIntegerDatatype::NegativeInteger.into()
 			}
 		} else {
-			DecimalDatatype::Decimal
+			XsdDecimalDatatype::Decimal
 		}
 	}
 
@@ -512,7 +513,7 @@ impl From<XsdDecimal> for BigRational {
 
 impl XsdTyped for XsdDecimal {
 	#[inline(always)]
-	fn datatype(&self) -> Datatype {
+	fn datatype(&self) -> XsdDatatype {
 		self.decimal_type().into()
 	}
 }

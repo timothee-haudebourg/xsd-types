@@ -1,5 +1,5 @@
 use crate::{
-	Datatype, XsdFromStr, XsdTyped, XsdValueDomain, format_timezone, is_valid_offset,
+	XsdDatatype, XsdFromStr, XsdTyped, XsdValueDomain, format_timezone, is_valid_offset,
 	lexical::InvalidXsdGDayStr, seven_property_model_date_time, seven_property_model_eq,
 	seven_property_model_partial_cmp,
 };
@@ -94,8 +94,8 @@ impl PartialOrd for XsdGDay {
 }
 
 impl XsdTyped for XsdGDay {
-	fn datatype(&self) -> Datatype {
-		Datatype::GDay
+	fn datatype(&self) -> XsdDatatype {
+		XsdDatatype::GDay
 	}
 }
 

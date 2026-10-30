@@ -5,7 +5,7 @@ use std::{
 	str::FromStr,
 };
 
-use crate::{Datatype, XsdFromStr, XsdTyped, XsdValueDomain, lexical};
+use crate::{XsdDatatype, XsdFromStr, XsdTyped, XsdValueDomain, lexical};
 
 /// Value space of the XSD `float` datatype.
 ///
@@ -125,8 +125,8 @@ impl fmt::Display for XsdFloat {
 
 impl XsdTyped for XsdFloat {
 	#[inline(always)]
-	fn datatype(&self) -> Datatype {
-		Datatype::Float
+	fn datatype(&self) -> XsdDatatype {
+		XsdDatatype::Float
 	}
 }
 

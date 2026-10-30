@@ -7,8 +7,8 @@ impl<'a> crate::XsdFromStr<'a> for XsdNMTokenBuf {
 }
 
 impl crate::XsdTyped for XsdNMTokenBuf {
-	fn datatype(&self) -> crate::Datatype {
-		crate::TokenDatatype::NMToken.into()
+	fn datatype(&self) -> crate::XsdDatatype {
+		crate::XsdTokenDatatype::NMToken.into()
 	}
 }
 

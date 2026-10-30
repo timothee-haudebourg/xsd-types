@@ -1,4 +1,4 @@
-use crate::{Datatype, XsdFromStr, XsdTyped, XsdValueDomain};
+use crate::{XsdDatatype, XsdFromStr, XsdTyped, XsdValueDomain};
 
 /// IRI, used as the value-space representation of the XSD 1.1 `anyURI`
 /// datatype.
@@ -6,8 +6,8 @@ use crate::{Datatype, XsdFromStr, XsdTyped, XsdValueDomain};
 pub type XsdAnyUri = iref::Iri;
 
 impl XsdTyped for XsdAnyUri {
-	fn datatype(&self) -> Datatype {
-		Datatype::AnyUri
+	fn datatype(&self) -> XsdDatatype {
+		XsdDatatype::AnyUri
 	}
 }
 
@@ -17,8 +17,8 @@ impl XsdTyped for XsdAnyUri {
 pub type XsdAnyUriBuf = iref::IriBuf;
 
 impl XsdTyped for XsdAnyUriBuf {
-	fn datatype(&self) -> Datatype {
-		Datatype::AnyUri
+	fn datatype(&self) -> XsdDatatype {
+		XsdDatatype::AnyUri
 	}
 }
 

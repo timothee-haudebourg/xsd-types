@@ -205,8 +205,8 @@ impl<'a> crate::XsdFromStr<'a> for XsdTokenBuf {
 }
 
 impl crate::XsdTyped for XsdTokenBuf {
-	fn datatype(&self) -> crate::Datatype {
-		crate::TokenDatatype::Token.into()
+	fn datatype(&self) -> crate::XsdDatatype {
+		crate::XsdTokenDatatype::Token.into()
 	}
 }
 

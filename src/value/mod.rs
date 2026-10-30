@@ -37,7 +37,7 @@ pub use hex_binary::{InvalidHex, XsdHexBinary, XsdHexBinaryBuf};
 pub use string::*;
 pub use time::*;
 
-use crate::{Datatype, Value, ValueRef, lexical::XsdLexicalForm};
+use crate::{Value, ValueRef, XsdDatatype, lexical::XsdLexicalForm};
 
 /// XSD value.
 ///
@@ -74,7 +74,7 @@ impl<T> XsdSizedValue for T where
 
 pub trait XsdTyped {
 	/// Returns the XSD datatype that best describes the value.
-	fn datatype(&self) -> Datatype;
+	fn datatype(&self) -> XsdDatatype;
 }
 
 impl From<Value> for std::string::String {
@@ -116,7 +116,7 @@ impl<'a> CowValue<'a> {
 }
 
 impl<'a> XsdTyped for CowValue<'a> {
-	fn datatype(&self) -> Datatype {
+	fn datatype(&self) -> XsdDatatype {
 		match self {
 			Self::Borrowed(v) => v.datatype(),
 			Self::Owned(v) => v.datatype(),

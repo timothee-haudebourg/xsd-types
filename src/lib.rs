@@ -40,8 +40,8 @@
 //! The [`Value`] type provides a simple way to represent *any* XSD value.
 //!
 //! ```
-//! use xsd_types::{XSD_DATE, Datatype, Value};
-//! let dt = Datatype::from_iri(XSD_DATE).unwrap();
+//! use xsd_types::{XSD_DATE, XsdDatatype, Value};
+//! let dt = XsdDatatype::from_iri(XSD_DATE).unwrap();
 //! let value: Value = dt.parse("1758-12-25").unwrap(); // Halley is back!
 //! ```
 //!
@@ -96,7 +96,7 @@ where
 }
 
 /// XSD primitive datatype.
-pub enum PrimitiveDatatype {
+pub enum XsdPrimitiveDatatype {
 	String,
 	Boolean,
 	Decimal,

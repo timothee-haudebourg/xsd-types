@@ -1,4 +1,4 @@
-use crate::{Datatype, XsdFromStr, XsdTyped, XsdValueDomain};
+use crate::{XsdDatatype, XsdFromStr, XsdTyped, XsdValueDomain};
 
 mod id;
 mod idref;
@@ -26,8 +26,8 @@ pub type XsdString = std::string::String;
 pub type XsdStr = str;
 
 impl XsdTyped for XsdString {
-	fn datatype(&self) -> Datatype {
-		Datatype::String(crate::StringDatatype::String)
+	fn datatype(&self) -> XsdDatatype {
+		XsdDatatype::String(crate::XsdStringDatatype::String)
 	}
 }
 

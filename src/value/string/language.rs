@@ -7,8 +7,8 @@ impl<'a> crate::XsdFromStr<'a> for XsdLanguageBuf {
 }
 
 impl crate::XsdTyped for XsdLanguageBuf {
-	fn datatype(&self) -> crate::Datatype {
-		crate::TokenDatatype::Language.into()
+	fn datatype(&self) -> crate::XsdDatatype {
+		crate::XsdTokenDatatype::Language.into()
 	}
 }
 
