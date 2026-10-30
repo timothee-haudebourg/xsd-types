@@ -5,7 +5,7 @@ use std::{
 	str::FromStr,
 };
 
-use crate::{lexical, Datatype, XsdFromStr, XsdTyped, XsdValue};
+use crate::{Datatype, XsdFromStr, XsdTyped, XsdValue, lexical};
 
 const CHARS: [char; 64] = [
 	'A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K', 'L', 'M', 'N', 'O', 'P', 'Q', 'R', 'S',

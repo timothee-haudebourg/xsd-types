@@ -10,9 +10,9 @@ use num_rational::BigRational;
 use num_traits::{Signed, ToPrimitive, Zero};
 
 use crate::{
-	lexical, Datatype, DecimalDatatype, IntDatatype, LongDatatype, NonNegativeIntegerDatatype,
+	Datatype, DecimalDatatype, IntDatatype, LongDatatype, NonNegativeIntegerDatatype,
 	NonPositiveIntegerDatatype, ShortDatatype, UnsignedIntDatatype, UnsignedLongDatatype,
-	UnsignedShortDatatype, XsdDouble, XsdFloat, XsdFromStr, XsdTyped, XsdValue,
+	UnsignedShortDatatype, XsdDouble, XsdFloat, XsdFromStr, XsdTyped, XsdValue, lexical,
 };
 
 /// Sign of a decimal or integer value, re-exported from [`num_bigint`].

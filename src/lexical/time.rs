@@ -1,9 +1,9 @@
 use static_automata::Validate;
 use str_newtype::StrNewType;
 
-use crate::{utils::byte_index_of, InvalidTimeValue, XsdError};
+use crate::{InvalidTimeValue, XsdError, utils::byte_index_of};
 
-use super::{date_time::parse_seconds_decimal, parse_timezone, XsdLexicalForm};
+use super::{XsdLexicalForm, date_time::parse_seconds_decimal, parse_timezone};
 
 /// XsdTimeStr.
 ///

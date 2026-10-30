@@ -1,6 +1,6 @@
 use crate::{
-	format_nanoseconds, lexical::InvalidXsdDurationStr, Datatype, DurationDatatype, XsdFromStr,
-	XsdTyped, XsdValue,
+	Datatype, DurationDatatype, XsdFromStr, XsdTyped, XsdValue, format_nanoseconds,
+	lexical::InvalidXsdDurationStr,
 };
 use core::fmt;
 use std::{cmp::Ordering, hash::Hash, str::FromStr};

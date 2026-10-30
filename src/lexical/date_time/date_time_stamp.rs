@@ -1,9 +1,9 @@
 use static_automata::Validate;
 use str_newtype::StrNewType;
 
-use crate::{utils::byte_index_of, InvalidDateTimeStampValue, XsdError};
+use crate::{InvalidDateTimeStampValue, XsdError, utils::byte_index_of};
 
-use super::{parse_timezone, XsdLexicalForm};
+use super::{XsdLexicalForm, parse_timezone};
 
 /// XsdDateStr and time with required timezone offset.
 ///

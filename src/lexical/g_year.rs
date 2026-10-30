@@ -1,7 +1,7 @@
 use static_automata::Validate;
 use str_newtype::StrNewType;
 
-use crate::{lexical::parse_timezone, utils::byte_index_of, XsdError};
+use crate::{XsdError, lexical::parse_timezone, utils::byte_index_of};
 
 use super::XsdLexicalForm;
 

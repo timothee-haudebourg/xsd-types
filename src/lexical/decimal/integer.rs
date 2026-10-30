@@ -1,5 +1,5 @@
-use crate::lexical::{lexical_form, XsdLexicalForm};
 use crate::XsdError;
+use crate::lexical::{XsdLexicalForm, lexical_form};
 
 use super::{Overflow, Sign, XsdDecimalStr, XsdDecimalString};
 use static_automata::Validate;

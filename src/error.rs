@@ -1,7 +1,7 @@
 use crate::{
-	lexical, InvalidDateTimeStampValue, InvalidDateTimeValue, InvalidDateValue,
-	InvalidNormalizedStr, InvalidTimeValue, InvalidToken, InvalidXsdId, InvalidXsdIdRef,
-	InvalidXsdLanguage, InvalidXsdNCName, InvalidXsdNMToken, InvalidXsdName,
+	InvalidDateTimeStampValue, InvalidDateTimeValue, InvalidDateValue, InvalidNormalizedStr,
+	InvalidTimeValue, InvalidToken, InvalidXsdId, InvalidXsdIdRef, InvalidXsdLanguage,
+	InvalidXsdNCName, InvalidXsdNMToken, InvalidXsdName, lexical,
 };
 
 #[derive(Debug, thiserror::Error)]

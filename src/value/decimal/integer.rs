@@ -9,12 +9,12 @@ use num_bigint::{BigInt, TryFromBigIntError};
 use num_traits::{Signed, Zero};
 
 use crate::{
-	lexical, Datatype, IntDatatype, IntegerDatatype, LongDatatype, NonNegativeIntegerDatatype,
+	Datatype, IntDatatype, IntegerDatatype, LongDatatype, NonNegativeIntegerDatatype,
 	NonPositiveIntegerDatatype, ShortDatatype, UnsignedIntDatatype, UnsignedLongDatatype,
-	UnsignedShortDatatype, XsdFromStr, XsdTyped, XsdValue,
+	UnsignedShortDatatype, XsdFromStr, XsdTyped, XsdValue, lexical,
 };
 
-use super::{Sign, I16_MIN, I32_MIN, I64_MIN, I8_MIN, U16_MAX, U32_MAX, U64_MAX, U8_MAX};
+use super::{I8_MIN, I16_MIN, I32_MIN, I64_MIN, Sign, U8_MAX, U16_MAX, U32_MAX, U64_MAX};
 
 /// Builds the canonical owned lexical form (`$buf`) of an integer-like value
 /// from its `Display` output.

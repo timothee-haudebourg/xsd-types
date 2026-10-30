@@ -1,7 +1,7 @@
 use crate::{
-	format_timezone, is_valid_offset, lexical::InvalidXsdGYearStr, seven_property_model_date_time,
-	seven_property_model_eq, seven_property_model_partial_cmp, Datatype, DisplayYear, XsdFromStr,
-	XsdTyped, XsdValue,
+	Datatype, DisplayYear, XsdFromStr, XsdTyped, XsdValue, format_timezone, is_valid_offset,
+	lexical::InvalidXsdGYearStr, seven_property_model_date_time, seven_property_model_eq,
+	seven_property_model_partial_cmp,
 };
 use core::fmt;
 use std::{cmp::Ordering, hash::Hash, str::FromStr};

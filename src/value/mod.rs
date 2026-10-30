@@ -37,7 +37,7 @@ pub use q_name::*;
 pub use string::*;
 pub use time::*;
 
-use crate::{lexical::XsdLexicalForm, Datatype, Value, ValueRef};
+use crate::{Datatype, Value, ValueRef, lexical::XsdLexicalForm};
 
 pub trait XsdValue: XsdTyped {
 	type LexicalForm: ?Sized + XsdLexicalForm;

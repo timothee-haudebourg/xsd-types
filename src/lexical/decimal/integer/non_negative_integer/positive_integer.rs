@@ -1,8 +1,8 @@
-use crate::lexical::{
-	lexical_form, XsdDecimalStr, XsdDecimalString, XsdIntegerStr, XsdIntegerString, XsdLexicalForm,
-	XsdNonNegativeIntegerStr,
-};
 use crate::XsdError;
+use crate::lexical::{
+	XsdDecimalStr, XsdDecimalString, XsdIntegerStr, XsdIntegerString, XsdLexicalForm,
+	XsdNonNegativeIntegerStr, lexical_form,
+};
 
 use super::{Overflow, XsdNonNegativeIntegerString};
 use static_automata::Validate;

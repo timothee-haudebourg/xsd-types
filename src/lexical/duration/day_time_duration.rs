@@ -1,4 +1,4 @@
-use crate::{lexical::date_time::parse_seconds_decimal, XsdError};
+use crate::{XsdError, lexical::date_time::parse_seconds_decimal};
 
 use super::XsdLexicalForm;
 use static_automata::Validate;

@@ -1,6 +1,6 @@
 use super::lexical_form;
-use crate::lexical::XsdLexicalForm;
 use crate::XsdError;
+use crate::lexical::XsdLexicalForm;
 use static_automata::Validate;
 use std::cmp::Ordering;
 use std::hash::{Hash, Hasher};
@@ -145,11 +145,7 @@ impl XsdDecimalStr {
 	pub fn trimmed_fractional_part(&self) -> Option<&FractionalPart> {
 		self.split_once('.').and_then(|(_, fractional_part)| {
 			let f = unsafe { FractionalPart::new_unchecked(fractional_part) }.trimmed();
-			if f.is_empty() {
-				None
-			} else {
-				Some(f)
-			}
+			if f.is_empty() { None } else { Some(f) }
 		})
 	}
 
@@ -327,7 +323,7 @@ impl FractionalPart {
 	/// representation.
 	#[inline(always)]
 	pub unsafe fn new_unchecked<S: ?Sized + AsRef<[u8]>>(s: &S) -> &Self {
-		std::mem::transmute(s.as_ref())
+		unsafe { std::mem::transmute(s.as_ref()) }
 	}
 
 	#[inline(always)]

@@ -1,7 +1,7 @@
 use static_automata::Validate;
 use str_newtype::StrNewType;
 
-use crate::{lexical::XsdLexicalForm, XsdError};
+use crate::{XsdError, lexical::XsdLexicalForm};
 
 /// IDREF.
 ///

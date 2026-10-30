@@ -9,10 +9,10 @@ use num_bigint::{BigInt, TryFromBigIntError};
 use num_traits::{Signed, Zero};
 
 use crate::{
-	impl_integer_arithmetic, lexical,
-	value::decimal::{U16_MAX, U32_MAX, U64_MAX, U8_MAX},
 	Datatype, NonNegativeIntegerDatatype, UnsignedIntDatatype, UnsignedLongDatatype,
-	UnsignedShortDatatype, XsdFromStr, XsdInteger, XsdTyped, XsdValue,
+	UnsignedShortDatatype, XsdFromStr, XsdInteger, XsdTyped, XsdValue, impl_integer_arithmetic,
+	lexical,
+	value::decimal::{U8_MAX, U16_MAX, U32_MAX, U64_MAX},
 };
 
 use super::Sign;

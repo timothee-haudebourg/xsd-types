@@ -1,9 +1,9 @@
 use super::{
-	lexical_form, Overflow, XsdDecimalStr, XsdIntegerStr, XsdNonNegativeIntegerStr,
-	XsdNonPositiveIntegerStr,
+	Overflow, XsdDecimalStr, XsdIntegerStr, XsdNonNegativeIntegerStr, XsdNonPositiveIntegerStr,
+	lexical_form,
 };
-use crate::lexical::XsdLexicalForm;
 use crate::XsdError;
+use crate::lexical::XsdLexicalForm;
 use static_automata::Validate;
 use std::hash::Hash;
 use str_newtype::StrNewType;

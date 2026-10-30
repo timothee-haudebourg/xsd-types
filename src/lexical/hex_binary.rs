@@ -4,8 +4,8 @@ use std::cmp::Ordering;
 use std::hash::{Hash, Hasher};
 use str_newtype::StrNewType;
 
-use crate::lexical::XsdLexicalForm;
 use crate::XsdError;
+use crate::lexical::XsdLexicalForm;
 
 /// Hexadecimal string.
 ///

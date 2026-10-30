@@ -51,7 +51,7 @@
 #[doc(hidden)]
 pub use iref;
 
-use iref::{iri, Iri};
+use iref::{Iri, iri};
 
 mod error;
 pub mod lexical;

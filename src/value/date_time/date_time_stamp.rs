@@ -1,8 +1,8 @@
 use std::{cmp::Ordering, fmt, hash::Hash, str::FromStr};
 
 use crate::{
-	format_nanoseconds, format_timezone, lexical::date_time::InvalidXsdDateTimeStampStr, Datatype,
-	DateTimeDatatype, DisplayYear, XsdFromStr, XsdTyped, XsdValue,
+	Datatype, DateTimeDatatype, DisplayYear, XsdFromStr, XsdTyped, XsdValue, format_nanoseconds,
+	format_timezone, lexical::date_time::InvalidXsdDateTimeStampStr,
 };
 
 /// Error raised when the components of a [`XsdDateTimeStamp`] do not form a

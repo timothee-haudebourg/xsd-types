@@ -1,4 +1,4 @@
-use super::{date_time::parse_seconds_decimal, XsdLexicalForm};
+use super::{XsdLexicalForm, date_time::parse_seconds_decimal};
 use crate::XsdError;
 use static_automata::Validate;
 use str_newtype::StrNewType;

@@ -248,7 +248,7 @@ mod tests {
 	use std::collections::hash_map::DefaultHasher;
 
 	use super::*;
-	use crate::{lexical, XsdDateTime};
+	use crate::{XsdDateTime, lexical};
 
 	/// Lexical form of a `dateTime` that is valid but not canonical: the
 	/// canonical form drops the trailing zero of the fractional seconds.

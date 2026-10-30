@@ -1,6 +1,6 @@
 use core::{fmt, str::FromStr};
 
-use crate::{lexical, Datatype, XsdFromStr, XsdTyped, XsdValue};
+use crate::{Datatype, XsdFromStr, XsdTyped, XsdValue, lexical};
 
 /// Boolean value.
 ///

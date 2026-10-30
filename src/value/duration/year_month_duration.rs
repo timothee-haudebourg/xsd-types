@@ -1,6 +1,6 @@
 use crate::{
-	lexical::duration::InvalidXsdYearMonthDurationStr, Datatype, DurationDatatype, XsdFromStr,
-	XsdTyped, XsdValue,
+	Datatype, DurationDatatype, XsdFromStr, XsdTyped, XsdValue,
+	lexical::duration::InvalidXsdYearMonthDurationStr,
 };
 use core::fmt;
 use std::{cmp::Ordering, hash::Hash, str::FromStr};

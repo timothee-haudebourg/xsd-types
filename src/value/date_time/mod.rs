@@ -1,8 +1,8 @@
 use std::{cmp::Ordering, fmt, hash::Hash, str::FromStr};
 
 use crate::{
-	lexical::InvalidXsdDateTimeStr, utils::div_rem, Datatype, DateTimeDatatype, XsdFromStr,
-	XsdTyped, XsdValue,
+	Datatype, DateTimeDatatype, XsdFromStr, XsdTyped, XsdValue, lexical::InvalidXsdDateTimeStr,
+	utils::div_rem,
 };
 
 mod date_time_stamp;
@@ -486,7 +486,7 @@ impl<'de> serde::Deserialize<'de> for XsdDateTime {
 
 #[cfg(test)]
 mod tests {
-	use super::{seven_property_model_date_time, XsdDateTime, XsdDateTimeStamp};
+	use super::{XsdDateTime, XsdDateTimeStamp, seven_property_model_date_time};
 	use crate::XsdValue;
 
 	#[test]

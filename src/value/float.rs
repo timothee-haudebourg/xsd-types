@@ -5,7 +5,7 @@ use std::{
 	str::FromStr,
 };
 
-use crate::{lexical, Datatype, XsdFromStr, XsdTyped, XsdValue};
+use crate::{Datatype, XsdFromStr, XsdTyped, XsdValue, lexical};
 
 /// Value space of the XSD `float` datatype.
 ///

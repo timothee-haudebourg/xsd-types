@@ -9,8 +9,8 @@ use num_bigint::{BigInt, TryFromBigIntError};
 use num_traits::{Signed, Zero};
 
 use crate::{
-	impl_integer_arithmetic, lexical, Datatype, NonPositiveIntegerDatatype, XsdFromStr, XsdInteger,
-	XsdTyped, XsdValue,
+	Datatype, NonPositiveIntegerDatatype, XsdFromStr, XsdInteger, XsdTyped, XsdValue,
+	impl_integer_arithmetic, lexical,
 };
 
 use super::Sign;
