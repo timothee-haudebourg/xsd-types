@@ -66,7 +66,7 @@ pub use types::*;
 pub use value::*;
 
 pub trait XsdFromStr<'a>: Sized {
-	fn xsd_from_str(lexical_value: &'a str) -> Result<Self, XsdError>;
+	fn xsd_from_str(lexical_form: &'a str) -> Result<Self, XsdError>;
 }
 
 pub trait XsdParse {
