@@ -39,9 +39,26 @@ pub use time::*;
 
 use crate::{Datatype, Value, ValueRef, lexical::XsdLexicalForm};
 
+/// XSD value.
+///
+/// # Canonical representation
+///
+/// If the type implements [`Display`](std::fmt::Display), it **must** write
+/// the *canonical* lexical form of the value, that is exactly the string
+/// returned by [`to_lexical_form`](Self::to_lexical_form). In particular, the
+/// output must always be a valid lexical form of the datatype, including for
+/// special values (e.g. `INF`, `-INF` and `NaN` for `float` and `double`), and
+/// must be parsed back to the same value by the type's
+/// [`FromStr`](std::str::FromStr) and [`XsdFromStr`](crate::XsdFromStr)
+/// implementations.
+///
+/// Code serializing values (e.g. to RDF literals) is allowed to rely on this
+/// guarantee and use `to_string()` instead of going through the lexical form.
 pub trait XsdValue: XsdTyped {
+	/// Lexical form of the value.
 	type LexicalForm: ?Sized + XsdLexicalForm;
 
+	/// Returns the canonical lexical form of the value.
 	fn to_lexical_form(&self) -> <Self::LexicalForm as ToOwned>::Owned;
 }
 
