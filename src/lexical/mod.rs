@@ -1,5 +1,7 @@
 //! Lexical domain types.
 
+use std::borrow::Borrow;
+
 use static_automata::grammar;
 
 #[grammar(
@@ -78,7 +80,7 @@ pub use string::*;
 pub use time::{InvalidXsdTimeStr, XsdTimeStr, XsdTimeString};
 
 /// Lexical type.
-pub trait XsdLexicalForm: ToOwned<Owned: TryFrom<String, Error: ToString>> {
+pub trait XsdLexicalForm: Borrow<str> + ToOwned<Owned: TryFrom<String, Error: ToString>> {
 	/// XSD value domain.
 	type Value: ?Sized + XsdValue;
 }

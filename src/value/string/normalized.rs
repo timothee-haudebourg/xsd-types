@@ -46,6 +46,12 @@ impl XsdNormalizedStr {
 	}
 }
 
+impl Borrow<str> for XsdNormalizedStr {
+	fn borrow(&self) -> &str {
+		&self.0
+	}
+}
+
 impl fmt::Display for XsdNormalizedStr {
 	fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
 		self.0.fmt(f)
