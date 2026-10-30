@@ -37,7 +37,7 @@ impl XsdNormalizedStr {
 	///
 	/// The input `value` must be an XSD normalized string.
 	pub unsafe fn new_unchecked(value: &str) -> &Self {
-		std::mem::transmute(value)
+		unsafe { std::mem::transmute(value) }
 	}
 
 	/// Returns this normalized string as a plain [`str`].

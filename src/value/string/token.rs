@@ -58,7 +58,7 @@ impl XsdToken {
 	///
 	/// The input `value` must be an XSD token string.
 	pub unsafe fn new_unchecked(value: &str) -> &Self {
-		std::mem::transmute(value)
+		unsafe { std::mem::transmute(value) }
 	}
 
 	/// Returns this token as a plain [`str`].

@@ -1,7 +1,5 @@
 [package]
 name = "xsd-types"
-version = "0.10.0"
-edition = "2021"
 authors = ["Timothée Haudebourg <author@haudebourg.net>"]
 description = "XSD data types."
 categories = ["data-structures"]
@@ -10,7 +8,9 @@ repository = "https://github.com/timothee-haudebourg/xsd-types"
 documentation = "https://docs.rs/xsd-types"
 license = "MIT/Apache-2.0"
 readme = "README.md"
+edition = "2024"
 rust-version = "1.87"
+version = "0.10.0"
 
 [features]
 serde = ["dep:serde", "iref/serde"]
