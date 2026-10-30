@@ -3,15 +3,11 @@ use crate::XsdError;
 use static_automata::Validate;
 use str_newtype::StrNewType;
 
-pub mod day_time_duration;
-pub use day_time_duration::{
-	InvalidXsdDayTimeDurationStr, XsdDayTimeDurationStr, XsdDayTimeDurationString,
-};
+mod day_time_duration;
+pub use day_time_duration::*;
 
-pub mod year_month_duration;
-pub use year_month_duration::{
-	InvalidXsdYearMonthDurationStr, XsdYearMonthDurationStr, XsdYearMonthDurationString,
-};
+mod year_month_duration;
+pub use year_month_duration::*;
 
 /// XsdDurationStr.
 ///

@@ -2,7 +2,7 @@ use std::{cmp::Ordering, fmt, hash::Hash, str::FromStr};
 
 use crate::{
 	DisplayYear, XsdDatatype, XsdDateTimeDatatype, XsdFromStr, XsdTyped, XsdValueDomain,
-	format_nanoseconds, format_timezone, lexical::date_time::InvalidXsdDateTimeStampStr,
+	format_nanoseconds, format_timezone, lexical::InvalidXsdDateTimeStampStr,
 };
 
 /// Error raised when the components of a [`XsdDateTimeStamp`] do not form a

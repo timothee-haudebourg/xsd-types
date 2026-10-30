@@ -5,10 +5,8 @@ use crate::{InvalidXsdDateTimeValue, XsdError, utils::byte_index_of};
 
 use super::XsdLexicalForm;
 
-pub mod date_time_stamp;
-pub use date_time_stamp::{
-	InvalidXsdDateTimeStampStr, XsdDateTimeStampStr, XsdDateTimeStampString,
-};
+mod date_time_stamp;
+pub use date_time_stamp::*;
 
 /// XsdDateStr and time.
 ///
