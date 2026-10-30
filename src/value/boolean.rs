@@ -61,33 +61,6 @@ impl fmt::Display for XsdBoolean {
 	}
 }
 
-#[cfg(test)]
-mod tests {
-	use super::XsdBoolean;
-	use crate::XsdValue;
-
-	#[test]
-	fn to_lexical_form_roundtrip() {
-		for s in ["true", "false"] {
-			let value: XsdBoolean = s.parse().unwrap();
-			let lexical = value.to_lexical_form();
-			assert_eq!(lexical.as_str(), s);
-			assert_eq!(lexical.as_str().parse::<XsdBoolean>().unwrap(), value);
-		}
-	}
-
-	#[test]
-	fn to_lexical_form_is_canonical() {
-		// `1` and `0` are valid lexical forms, but the canonical ones are
-		// `true` and `false`.
-		let value: XsdBoolean = "1".parse().unwrap();
-		assert_eq!(value.to_lexical_form().as_str(), "true");
-
-		let value: XsdBoolean = "0".parse().unwrap();
-		assert_eq!(value.to_lexical_form().as_str(), "false");
-	}
-}
-
 #[cfg(feature = "serde")]
 impl serde::Serialize for XsdBoolean {
 	fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
@@ -122,5 +95,32 @@ impl<'de> serde::Deserialize<'de> for XsdBoolean {
 		}
 
 		deserializer.deserialize_str(Visitor)
+	}
+}
+
+#[cfg(test)]
+mod tests {
+	use super::XsdBoolean;
+	use crate::XsdValue;
+
+	#[test]
+	fn to_lexical_form_roundtrip() {
+		for s in ["true", "false"] {
+			let value: XsdBoolean = s.parse().unwrap();
+			let lexical = value.to_lexical_form();
+			assert_eq!(lexical.as_str(), s);
+			assert_eq!(lexical.as_str().parse::<XsdBoolean>().unwrap(), value);
+		}
+	}
+
+	#[test]
+	fn to_lexical_form_is_canonical() {
+		// `1` and `0` are valid lexical forms, but the canonical ones are
+		// `true` and `false`.
+		let value: XsdBoolean = "1".parse().unwrap();
+		assert_eq!(value.to_lexical_form().as_str(), "true");
+
+		let value: XsdBoolean = "0".parse().unwrap();
+		assert_eq!(value.to_lexical_form().as_str(), "false");
 	}
 }
