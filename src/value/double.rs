@@ -95,13 +95,31 @@ impl XsdDouble {
 }
 
 // <https://www.w3.org/TR/xmlschema11-2/#f-doubleLexmap>
+//
+// This configuration only covers finite values. `pretty_dtoa` hardcodes the
+// special values as `inf`/`-inf` (not configurable), which are not valid XSD
+// lexical forms (`INF`/`-INF`), so infinities are written by `Display`
+// directly. `NaN` is already written correctly.
 const XSD_CANONICAL_DOUBLE: pretty_dtoa::FmtFloatConfig = pretty_dtoa::FmtFloatConfig::default()
 	.force_e_notation()
 	.capitalize_e(true);
 
+/// Writes the canonical lexical form of the value.
+///
+/// Special values are written as `NaN`, `INF` and `-INF`.
 impl fmt::Display for XsdDouble {
 	fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-		pretty_dtoa::dtoa(self.0, XSD_CANONICAL_DOUBLE).fmt(f)
+		if self.0.is_infinite() {
+			// `pretty_dtoa` hardcodes `inf`/`-inf`, which are not valid
+			// lexical forms. It writes `NaN` correctly.
+			f.write_str(if self.0.is_sign_positive() {
+				"INF"
+			} else {
+				"-INF"
+			})
+		} else {
+			pretty_dtoa::dtoa(self.0, XSD_CANONICAL_DOUBLE).fmt(f)
+		}
 	}
 }
 
@@ -115,17 +133,9 @@ impl XsdValue for XsdDouble {
 	type LexicalForm = lexical::XsdDoubleStr;
 
 	fn to_lexical_form(&self) -> lexical::XsdDoubleString {
-		if self.0.is_finite() {
-			// `Display` emits the canonical lexical form of finite values by
-			// contract, so it is always valid and this cannot panic.
-			lexical::XsdDoubleString::new(self.to_string())
-				.expect("Display emits a valid double lexical form for finite values")
-		} else {
-			// `Display` emits `inf`/`-inf`, which are not valid lexical forms,
-			// so special values go through the infallible conversion instead
-			// (`NaN`, `INF`, `-INF`).
-			lexical::XsdDoubleString::from(self.0)
-		}
+		// `Display` emits the canonical lexical form by contract.
+		lexical::XsdDoubleString::new(self.to_string())
+			.expect("Display emits a valid double lexical form")
 	}
 }
 
@@ -273,6 +283,23 @@ impl Div for XsdDouble {
 #[cfg(test)]
 mod tests {
 	use super::*;
+
+	// `Display` must write the canonical lexical form, including for special
+	// values, which must parse back.
+	#[test]
+	fn display_is_canonical() {
+		for (value, expected) in [
+			(XsdDouble::INFINITY, "INF"),
+			(XsdDouble::NEG_INFINITY, "-INF"),
+			(XsdDouble::NAN, "NaN"),
+			(XsdDouble(1.5), "1.5E0"),
+			(XsdDouble(-2500.0), "-2.5E3"),
+		] {
+			assert_eq!(value.to_string(), expected);
+			assert_eq!(value.to_lexical_form().as_str(), expected);
+			assert!(expected.parse::<XsdDouble>().is_ok());
+		}
+	}
 
 	// <https://www.w3.org/TR/xmlschema11-2/#double>: "NaN ≠ NaN", and "NaN is
 	// incomparable with any value in the value space including itself".
