@@ -3,9 +3,10 @@ use std::cmp::Ordering;
 use std::fmt;
 use std::hash::{Hash, Hasher};
 use std::ops::{Deref, DerefMut};
+use std::str::FromStr;
 use std::sync::OnceLock;
 
-use crate::{SizedXsdValue, XsdError, XsdValue};
+use crate::{SizedXsdValue, XsdError, XsdFromStr, XsdValue};
 
 /// XSD value with its lexical form.
 ///
@@ -50,6 +51,10 @@ where
 		self.lexical
 			.into_inner()
 			.unwrap_or_else(|| self.value.to_lexical_form())
+	}
+
+	pub fn as_str(&self) -> &str {
+		self.as_lexical_form().borrow()
 	}
 }
 
@@ -182,6 +187,20 @@ impl<T: XsdValue + Hash> Hash for XsdLiteral<T> {
 	}
 }
 
+impl<T: SizedXsdValue> FromStr for XsdLiteral<T> {
+	type Err = XsdError;
+
+	fn from_str(s: &str) -> Result<Self, Self::Err> {
+		Self::from_string(s.to_owned())
+	}
+}
+
+impl<'a, T: SizedXsdValue> XsdFromStr<'a> for XsdLiteral<T> {
+	fn xsd_from_str(lexical_form: &'a str) -> Result<Self, XsdError> {
+		Self::from_str(lexical_form)
+	}
+}
+
 impl<T: XsdValue> fmt::Display for XsdLiteral<T>
 where
 	T::LexicalForm: fmt::Display,
@@ -197,6 +216,30 @@ where
 {
 	fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
 		fmt::Debug::fmt(self.as_lexical_form(), f)
+	}
+}
+
+#[cfg(feature = "serde")]
+impl<T: XsdValue> serde::Serialize for XsdLiteral<T> {
+	fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
+	where
+		S: serde::Serializer,
+	{
+		self.as_lexical_form().borrow().serialize(serializer)
+	}
+}
+
+#[cfg(feature = "serde")]
+impl<'de, T> serde::Deserialize<'de> for XsdLiteral<T>
+where
+	T: SizedXsdValue,
+{
+	fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
+	where
+		D: serde::Deserializer<'de>,
+	{
+		let s = String::deserialize(deserializer)?;
+		XsdLiteral::from_string(s).map_err(serde::de::Error::custom)
 	}
 }
 
