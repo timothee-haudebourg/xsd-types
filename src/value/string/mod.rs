@@ -1,4 +1,4 @@
-use crate::{Datatype, XsdFromStr, XsdTyped, XsdValue};
+use crate::{Datatype, XsdFromStr, XsdTyped, XsdValueDomain};
 
 mod id;
 mod idref;
@@ -31,7 +31,7 @@ impl XsdTyped for XsdString {
 	}
 }
 
-impl XsdValue for XsdString {
+impl XsdValueDomain for XsdString {
 	type LexicalForm = XsdStr;
 
 	fn to_lexical_form(&self) -> XsdString {
@@ -47,7 +47,7 @@ impl<'a> XsdFromStr<'a> for XsdString {
 
 #[cfg(test)]
 mod tests {
-	use crate::{XsdFromStr, XsdValue};
+	use crate::{XsdFromStr, XsdValueDomain};
 
 	#[test]
 	fn lexical_form_round_trip() {

@@ -6,20 +6,20 @@ use std::ops::{Deref, DerefMut};
 use std::str::FromStr;
 use std::sync::OnceLock;
 
-use crate::{SizedXsdValue, XsdError, XsdFromStr, XsdValue};
+use crate::{XsdError, XsdFromStr, XsdSizedValue, XsdValueDomain};
 
 /// XSD value with its lexical form.
 ///
 /// Useful when the same value can have multiple lexical forms, and you want to
 /// remember a specific one.
-pub struct XsdLiteral<T: XsdValue> {
+pub struct XsdLiteral<T: XsdValueDomain> {
 	value: T,
 	lexical: OnceLock<<T::LexicalForm as ToOwned>::Owned>,
 }
 
 impl<T> XsdLiteral<T>
 where
-	T: XsdValue,
+	T: XsdValueDomain,
 {
 	pub fn new(value: T) -> Self {
 		Self {
@@ -58,7 +58,7 @@ where
 	}
 }
 
-impl<T: SizedXsdValue> XsdLiteral<T> {
+impl<T: XsdSizedValue> XsdLiteral<T> {
 	pub fn from_string(value: String) -> Result<Self, XsdError> {
 		Self::try_from_lexical_form(TryFrom::try_from(value).map_err(XsdError::lexical_form)?)
 	}
@@ -87,7 +87,7 @@ impl<T: SizedXsdValue> XsdLiteral<T> {
 	}
 }
 
-impl<T: XsdValue> Deref for XsdLiteral<T> {
+impl<T: XsdValueDomain> Deref for XsdLiteral<T> {
 	type Target = T;
 
 	fn deref(&self) -> &T {
@@ -95,44 +95,44 @@ impl<T: XsdValue> Deref for XsdLiteral<T> {
 	}
 }
 
-impl<T: XsdValue> DerefMut for XsdLiteral<T> {
+impl<T: XsdValueDomain> DerefMut for XsdLiteral<T> {
 	fn deref_mut(&mut self) -> &mut T {
 		self.as_value_mut()
 	}
 }
 
-impl<T: XsdValue> Borrow<T> for XsdLiteral<T> {
+impl<T: XsdValueDomain> Borrow<T> for XsdLiteral<T> {
 	fn borrow(&self) -> &T {
 		self.as_value()
 	}
 }
 
-impl<T: XsdValue> BorrowMut<T> for XsdLiteral<T> {
+impl<T: XsdValueDomain> BorrowMut<T> for XsdLiteral<T> {
 	fn borrow_mut(&mut self) -> &mut T {
 		self.as_value_mut()
 	}
 }
 
-impl<T: XsdValue> AsRef<T> for XsdLiteral<T> {
+impl<T: XsdValueDomain> AsRef<T> for XsdLiteral<T> {
 	fn as_ref(&self) -> &T {
 		self.as_value()
 	}
 }
 
-impl<T: XsdValue> AsMut<T> for XsdLiteral<T> {
+impl<T: XsdValueDomain> AsMut<T> for XsdLiteral<T> {
 	fn as_mut(&mut self) -> &mut T {
 		self.as_value_mut()
 	}
 }
 
-impl<T: XsdValue> From<T> for XsdLiteral<T> {
+impl<T: XsdValueDomain> From<T> for XsdLiteral<T> {
 	fn from(value: T) -> Self {
 		Self::new(value)
 	}
 }
 
 /// Clones the value along with its lexical form, if it has one.
-impl<T: XsdValue + Clone> Clone for XsdLiteral<T> {
+impl<T: XsdValueDomain + Clone> Clone for XsdLiteral<T> {
 	fn clone(&self) -> Self {
 		// `ToOwned::Owned` is not required to be `Clone`, so the lexical form
 		// is copied through `ToOwned::to_owned` instead.
@@ -151,43 +151,43 @@ impl<T: XsdValue + Clone> Clone for XsdLiteral<T> {
 	}
 }
 
-impl<T: XsdValue + Default> Default for XsdLiteral<T> {
+impl<T: XsdValueDomain + Default> Default for XsdLiteral<T> {
 	fn default() -> Self {
 		Self::new(T::default())
 	}
 }
 
 /// Compares the values only, ignoring the lexical forms.
-impl<T: XsdValue + PartialEq> PartialEq for XsdLiteral<T> {
+impl<T: XsdValueDomain + PartialEq> PartialEq for XsdLiteral<T> {
 	fn eq(&self, other: &Self) -> bool {
 		self.value == other.value
 	}
 }
 
-impl<T: XsdValue + Eq> Eq for XsdLiteral<T> {}
+impl<T: XsdValueDomain + Eq> Eq for XsdLiteral<T> {}
 
 /// Compares the values only, ignoring the lexical forms.
-impl<T: XsdValue + PartialOrd> PartialOrd for XsdLiteral<T> {
+impl<T: XsdValueDomain + PartialOrd> PartialOrd for XsdLiteral<T> {
 	fn partial_cmp(&self, other: &Self) -> Option<Ordering> {
 		self.value.partial_cmp(&other.value)
 	}
 }
 
 /// Compares the values only, ignoring the lexical forms.
-impl<T: XsdValue + Ord> Ord for XsdLiteral<T> {
+impl<T: XsdValueDomain + Ord> Ord for XsdLiteral<T> {
 	fn cmp(&self, other: &Self) -> Ordering {
 		self.value.cmp(&other.value)
 	}
 }
 
 /// Hashes the value only, ignoring the lexical form.
-impl<T: XsdValue + Hash> Hash for XsdLiteral<T> {
+impl<T: XsdValueDomain + Hash> Hash for XsdLiteral<T> {
 	fn hash<H: Hasher>(&self, state: &mut H) {
 		self.value.hash(state)
 	}
 }
 
-impl<T: SizedXsdValue> FromStr for XsdLiteral<T> {
+impl<T: XsdSizedValue> FromStr for XsdLiteral<T> {
 	type Err = XsdError;
 
 	fn from_str(s: &str) -> Result<Self, Self::Err> {
@@ -195,13 +195,13 @@ impl<T: SizedXsdValue> FromStr for XsdLiteral<T> {
 	}
 }
 
-impl<'a, T: SizedXsdValue> XsdFromStr<'a> for XsdLiteral<T> {
+impl<'a, T: XsdSizedValue> XsdFromStr<'a> for XsdLiteral<T> {
 	fn xsd_from_str(lexical_form: &'a str) -> Result<Self, XsdError> {
 		Self::from_str(lexical_form)
 	}
 }
 
-impl<T: XsdValue> fmt::Display for XsdLiteral<T>
+impl<T: XsdValueDomain> fmt::Display for XsdLiteral<T>
 where
 	T::LexicalForm: fmt::Display,
 {
@@ -210,7 +210,7 @@ where
 	}
 }
 
-impl<T: XsdValue> fmt::Debug for XsdLiteral<T>
+impl<T: XsdValueDomain> fmt::Debug for XsdLiteral<T>
 where
 	T::LexicalForm: fmt::Debug,
 {
@@ -220,7 +220,7 @@ where
 }
 
 #[cfg(feature = "serde")]
-impl<T: XsdValue> serde::Serialize for XsdLiteral<T> {
+impl<T: XsdValueDomain> serde::Serialize for XsdLiteral<T> {
 	fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
 	where
 		S: serde::Serializer,
@@ -232,7 +232,7 @@ impl<T: XsdValue> serde::Serialize for XsdLiteral<T> {
 #[cfg(feature = "serde")]
 impl<'de, T> serde::Deserialize<'de> for XsdLiteral<T>
 where
-	T: SizedXsdValue,
+	T: XsdSizedValue,
 {
 	fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
 	where

@@ -5,7 +5,7 @@ use std::{
 	str::FromStr,
 };
 
-use crate::{Datatype, XsdFromStr, XsdTyped, XsdValue, lexical};
+use crate::{Datatype, XsdFromStr, XsdTyped, XsdValueDomain, lexical};
 
 /// Value space of the XSD `double` datatype.
 ///
@@ -129,7 +129,7 @@ impl XsdTyped for XsdDouble {
 	}
 }
 
-impl XsdValue for XsdDouble {
+impl XsdValueDomain for XsdDouble {
 	type LexicalForm = lexical::XsdDoubleStr;
 
 	fn to_lexical_form(&self) -> lexical::XsdDoubleString {

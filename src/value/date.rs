@@ -1,5 +1,5 @@
 use crate::{
-	Datatype, DisplayYear, XsdFromStr, XsdTyped, XsdValue, format_timezone, is_valid_offset,
+	Datatype, DisplayYear, XsdFromStr, XsdTyped, XsdValueDomain, format_timezone, is_valid_offset,
 	lexical::InvalidXsdDateStr, seven_property_model_eq, seven_property_model_partial_cmp,
 };
 use core::fmt;
@@ -117,7 +117,7 @@ impl XsdTyped for XsdDate {
 	}
 }
 
-impl XsdValue for XsdDate {
+impl XsdValueDomain for XsdDate {
 	type LexicalForm = crate::lexical::XsdDateStr;
 
 	fn to_lexical_form(&self) -> crate::lexical::XsdDateString {
@@ -188,7 +188,7 @@ impl<'de> serde::Deserialize<'de> for XsdDate {
 #[cfg(test)]
 mod tests {
 	use super::XsdDate;
-	use crate::XsdValue;
+	use crate::XsdValueDomain;
 
 	#[test]
 	fn to_lexical_form_roundtrip() {

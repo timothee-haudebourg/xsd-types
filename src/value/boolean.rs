@@ -1,6 +1,6 @@
 use core::{fmt, str::FromStr};
 
-use crate::{Datatype, XsdFromStr, XsdTyped, XsdValue, lexical};
+use crate::{Datatype, XsdFromStr, XsdTyped, XsdValueDomain, lexical};
 
 /// Boolean value.
 ///
@@ -27,7 +27,7 @@ impl XsdTyped for XsdBoolean {
 	}
 }
 
-impl XsdValue for XsdBoolean {
+impl XsdValueDomain for XsdBoolean {
 	type LexicalForm = lexical::XsdBooleanStr;
 
 	fn to_lexical_form(&self) -> lexical::XsdBooleanString {
@@ -101,7 +101,7 @@ impl<'de> serde::Deserialize<'de> for XsdBoolean {
 #[cfg(test)]
 mod tests {
 	use super::XsdBoolean;
-	use crate::XsdValue;
+	use crate::XsdValueDomain;
 
 	#[test]
 	fn to_lexical_form_roundtrip() {

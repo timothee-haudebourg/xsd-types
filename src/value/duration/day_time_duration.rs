@@ -1,5 +1,5 @@
 use crate::{
-	Datatype, DurationDatatype, XsdFromStr, XsdTyped, XsdValue, format_nanoseconds,
+	Datatype, DurationDatatype, XsdFromStr, XsdTyped, XsdValueDomain, format_nanoseconds,
 	lexical::duration::InvalidXsdDayTimeDurationStr,
 };
 use core::fmt;
@@ -103,7 +103,7 @@ impl XsdTyped for XsdDayTimeDuration {
 	}
 }
 
-impl XsdValue for XsdDayTimeDuration {
+impl XsdValueDomain for XsdDayTimeDuration {
 	type LexicalForm = crate::lexical::XsdDayTimeDurationStr;
 
 	fn to_lexical_form(&self) -> crate::lexical::XsdDayTimeDurationString {

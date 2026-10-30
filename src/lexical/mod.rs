@@ -82,7 +82,7 @@ pub use time::{InvalidXsdTimeStr, XsdTimeStr, XsdTimeString};
 /// Lexical type.
 pub trait XsdLexicalForm: Borrow<str> + ToOwned<Owned: TryFrom<String, Error: ToString>> {
 	/// XSD value domain.
-	type Value: ?Sized + XsdValue;
+	type Value: ?Sized + XsdValueDomain;
 }
 
 macro_rules! lexical_form {
@@ -160,4 +160,4 @@ macro_rules! lexical_form {
 
 pub(crate) use lexical_form;
 
-use crate::XsdValue;
+use crate::XsdValueDomain;

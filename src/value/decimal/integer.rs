@@ -11,7 +11,7 @@ use num_traits::{Signed, Zero};
 use crate::{
 	Datatype, IntDatatype, IntegerDatatype, LongDatatype, NonNegativeIntegerDatatype,
 	NonPositiveIntegerDatatype, ShortDatatype, UnsignedIntDatatype, UnsignedLongDatatype,
-	UnsignedShortDatatype, XsdFromStr, XsdTyped, XsdValue, lexical,
+	UnsignedShortDatatype, XsdFromStr, XsdTyped, XsdValueDomain, lexical,
 };
 
 use super::{I8_MIN, I16_MIN, I32_MIN, I64_MIN, Sign, U8_MAX, U16_MAX, U32_MAX, U64_MAX};
@@ -177,7 +177,7 @@ impl XsdTyped for XsdInteger {
 	}
 }
 
-impl XsdValue for XsdInteger {
+impl XsdValueDomain for XsdInteger {
 	type LexicalForm = lexical::XsdIntegerStr;
 
 	fn to_lexical_form(&self) -> lexical::XsdIntegerString {
@@ -371,7 +371,7 @@ impl XsdTyped for XsdLong {
 	}
 }
 
-impl XsdValue for XsdLong {
+impl XsdValueDomain for XsdLong {
 	type LexicalForm = lexical::XsdIntegerStr;
 
 	fn to_lexical_form(&self) -> lexical::XsdIntegerString {
@@ -409,7 +409,7 @@ impl XsdTyped for XsdInt {
 	}
 }
 
-impl XsdValue for XsdInt {
+impl XsdValueDomain for XsdInt {
 	type LexicalForm = lexical::XsdIntegerStr;
 
 	fn to_lexical_form(&self) -> lexical::XsdIntegerString {
@@ -445,7 +445,7 @@ impl XsdTyped for XsdShort {
 	}
 }
 
-impl XsdValue for XsdShort {
+impl XsdValueDomain for XsdShort {
 	type LexicalForm = lexical::XsdIntegerStr;
 
 	fn to_lexical_form(&self) -> lexical::XsdIntegerString {
@@ -467,7 +467,7 @@ impl XsdTyped for XsdByte {
 	}
 }
 
-impl XsdValue for XsdByte {
+impl XsdValueDomain for XsdByte {
 	type LexicalForm = lexical::XsdIntegerStr;
 
 	fn to_lexical_form(&self) -> lexical::XsdIntegerString {

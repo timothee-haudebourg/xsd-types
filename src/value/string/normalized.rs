@@ -191,7 +191,7 @@ impl crate::XsdTyped for XsdNormalizedString {
 	}
 }
 
-impl crate::XsdValue for XsdNormalizedString {
+impl crate::XsdValueDomain for XsdNormalizedString {
 	type LexicalForm = XsdNormalizedStr;
 
 	fn to_lexical_form(&self) -> XsdNormalizedString {
@@ -201,7 +201,7 @@ impl crate::XsdValue for XsdNormalizedString {
 
 #[cfg(test)]
 mod tests {
-	use crate::{XsdFromStr, XsdValue};
+	use crate::{XsdFromStr, XsdValueDomain};
 
 	use super::XsdNormalizedString;
 

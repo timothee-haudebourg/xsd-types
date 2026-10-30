@@ -12,7 +12,7 @@ impl crate::XsdTyped for XsdQNameBuf {
 	}
 }
 
-impl crate::XsdValue for XsdQNameBuf {
+impl crate::XsdValueDomain for XsdQNameBuf {
 	type LexicalForm = XsdQName;
 
 	fn to_lexical_form(&self) -> XsdQNameBuf {
@@ -25,7 +25,7 @@ impl crate::XsdValue for XsdQNameBuf {
 #[cfg(test)]
 mod tests {
 	use super::*;
-	use crate::{XsdFromStr, XsdValue};
+	use crate::{XsdFromStr, XsdValueDomain};
 
 	#[test]
 	fn to_lexical_form_round_trips() {

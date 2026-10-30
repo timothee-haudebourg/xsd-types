@@ -12,7 +12,7 @@ impl crate::XsdTyped for XsdNMTokenBuf {
 	}
 }
 
-impl crate::XsdValue for XsdNMTokenBuf {
+impl crate::XsdValueDomain for XsdNMTokenBuf {
 	type LexicalForm = XsdNMToken;
 
 	fn to_lexical_form(&self) -> XsdNMTokenBuf {
@@ -22,7 +22,7 @@ impl crate::XsdValue for XsdNMTokenBuf {
 
 #[cfg(test)]
 mod tests {
-	use crate::{XsdFromStr, XsdValue};
+	use crate::{XsdFromStr, XsdValueDomain};
 
 	use super::XsdNMTokenBuf;
 

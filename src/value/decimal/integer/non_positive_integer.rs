@@ -9,7 +9,7 @@ use num_bigint::{BigInt, TryFromBigIntError};
 use num_traits::{Signed, Zero};
 
 use crate::{
-	Datatype, NonPositiveIntegerDatatype, XsdFromStr, XsdInteger, XsdTyped, XsdValue,
+	Datatype, NonPositiveIntegerDatatype, XsdFromStr, XsdInteger, XsdTyped, XsdValueDomain,
 	impl_integer_arithmetic, lexical,
 };
 
@@ -139,7 +139,7 @@ impl XsdTyped for XsdNonPositiveInteger {
 	}
 }
 
-impl XsdValue for XsdNonPositiveInteger {
+impl XsdValueDomain for XsdNonPositiveInteger {
 	type LexicalForm = lexical::XsdNonPositiveIntegerStr;
 
 	fn to_lexical_form(&self) -> lexical::XsdNonPositiveIntegerString {
@@ -403,7 +403,7 @@ impl XsdTyped for XsdNegativeInteger {
 	}
 }
 
-impl XsdValue for XsdNegativeInteger {
+impl XsdValueDomain for XsdNegativeInteger {
 	type LexicalForm = lexical::XsdNegativeIntegerStr;
 
 	fn to_lexical_form(&self) -> lexical::XsdNegativeIntegerString {

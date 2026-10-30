@@ -1,8 +1,8 @@
 use std::{cmp::Ordering, fmt, hash::Hash, str::FromStr};
 
 use crate::{
-	Datatype, DateTimeDatatype, DisplayYear, XsdFromStr, XsdTyped, XsdValue, format_nanoseconds,
-	format_timezone, lexical::date_time::InvalidXsdDateTimeStampStr,
+	Datatype, DateTimeDatatype, DisplayYear, XsdFromStr, XsdTyped, XsdValueDomain,
+	format_nanoseconds, format_timezone, lexical::date_time::InvalidXsdDateTimeStampStr,
 };
 
 /// Error raised when the components of a [`XsdDateTimeStamp`] do not form a
@@ -168,7 +168,7 @@ impl XsdTyped for XsdDateTimeStamp {
 	}
 }
 
-impl XsdValue for XsdDateTimeStamp {
+impl XsdValueDomain for XsdDateTimeStamp {
 	type LexicalForm = crate::lexical::XsdDateTimeStampStr;
 
 	fn to_lexical_form(&self) -> crate::lexical::XsdDateTimeStampString {
@@ -323,7 +323,7 @@ mod tests {
 	#[test]
 	fn to_lexical_form_roundtrip() {
 		use super::XsdDateTimeStamp;
-		use crate::XsdValue;
+		use crate::XsdValueDomain;
 
 		for s in [
 			"2024-02-29T12:30:45Z",

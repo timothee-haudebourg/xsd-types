@@ -12,7 +12,7 @@ use num_traits::{Signed, ToPrimitive, Zero};
 use crate::{
 	Datatype, DecimalDatatype, IntDatatype, LongDatatype, NonNegativeIntegerDatatype,
 	NonPositiveIntegerDatatype, ShortDatatype, UnsignedIntDatatype, UnsignedLongDatatype,
-	UnsignedShortDatatype, XsdDouble, XsdFloat, XsdFromStr, XsdTyped, XsdValue, lexical,
+	UnsignedShortDatatype, XsdDouble, XsdFloat, XsdFromStr, XsdTyped, XsdValueDomain, lexical,
 };
 
 /// Sign of a decimal or integer value, re-exported from [`num_bigint`].
@@ -517,7 +517,7 @@ impl XsdTyped for XsdDecimal {
 	}
 }
 
-impl XsdValue for XsdDecimal {
+impl XsdValueDomain for XsdDecimal {
 	type LexicalForm = lexical::XsdDecimalStr;
 
 	/// Returns the canonical lexical form of this decimal number.

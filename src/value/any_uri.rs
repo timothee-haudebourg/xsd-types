@@ -1,4 +1,4 @@
-use crate::{Datatype, XsdFromStr, XsdTyped, XsdValue};
+use crate::{Datatype, XsdFromStr, XsdTyped, XsdValueDomain};
 
 /// IRI, used as the value-space representation of the XSD 1.1 `anyURI`
 /// datatype.
@@ -22,7 +22,7 @@ impl XsdTyped for XsdAnyUriBuf {
 	}
 }
 
-impl XsdValue for XsdAnyUriBuf {
+impl XsdValueDomain for XsdAnyUriBuf {
 	type LexicalForm = XsdAnyUri;
 
 	fn to_lexical_form(&self) -> XsdAnyUriBuf {

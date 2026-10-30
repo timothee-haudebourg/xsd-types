@@ -1,8 +1,8 @@
 use std::{cmp::Ordering, fmt, hash::Hash, str::FromStr};
 
 use crate::{
-	Datatype, DateTimeDatatype, XsdFromStr, XsdTyped, XsdValue, lexical::InvalidXsdDateTimeStr,
-	utils::div_rem,
+	Datatype, DateTimeDatatype, XsdFromStr, XsdTyped, XsdValueDomain,
+	lexical::InvalidXsdDateTimeStr, utils::div_rem,
 };
 
 mod date_time_stamp;
@@ -250,7 +250,7 @@ impl XsdTyped for XsdDateTime {
 	}
 }
 
-impl XsdValue for XsdDateTime {
+impl XsdValueDomain for XsdDateTime {
 	type LexicalForm = crate::lexical::XsdDateTimeStr;
 
 	fn to_lexical_form(&self) -> crate::lexical::XsdDateTimeString {
@@ -487,7 +487,7 @@ impl<'de> serde::Deserialize<'de> for XsdDateTime {
 #[cfg(test)]
 mod tests {
 	use super::{XsdDateTime, XsdDateTimeStamp, seven_property_model_date_time};
-	use crate::XsdValue;
+	use crate::XsdValueDomain;
 
 	#[test]
 	fn to_lexical_form_roundtrip() {

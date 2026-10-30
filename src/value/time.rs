@@ -1,7 +1,7 @@
 use crate::{
-	Datatype, XsdFromStr, XsdTyped, XsdValue, format_nanoseconds, format_timezone, is_valid_offset,
-	lexical::InvalidXsdTimeStr, seven_property_model_date_time, seven_property_model_eq,
-	seven_property_model_partial_cmp,
+	Datatype, XsdFromStr, XsdTyped, XsdValueDomain, format_nanoseconds, format_timezone,
+	is_valid_offset, lexical::InvalidXsdTimeStr, seven_property_model_date_time,
+	seven_property_model_eq, seven_property_model_partial_cmp,
 };
 use core::fmt;
 use std::{cmp::Ordering, hash::Hash, str::FromStr};
@@ -96,7 +96,7 @@ impl XsdTyped for XsdTime {
 	}
 }
 
-impl XsdValue for XsdTime {
+impl XsdValueDomain for XsdTime {
 	type LexicalForm = crate::lexical::XsdTimeStr;
 
 	fn to_lexical_form(&self) -> crate::lexical::XsdTimeString {
@@ -190,7 +190,7 @@ impl<'de> serde::Deserialize<'de> for XsdTime {
 #[cfg(test)]
 mod tests {
 	use super::XsdTime;
-	use crate::XsdValue;
+	use crate::XsdValueDomain;
 
 	#[test]
 	fn to_lexical_form_roundtrip() {

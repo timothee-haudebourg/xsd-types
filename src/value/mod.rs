@@ -54,7 +54,7 @@ use crate::{Datatype, Value, ValueRef, lexical::XsdLexicalForm};
 ///
 /// Code serializing values (e.g. to RDF literals) is allowed to rely on this
 /// guarantee and use `to_string()` instead of going through the lexical form.
-pub trait XsdValue: XsdTyped {
+pub trait XsdValueDomain: XsdTyped {
 	/// Lexical form of the value.
 	type LexicalForm: ?Sized + XsdLexicalForm;
 
@@ -62,13 +62,13 @@ pub trait XsdValue: XsdTyped {
 	fn to_lexical_form(&self) -> <Self::LexicalForm as ToOwned>::Owned;
 }
 
-pub trait SizedXsdValue:
-	Sized + XsdValue + for<'a> TryFrom<&'a Self::LexicalForm, Error: ToString>
+pub trait XsdSizedValue:
+	Sized + XsdValueDomain + for<'a> TryFrom<&'a Self::LexicalForm, Error: ToString>
 {
 }
 
-impl<T> SizedXsdValue for T where
-	T: Sized + XsdValue + for<'a> TryFrom<&'a Self::LexicalForm, Error: ToString>
+impl<T> XsdSizedValue for T where
+	T: Sized + XsdValueDomain + for<'a> TryFrom<&'a Self::LexicalForm, Error: ToString>
 {
 }
 

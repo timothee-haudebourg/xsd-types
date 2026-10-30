@@ -210,7 +210,7 @@ impl crate::XsdTyped for XsdTokenBuf {
 	}
 }
 
-impl crate::XsdValue for XsdTokenBuf {
+impl crate::XsdValueDomain for XsdTokenBuf {
 	type LexicalForm = XsdToken;
 
 	fn to_lexical_form(&self) -> XsdTokenBuf {
@@ -220,7 +220,7 @@ impl crate::XsdValue for XsdTokenBuf {
 
 #[cfg(test)]
 mod tests {
-	use crate::{XsdFromStr, XsdValue};
+	use crate::{XsdFromStr, XsdValueDomain};
 
 	use super::XsdTokenBuf;
 

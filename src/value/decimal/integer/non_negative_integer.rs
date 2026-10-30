@@ -10,8 +10,8 @@ use num_traits::{Signed, Zero};
 
 use crate::{
 	Datatype, NonNegativeIntegerDatatype, UnsignedIntDatatype, UnsignedLongDatatype,
-	UnsignedShortDatatype, XsdFromStr, XsdInteger, XsdTyped, XsdValue, impl_integer_arithmetic,
-	lexical,
+	UnsignedShortDatatype, XsdFromStr, XsdInteger, XsdTyped, XsdValueDomain,
+	impl_integer_arithmetic, lexical,
 	value::decimal::{U8_MAX, U16_MAX, U32_MAX, U64_MAX},
 };
 
@@ -148,7 +148,7 @@ impl XsdTyped for XsdNonNegativeInteger {
 	}
 }
 
-impl XsdValue for XsdNonNegativeInteger {
+impl XsdValueDomain for XsdNonNegativeInteger {
 	type LexicalForm = lexical::XsdNonNegativeIntegerStr;
 
 	fn to_lexical_form(&self) -> lexical::XsdNonNegativeIntegerString {
@@ -350,7 +350,7 @@ impl XsdTyped for XsdUnsignedLong {
 	}
 }
 
-impl XsdValue for XsdUnsignedLong {
+impl XsdValueDomain for XsdUnsignedLong {
 	type LexicalForm = lexical::XsdNonNegativeIntegerStr;
 
 	fn to_lexical_form(&self) -> lexical::XsdNonNegativeIntegerString {
@@ -388,7 +388,7 @@ impl XsdTyped for XsdUnsignedInt {
 	}
 }
 
-impl XsdValue for XsdUnsignedInt {
+impl XsdValueDomain for XsdUnsignedInt {
 	type LexicalForm = lexical::XsdNonNegativeIntegerStr;
 
 	fn to_lexical_form(&self) -> lexical::XsdNonNegativeIntegerString {
@@ -424,7 +424,7 @@ impl XsdTyped for XsdUnsignedShort {
 	}
 }
 
-impl XsdValue for XsdUnsignedShort {
+impl XsdValueDomain for XsdUnsignedShort {
 	type LexicalForm = lexical::XsdNonNegativeIntegerStr;
 
 	fn to_lexical_form(&self) -> lexical::XsdNonNegativeIntegerString {
@@ -446,7 +446,7 @@ impl XsdTyped for XsdUnsignedByte {
 	}
 }
 
-impl XsdValue for XsdUnsignedByte {
+impl XsdValueDomain for XsdUnsignedByte {
 	type LexicalForm = lexical::XsdNonNegativeIntegerStr;
 
 	fn to_lexical_form(&self) -> lexical::XsdNonNegativeIntegerString {
@@ -554,7 +554,7 @@ impl XsdTyped for XsdPositiveInteger {
 	}
 }
 
-impl XsdValue for XsdPositiveInteger {
+impl XsdValueDomain for XsdPositiveInteger {
 	type LexicalForm = lexical::XsdPositiveIntegerStr;
 
 	fn to_lexical_form(&self) -> lexical::XsdPositiveIntegerString {

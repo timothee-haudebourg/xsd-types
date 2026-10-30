@@ -5,7 +5,7 @@ use std::{
 	str::FromStr,
 };
 
-use crate::{Datatype, XsdFromStr, XsdTyped, XsdValue, lexical};
+use crate::{Datatype, XsdFromStr, XsdTyped, XsdValueDomain, lexical};
 
 const CHARS: [char; 16] = [
 	'0', '1', '2', '3', '4', '5', '6', '7', '8', '9', 'A', 'B', 'C', 'D', 'E', 'F',
@@ -145,7 +145,7 @@ impl XsdTyped for XsdHexBinaryBuf {
 	}
 }
 
-impl XsdValue for XsdHexBinaryBuf {
+impl XsdValueDomain for XsdHexBinaryBuf {
 	type LexicalForm = lexical::XsdHexBinaryStr;
 
 	fn to_lexical_form(&self) -> lexical::XsdHexBinaryString {
