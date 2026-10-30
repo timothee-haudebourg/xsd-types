@@ -249,8 +249,8 @@ impl XsdBase64Binary {
 
 	/// Returns an iterator over the base64-encoded characters representing
 	/// this value.
-	pub fn chars(&self) -> Chars<'_> {
-		Chars {
+	pub fn chars(&self) -> XsdBase64BinaryChars<'_> {
+		XsdBase64BinaryChars {
 			offset: 0,
 			rest: 0,
 			padding: false,
@@ -302,14 +302,14 @@ impl ToOwned for XsdBase64Binary {
 
 /// Iterator over the base64-encoded characters representing a
 /// [`XsdBase64Binary`] value.
-pub struct Chars<'a> {
+pub struct XsdBase64BinaryChars<'a> {
 	offset: u8,
 	rest: u8,
 	padding: bool,
 	bytes: std::slice::Iter<'a, u8>,
 }
 
-impl<'a> Iterator for Chars<'a> {
+impl<'a> Iterator for XsdBase64BinaryChars<'a> {
 	type Item = char;
 
 	fn next(&mut self) -> Option<Self::Item> {

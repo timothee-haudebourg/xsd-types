@@ -19,8 +19,8 @@ use super::XsdLexicalForm;
 pub struct XsdGDayStr(str);
 
 impl XsdGDayStr {
-	pub fn parts(&self) -> Parts<'_> {
-		Parts {
+	pub fn parts(&self) -> XsdGDayParts<'_> {
+		XsdGDayParts {
 			day: &self.0[3..5],
 			timezone: if self.0.len() > 5 {
 				Some(&self.0[5..])
@@ -48,12 +48,12 @@ impl<'a> From<&'a XsdGDayStr> for crate::XsdGDay {
 }
 
 #[derive(Debug, PartialEq, Eq)]
-pub struct Parts<'a> {
+pub struct XsdGDayParts<'a> {
 	pub day: &'a str,
 	pub timezone: Option<&'a str>,
 }
 
-impl<'a> Parts<'a> {
+impl<'a> XsdGDayParts<'a> {
 	pub fn new(day: &'a str, timezone: Option<&'a str>) -> Self {
 		Self { day, timezone }
 	}
@@ -74,9 +74,9 @@ mod tests {
 	#[test]
 	fn parsing() {
 		let vectors = [
-			("---12", Parts::new("12", None)),
-			("---31Z", Parts::new("31", Some("Z"))),
-			("---20+05:00", Parts::new("20", Some("+05:00"))),
+			("---12", XsdGDayParts::new("12", None)),
+			("---31Z", XsdGDayParts::new("31", Some("Z"))),
+			("---20+05:00", XsdGDayParts::new("20", Some("+05:00"))),
 		];
 
 		for (input, parts) in vectors {

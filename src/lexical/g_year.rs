@@ -19,11 +19,11 @@ use super::XsdLexicalForm;
 pub struct XsdGYearStr(str);
 
 impl XsdGYearStr {
-	pub fn parts(&self) -> Parts<'_> {
+	pub fn parts(&self) -> XsdGYearParts<'_> {
 		let year_end =
 			byte_index_of(self.0.as_bytes(), 4, [b'+', b'-', b'Z']).unwrap_or(self.0.len());
 
-		Parts {
+		XsdGYearParts {
 			year: &self.0[..year_end],
 			timezone: if self.0.len() > year_end {
 				Some(&self.0[year_end..])
@@ -51,12 +51,12 @@ impl<'a> From<&'a XsdGYearStr> for crate::XsdGYear {
 }
 
 #[derive(Debug, PartialEq, Eq)]
-pub struct Parts<'a> {
+pub struct XsdGYearParts<'a> {
 	pub year: &'a str,
 	pub timezone: Option<&'a str>,
 }
 
-impl<'a> Parts<'a> {
+impl<'a> XsdGYearParts<'a> {
 	pub fn new(year: &'a str, timezone: Option<&'a str>) -> Self {
 		Self { year, timezone }
 	}
@@ -79,9 +79,9 @@ mod tests {
 	#[test]
 	fn parsing() {
 		let vectors = [
-			("2014", Parts::new("2014", None)),
-			("-0001Z", Parts::new("-0001", Some("Z"))),
-			("10000+05:00", Parts::new("10000", Some("+05:00"))),
+			("2014", XsdGYearParts::new("2014", None)),
+			("-0001Z", XsdGYearParts::new("-0001", Some("Z"))),
+			("10000+05:00", XsdGYearParts::new("10000", Some("+05:00"))),
 		];
 
 		for (input, parts) in vectors {

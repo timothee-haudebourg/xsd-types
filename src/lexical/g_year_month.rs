@@ -20,11 +20,11 @@ use super::XsdLexicalForm;
 pub struct XsdGYearMonthStr(str);
 
 impl XsdGYearMonthStr {
-	pub fn parts(&self) -> Parts<'_> {
+	pub fn parts(&self) -> XsdGYearMonthParts<'_> {
 		let year_end = byte_index_of(self.0.as_bytes(), 4, b'-').unwrap();
 		let month_end = year_end + 3;
 
-		Parts {
+		XsdGYearMonthParts {
 			year: &self.0[..year_end],
 			month: &self.0[(year_end + 1)..month_end],
 			timezone: if self.0.len() > month_end {
@@ -54,13 +54,13 @@ impl<'a> From<&'a XsdGYearMonthStr> for crate::XsdGYearMonth {
 }
 
 #[derive(Debug, PartialEq, Eq)]
-pub struct Parts<'a> {
+pub struct XsdGYearMonthParts<'a> {
 	pub year: &'a str,
 	pub month: &'a str,
 	pub timezone: Option<&'a str>,
 }
 
-impl<'a> Parts<'a> {
+impl<'a> XsdGYearMonthParts<'a> {
 	pub fn new(year: &'a str, month: &'a str, timezone: Option<&'a str>) -> Self {
 		Self {
 			year,
@@ -86,9 +86,15 @@ mod tests {
 	#[test]
 	fn parsing() {
 		let vectors = [
-			("2014-01", Parts::new("2014", "01", None)),
-			("-0001-02Z", Parts::new("-0001", "02", Some("Z"))),
-			("10000-03+05:00", Parts::new("10000", "03", Some("+05:00"))),
+			("2014-01", XsdGYearMonthParts::new("2014", "01", None)),
+			(
+				"-0001-02Z",
+				XsdGYearMonthParts::new("-0001", "02", Some("Z")),
+			),
+			(
+				"10000-03+05:00",
+				XsdGYearMonthParts::new("10000", "03", Some("+05:00")),
+			),
 		];
 
 		for (input, parts) in vectors {

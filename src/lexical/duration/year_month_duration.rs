@@ -27,14 +27,14 @@ use str_newtype::StrNewType;
 pub struct XsdYearMonthDurationStr(str);
 
 impl XsdYearMonthDurationStr {
-	pub fn parts(&self) -> Parts<'_> {
+	pub fn parts(&self) -> XsdYearMonthDurationParts<'_> {
 		enum State {
 			Sign,
 			DateNumber,
 		}
 
 		let mut state = State::Sign;
-		let mut result = Parts {
+		let mut result = XsdYearMonthDurationParts {
 			is_negative: false,
 			year: None,
 			month: None,
@@ -93,13 +93,13 @@ impl<'a> From<&'a XsdYearMonthDurationStr> for crate::XsdYearMonthDuration {
 }
 
 #[derive(Debug, PartialEq, Eq)]
-pub struct Parts<'a> {
+pub struct XsdYearMonthDurationParts<'a> {
 	pub is_negative: bool,
 	pub year: Option<&'a str>,
 	pub month: Option<&'a str>,
 }
 
-impl<'a> Parts<'a> {
+impl<'a> XsdYearMonthDurationParts<'a> {
 	pub fn new(is_negative: bool, year: Option<&'a str>, month: Option<&'a str>) -> Self {
 		Self {
 			is_negative,
@@ -131,9 +131,21 @@ mod tests {
 	#[test]
 	fn parsing() {
 		let vectors = [
-			("P9Y11M", Parts::new(false, Some("9"), Some("11")), "P9Y11M"),
-			("P9Y12M", Parts::new(false, Some("9"), Some("12")), "P10Y"),
-			("-P9Y12M", Parts::new(true, Some("9"), Some("12")), "-P10Y"),
+			(
+				"P9Y11M",
+				XsdYearMonthDurationParts::new(false, Some("9"), Some("11")),
+				"P9Y11M",
+			),
+			(
+				"P9Y12M",
+				XsdYearMonthDurationParts::new(false, Some("9"), Some("12")),
+				"P10Y",
+			),
+			(
+				"-P9Y12M",
+				XsdYearMonthDurationParts::new(true, Some("9"), Some("12")),
+				"-P10Y",
+			),
 		];
 
 		for (input, parts, normalized) in vectors {

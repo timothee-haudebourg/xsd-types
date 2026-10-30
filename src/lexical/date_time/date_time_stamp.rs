@@ -22,7 +22,7 @@ use super::{XsdLexicalForm, parse_timezone};
 pub struct XsdDateTimeStampStr(str);
 
 impl XsdDateTimeStampStr {
-	pub fn parts(&self) -> Parts<'_> {
+	pub fn parts(&self) -> XsdDateTimeStampParts<'_> {
 		let year_end = byte_index_of(self.0.as_bytes(), 4, b'-').unwrap();
 		let month_end = year_end + 3;
 		let day_end = month_end + 3;
@@ -31,7 +31,7 @@ impl XsdDateTimeStampStr {
 		let second_end = byte_index_of(self.0.as_bytes(), minute_end + 3, [b'+', b'-', b'Z'])
 			.unwrap_or(self.0.len());
 
-		Parts {
+		XsdDateTimeStampParts {
 			year: &self.0[..year_end],
 			month: &self.0[(year_end + 1)..month_end],
 			day: &self.0[(month_end + 1)..day_end],
@@ -63,7 +63,7 @@ impl<'a> TryFrom<&'a XsdDateTimeStampStr> for crate::XsdDateTimeStamp {
 }
 
 #[derive(Debug, PartialEq, Eq)]
-pub struct Parts<'a> {
+pub struct XsdDateTimeStampParts<'a> {
 	pub year: &'a str,
 	pub month: &'a str,
 	pub day: &'a str,
@@ -73,7 +73,7 @@ pub struct Parts<'a> {
 	pub timezone: &'a str,
 }
 
-impl<'a> Parts<'a> {
+impl<'a> XsdDateTimeStampParts<'a> {
 	pub fn new(
 		year: &'a str,
 		month: &'a str,
@@ -147,15 +147,15 @@ mod tests {
 		let vectors = [
 			(
 				"2002-05-31T13:07:12+01:00",
-				Parts::new("2002", "05", "31", "13", "07", "12", "+01:00"),
+				XsdDateTimeStampParts::new("2002", "05", "31", "13", "07", "12", "+01:00"),
 			),
 			(
 				"-2002-05-31T13:07:12+01:00",
-				Parts::new("-2002", "05", "31", "13", "07", "12", "+01:00"),
+				XsdDateTimeStampParts::new("-2002", "05", "31", "13", "07", "12", "+01:00"),
 			),
 			(
 				"2002-10-10T12:00:00-05:00",
-				Parts::new("2002", "10", "10", "12", "00", "00", "-05:00"),
+				XsdDateTimeStampParts::new("2002", "10", "10", "12", "00", "00", "-05:00"),
 			),
 		];
 
@@ -176,11 +176,11 @@ mod tests {
 		let vectors = [
 			(
 				"202002-10-10T12:00:00.00001-05:00",
-				Parts::new("202002", "10", "10", "12", "00", "00.00001", "-05:00"),
+				XsdDateTimeStampParts::new("202002", "10", "10", "12", "00", "00.00001", "-05:00"),
 			),
 			(
 				"-202002-10-10T12:00:00.00001-05:00",
-				Parts::new("-202002", "10", "10", "12", "00", "00.00001", "-05:00"),
+				XsdDateTimeStampParts::new("-202002", "10", "10", "12", "00", "00.00001", "-05:00"),
 			),
 		];
 

@@ -92,17 +92,17 @@ impl fmt::Debug for XsdDecimal {
 /// This way running the check for multiple rational numbers can be slightly
 /// more efficient.
 #[derive(Default)]
-pub struct DecimalCheck {
+pub struct XsdDecimalCheck {
 	set: HashSet<BigInt>,
 }
 
-impl DecimalCheck {
+impl XsdDecimalCheck {
 	/// Returns `true` if the given rational number has a finite decimal
 	/// representation.
 	///
 	/// Reuses internal scratch state across calls, so repeated calls on the
-	/// same `DecimalCheck` are slightly cheaper than calling the free
-	/// function [`is_decimal`] repeatedly.
+	/// same `XsdDecimalCheck` are slightly cheaper than calling the free
+	/// function [`is_xsd_decimal`] repeatedly.
 	pub fn is_decimal(&mut self, r: &BigRational) -> bool {
 		self.set.clear();
 
@@ -124,14 +124,14 @@ impl DecimalCheck {
 
 /// Checks that the given rational has a finite decimal representation.
 #[inline(always)]
-pub fn is_decimal(r: &BigRational) -> bool {
-	let mut c = DecimalCheck::default();
+pub fn is_xsd_decimal(r: &BigRational) -> bool {
+	let mut c = XsdDecimalCheck::default();
 	c.is_decimal(r)
 }
 
 /// Returns the decimal lexical representation of the given rational number, if
 /// any.
-pub fn decimal_lexical_form(r: &BigRational) -> Option<lexical::XsdDecimalString> {
+pub fn xsd_decimal_lexical_form(r: &BigRational) -> Option<lexical::XsdDecimalString> {
 	use std::fmt::Write;
 
 	let mut fraction = String::new();
@@ -496,7 +496,7 @@ impl TryFrom<BigRational> for XsdDecimal {
 
 	#[inline(always)]
 	fn try_from(value: BigRational) -> Result<Self, Self::Error> {
-		if is_decimal(&value) {
+		if is_xsd_decimal(&value) {
 			Ok(unsafe { Self::new_unchecked(value) })
 		} else {
 			Err(NoXsdDecimalRepresentation(value))
@@ -528,7 +528,7 @@ impl XsdValueDomain for XsdDecimal {
 	fn to_lexical_form(&self) -> lexical::XsdDecimalString {
 		// A `XsdDecimal` always has a finite decimal representation (see
 		// `XsdDecimal::new_unchecked`), so this cannot panic.
-		decimal_lexical_form(&self.data)
+		xsd_decimal_lexical_form(&self.data)
 			.expect("a `XsdDecimal` has a finite decimal representation")
 	}
 }

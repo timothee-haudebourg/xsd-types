@@ -31,7 +31,7 @@ use str_newtype::StrNewType;
 pub struct XsdDayTimeDurationStr(str);
 
 impl XsdDayTimeDurationStr {
-	pub fn parts(&self) -> Parts<'_> {
+	pub fn parts(&self) -> XsdDayTimeDurationParts<'_> {
 		enum State {
 			Sign,
 			DateNumber,
@@ -39,7 +39,7 @@ impl XsdDayTimeDurationStr {
 		}
 
 		let mut state = State::Sign;
-		let mut result = Parts {
+		let mut result = XsdDayTimeDurationParts {
 			is_negative: false,
 			day: None,
 			hour: None,
@@ -117,7 +117,7 @@ impl<'a> From<&'a XsdDayTimeDurationStr> for crate::XsdDayTimeDuration {
 }
 
 #[derive(Debug, PartialEq, Eq)]
-pub struct Parts<'a> {
+pub struct XsdDayTimeDurationParts<'a> {
 	pub is_negative: bool,
 	pub day: Option<&'a str>,
 	pub hour: Option<&'a str>,
@@ -125,7 +125,7 @@ pub struct Parts<'a> {
 	pub second: Option<&'a str>,
 }
 
-impl<'a> Parts<'a> {
+impl<'a> XsdDayTimeDurationParts<'a> {
 	pub fn new(
 		is_negative: bool,
 		day: Option<&'a str>,
@@ -179,7 +179,7 @@ mod tests {
 	fn parsing() {
 		let vectors = [(
 			"-P1DT24H01M1.0001S",
-			Parts::new(true, Some("1"), Some("24"), Some("01"), Some("1.0001")),
+			XsdDayTimeDurationParts::new(true, Some("1"), Some("24"), Some("01"), Some("1.0001")),
 			"-P2DT1M1.0001S",
 		)];
 

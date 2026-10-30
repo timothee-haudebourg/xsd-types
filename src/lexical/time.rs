@@ -21,10 +21,10 @@ use super::{XsdLexicalForm, date_time::parse_seconds_decimal, parse_timezone};
 pub struct XsdTimeStr(str);
 
 impl XsdTimeStr {
-	fn parts(&self) -> Parts<'_> {
+	fn parts(&self) -> XsdTimeParts<'_> {
 		let seconds_end =
 			byte_index_of(self.0.as_bytes(), 8, [b'+', b'-', b'Z']).unwrap_or(self.0.len());
-		Parts {
+		XsdTimeParts {
 			hours: &self.0[..2],
 			minutes: &self.0[3..5],
 			seconds: &self.0[6..seconds_end],
@@ -56,14 +56,14 @@ impl<'a> TryFrom<&'a XsdTimeStr> for crate::XsdTime {
 }
 
 #[derive(Debug, PartialEq, Eq)]
-pub struct Parts<'a> {
+pub struct XsdTimeParts<'a> {
 	pub hours: &'a str,
 	pub minutes: &'a str,
 	pub seconds: &'a str,
 	pub timezone: Option<&'a str>,
 }
 
-impl<'a> Parts<'a> {
+impl<'a> XsdTimeParts<'a> {
 	pub fn new(
 		hours: &'a str,
 		minutes: &'a str,
@@ -103,15 +103,15 @@ mod tests {
 		let vectors = [
 			(
 				"13:07:12+01:00",
-				Parts::new("13", "07", "12", Some("+01:00")),
+				XsdTimeParts::new("13", "07", "12", Some("+01:00")),
 			),
 			(
 				"12:00:00-05:00",
-				Parts::new("12", "00", "00", Some("-05:00")),
+				XsdTimeParts::new("12", "00", "00", Some("-05:00")),
 			),
 			(
 				"12:00:00.00001-05:00",
-				Parts::new("12", "00", "00.00001", Some("-05:00")),
+				XsdTimeParts::new("12", "00", "00.00001", Some("-05:00")),
 			),
 		];
 

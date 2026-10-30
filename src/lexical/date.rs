@@ -19,12 +19,12 @@ use super::XsdLexicalForm;
 pub struct XsdDateStr(str);
 
 impl XsdDateStr {
-	pub fn parts(&self) -> Parts<'_> {
+	pub fn parts(&self) -> XsdDateParts<'_> {
 		let year_end = byte_index_of(self.0.as_bytes(), 4, b'-').unwrap();
 		let month_end = year_end + 3;
 		let day_end = month_end + 3;
 
-		Parts {
+		XsdDateParts {
 			year: &self.0[..year_end],
 			month: &self.0[(year_end + 1)..month_end],
 			day: &self.0[(month_end + 1)..day_end],
@@ -56,14 +56,14 @@ impl<'a> TryFrom<&'a XsdDateStr> for crate::XsdDate {
 }
 
 #[derive(Debug, PartialEq, Eq)]
-pub struct Parts<'a> {
+pub struct XsdDateParts<'a> {
 	pub year: &'a str,
 	pub month: &'a str,
 	pub day: &'a str,
 	pub timezone: Option<&'a str>,
 }
 
-impl<'a> Parts<'a> {
+impl<'a> XsdDateParts<'a> {
 	pub fn new(year: &'a str, month: &'a str, day: &'a str, timezone: Option<&'a str>) -> Self {
 		Self {
 			year,
@@ -104,11 +104,11 @@ mod tests {
 		let vectors = [
 			(
 				"2002-05-31+01:00",
-				Parts::new("2002", "05", "31", Some("+01:00")),
+				XsdDateParts::new("2002", "05", "31", Some("+01:00")),
 			),
 			(
 				"2002-10-10-05:00",
-				Parts::new("2002", "10", "10", Some("-05:00")),
+				XsdDateParts::new("2002", "10", "10", Some("-05:00")),
 			),
 		];
 
@@ -145,7 +145,7 @@ mod tests {
 	fn parsing_large_dates() {
 		let vectors = [(
 			"202002-10-10-05:00",
-			Parts::new("202002", "10", "10", Some("-05:00")),
+			XsdDateParts::new("202002", "10", "10", Some("-05:00")),
 		)];
 
 		for (input, parts) in vectors {

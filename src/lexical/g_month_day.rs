@@ -20,8 +20,8 @@ use super::XsdLexicalForm;
 pub struct XsdGMonthDayStr(str);
 
 impl XsdGMonthDayStr {
-	pub fn parts(&self) -> Parts<'_> {
-		Parts {
+	pub fn parts(&self) -> XsdGMonthDayParts<'_> {
+		XsdGMonthDayParts {
 			month: &self.0[2..4],
 			day: &self.0[5..7],
 			timezone: if self.0.len() > 7 {
@@ -51,13 +51,13 @@ impl<'a> From<&'a XsdGMonthDayStr> for crate::XsdGMonthDay {
 }
 
 #[derive(Debug, PartialEq, Eq)]
-pub struct Parts<'a> {
+pub struct XsdGMonthDayParts<'a> {
 	pub month: &'a str,
 	pub day: &'a str,
 	pub timezone: Option<&'a str>,
 }
 
-impl<'a> Parts<'a> {
+impl<'a> XsdGMonthDayParts<'a> {
 	pub fn new(month: &'a str, day: &'a str, timezone: Option<&'a str>) -> Self {
 		Self {
 			month,
@@ -83,9 +83,12 @@ mod tests {
 	#[test]
 	fn parsing() {
 		let vectors = [
-			("--01-12", Parts::new("01", "12", None)),
-			("--03-31Z", Parts::new("03", "31", Some("Z"))),
-			("--02-20+05:00", Parts::new("02", "20", Some("+05:00"))),
+			("--01-12", XsdGMonthDayParts::new("01", "12", None)),
+			("--03-31Z", XsdGMonthDayParts::new("03", "31", Some("Z"))),
+			(
+				"--02-20+05:00",
+				XsdGMonthDayParts::new("02", "20", Some("+05:00")),
+			),
 		];
 
 		for (input, parts) in vectors {

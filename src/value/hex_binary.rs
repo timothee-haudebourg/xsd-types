@@ -228,8 +228,8 @@ impl XsdHexBinary {
 
 	/// Returns an iterator over the hexadecimal-encoded characters
 	/// representing this value.
-	pub fn chars(&self) -> Chars<'_> {
-		Chars {
+	pub fn chars(&self) -> XsdHexBinaryChars<'_> {
+		XsdHexBinaryChars {
 			pending: None,
 			bytes: self.0.iter(),
 		}
@@ -285,12 +285,12 @@ impl XsdTyped for XsdHexBinary {
 
 /// Iterator over the hexadecimal-encoded characters representing a
 /// [`XsdHexBinary`] value.
-pub struct Chars<'a> {
+pub struct XsdHexBinaryChars<'a> {
 	pending: Option<char>,
 	bytes: std::slice::Iter<'a, u8>,
 }
 
-impl<'a> Iterator for Chars<'a> {
+impl<'a> Iterator for XsdHexBinaryChars<'a> {
 	type Item = char;
 
 	fn next(&mut self) -> Option<Self::Item> {

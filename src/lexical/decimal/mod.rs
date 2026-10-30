@@ -117,26 +117,27 @@ impl XsdDecimalStr {
 	}
 
 	#[inline(always)]
-	pub fn fractional_part(&self) -> Option<&FractionalPart> {
-		self.split_once('.')
-			.map(|(_, fractional_part)| unsafe { FractionalPart::new_unchecked(fractional_part) })
+	pub fn fractional_part(&self) -> Option<&XsdFractionalPart> {
+		self.split_once('.').map(|(_, fractional_part)| unsafe {
+			XsdFractionalPart::new_unchecked(fractional_part)
+		})
 	}
 
 	#[inline(always)]
-	pub fn trimmed_fractional_part(&self) -> Option<&FractionalPart> {
+	pub fn trimmed_fractional_part(&self) -> Option<&XsdFractionalPart> {
 		self.split_once('.').and_then(|(_, fractional_part)| {
-			let f = unsafe { FractionalPart::new_unchecked(fractional_part) }.trimmed();
+			let f = unsafe { XsdFractionalPart::new_unchecked(fractional_part) }.trimmed();
 			if f.is_empty() { None } else { Some(f) }
 		})
 	}
 
 	#[inline(always)]
-	pub fn parts(&self) -> (&XsdIntegerStr, Option<&FractionalPart>) {
+	pub fn parts(&self) -> (&XsdIntegerStr, Option<&XsdFractionalPart>) {
 		match self.split_once('.') {
 			Some((i, f)) => unsafe {
 				(
 					XsdIntegerStr::new_unchecked(i),
-					Some(FractionalPart::new_unchecked(f)),
+					Some(XsdFractionalPart::new_unchecked(f)),
 				)
 			},
 			None => unsafe { (XsdIntegerStr::new_unchecked(self), None) },
@@ -162,7 +163,7 @@ impl Hash for XsdDecimalStr {
 		self.integer_part().hash(h);
 		match self.fractional_part() {
 			Some(f) => f.hash(h),
-			None => FractionalPart::empty().hash(h),
+			None => XsdFractionalPart::empty().hash(h),
 		}
 	}
 }
@@ -176,9 +177,10 @@ impl Ord for XsdDecimalStr {
 				let (other_integer_part, other_fractional_part) = other.parts();
 				match integer_part.cmp(other_integer_part) {
 					Ordering::Equal => {
-						let fractional_part = fractional_part.unwrap_or_else(FractionalPart::empty);
+						let fractional_part =
+							fractional_part.unwrap_or_else(XsdFractionalPart::empty);
 						let other_fractional_part =
-							other_fractional_part.unwrap_or_else(FractionalPart::empty);
+							other_fractional_part.unwrap_or_else(XsdFractionalPart::empty);
 						if sign == Sign::Minus {
 							fractional_part.cmp(other_fractional_part).reverse()
 						} else {
@@ -293,9 +295,9 @@ impl TryFrom<XsdDecimalString> for f64 {
 	}
 }
 
-pub struct FractionalPart([u8]);
+pub struct XsdFractionalPart([u8]);
 
-impl FractionalPart {
+impl XsdFractionalPart {
 	/// Creates a new fractional part from a byte slice.
 	///
 	/// # Safety
@@ -330,7 +332,7 @@ impl FractionalPart {
 	/// Returns the fractional part without the trailing zeros.
 	///
 	/// The returned fractional part may be empty.
-	pub fn trimmed(&self) -> &FractionalPart {
+	pub fn trimmed(&self) -> &XsdFractionalPart {
 		let mut end = 0;
 		for (i, &c) in self.0.iter().enumerate() {
 			if c != b'0' {
@@ -342,38 +344,38 @@ impl FractionalPart {
 	}
 }
 
-impl PartialEq for FractionalPart {
+impl PartialEq for XsdFractionalPart {
 	fn eq(&self, other: &Self) -> bool {
 		self.trimmed().0 == other.trimmed().0
 	}
 }
 
-impl Eq for FractionalPart {}
+impl Eq for XsdFractionalPart {}
 
-impl Hash for FractionalPart {
+impl Hash for XsdFractionalPart {
 	fn hash<H: Hasher>(&self, h: &mut H) {
 		self.trimmed().0.hash(h)
 	}
 }
 
-impl Ord for FractionalPart {
+impl Ord for XsdFractionalPart {
 	fn cmp(&self, other: &Self) -> Ordering {
 		self.trimmed().0.cmp(&other.trimmed().0)
 	}
 }
 
-impl PartialOrd for FractionalPart {
+impl PartialOrd for XsdFractionalPart {
 	fn partial_cmp(&self, other: &Self) -> Option<Ordering> {
 		Some(self.cmp(other))
 	}
 }
-impl AsRef<[u8]> for FractionalPart {
+impl AsRef<[u8]> for XsdFractionalPart {
 	fn as_ref(&self) -> &[u8] {
 		&self.0
 	}
 }
 
-impl AsRef<str> for FractionalPart {
+impl AsRef<str> for XsdFractionalPart {
 	fn as_ref(&self) -> &str {
 		self.as_str()
 	}
