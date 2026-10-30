@@ -6,27 +6,8 @@ use std::cmp::Ordering;
 use std::hash::{Hash, Hasher};
 use str_newtype::StrNewType;
 
-/// Numeric sign.
-#[derive(Clone, Copy, PartialEq, Eq, Hash, PartialOrd, Ord, Debug)]
-pub enum Sign {
-	Negative,
-	Zero,
-	Positive,
-}
-
-impl Sign {
-	pub fn is_positive(&self) -> bool {
-		matches!(self, Self::Positive)
-	}
-
-	pub fn is_negative(&self) -> bool {
-		matches!(self, Self::Negative)
-	}
-
-	pub fn is_zero(&self) -> bool {
-		matches!(self, Self::Zero)
-	}
-}
+/// Numeric sign, re-exported from [`num_bigint`].
+pub use num_bigint::Sign;
 
 /// Error thrown when a conversion function overflowed.
 pub struct Overflow;
@@ -93,7 +74,7 @@ impl XsdDecimalStr {
 	/// Returns `true` if `self` is negative
 	/// and `false` is the number is zero or positive.
 	pub fn is_negative(&self) -> bool {
-		self.sign().is_negative()
+		self.sign() == Sign::Minus
 	}
 
 	/// Returns `true` if `self` is zero
@@ -116,15 +97,15 @@ impl XsdDecimalStr {
 				b'-' => sign_positive = false,
 				_ => {
 					if sign_positive {
-						return Sign::Positive;
+						return Sign::Plus;
 					} else {
-						return Sign::Negative;
+						return Sign::Minus;
 					}
 				}
 			}
 		}
 
-		Sign::Zero
+		Sign::NoSign
 	}
 
 	#[inline(always)]
@@ -198,14 +179,14 @@ impl Ord for XsdDecimalStr {
 						let fractional_part = fractional_part.unwrap_or_else(FractionalPart::empty);
 						let other_fractional_part =
 							other_fractional_part.unwrap_or_else(FractionalPart::empty);
-						if sign.is_negative() {
+						if sign == Sign::Minus {
 							fractional_part.cmp(other_fractional_part).reverse()
 						} else {
 							fractional_part.cmp(other_fractional_part)
 						}
 					}
 					other => {
-						if sign.is_negative() {
+						if sign == Sign::Minus {
 							other.reverse()
 						} else {
 							other

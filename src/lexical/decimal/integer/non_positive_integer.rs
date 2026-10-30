@@ -84,11 +84,11 @@ impl XsdNonPositiveIntegerStr {
 		for c in self.0.as_bytes() {
 			match c {
 				b'+' | b'-' | b'0' => (),
-				_ => return Sign::Negative,
+				_ => return Sign::Minus,
 			}
 		}
 
-		Sign::Zero
+		Sign::NoSign
 	}
 
 	/// Returns the absolute value of `self`.
@@ -127,7 +127,7 @@ impl Eq for XsdNonPositiveIntegerStr {}
 impl Hash for XsdNonPositiveIntegerStr {
 	fn hash<H: Hasher>(&self, h: &mut H) {
 		match self.sign() {
-			Sign::Zero => 0.hash(h),
+			Sign::NoSign => 0.hash(h),
 			sign => {
 				sign.hash(h);
 				self.abs().hash(h)
@@ -147,14 +147,14 @@ impl Ord for XsdNonPositiveIntegerStr {
 
 				match a.len().cmp(&b.len()) {
 					Ordering::Equal => {
-						if sign.is_negative() {
+						if sign == Sign::Minus {
 							a.cmp(b).reverse()
 						} else {
 							a.cmp(b)
 						}
 					}
 					other => {
-						if sign.is_negative() {
+						if sign == Sign::Minus {
 							other.reverse()
 						} else {
 							other
@@ -267,7 +267,7 @@ mod tests {
 		let n = XsdNonPositiveIntegerStr::new("+0").unwrap();
 		assert!(n.is_zero());
 		assert!(!n.is_negative());
-		assert_eq!(n.sign(), Sign::Zero);
+		assert_eq!(n.sign(), Sign::NoSign);
 	}
 
 	#[test]

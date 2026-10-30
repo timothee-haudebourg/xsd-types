@@ -69,7 +69,7 @@ impl XsdIntegerStr {
 	/// Returns `true` if `self` is negative
 	/// and `false` is the number is zero or positive.
 	pub fn is_negative(&self) -> bool {
-		self.sign().is_negative()
+		self.sign() == Sign::Minus
 	}
 
 	/// Returns `true` if `self` is zero
@@ -98,15 +98,15 @@ impl XsdIntegerStr {
 				b'-' => sign_positive = false,
 				_ => {
 					if sign_positive {
-						return Sign::Positive;
+						return Sign::Plus;
 					} else {
-						return Sign::Negative;
+						return Sign::Minus;
 					}
 				}
 			}
 		}
 
-		Sign::Zero
+		Sign::NoSign
 	}
 
 	/// Returns the absolute value of `self`.
@@ -179,14 +179,14 @@ impl Ord for XsdIntegerStr {
 
 				match a.len().cmp(&b.len()) {
 					Ordering::Equal => {
-						if sign.is_negative() {
+						if sign == Sign::Minus {
 							a.cmp(b).reverse()
 						} else {
 							a.cmp(b)
 						}
 					}
 					other => {
-						if sign.is_negative() {
+						if sign == Sign::Minus {
 							other.reverse()
 						} else {
 							other

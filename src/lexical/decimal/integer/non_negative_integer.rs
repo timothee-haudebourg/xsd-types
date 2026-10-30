@@ -80,11 +80,11 @@ impl XsdNonNegativeIntegerStr {
 		for c in self.0.as_bytes() {
 			match c {
 				b'+' | b'-' | b'0' => (),
-				_ => return Sign::Positive,
+				_ => return Sign::Plus,
 			}
 		}
 
-		Sign::Zero
+		Sign::NoSign
 	}
 
 	/// Returns the canonical form of `self` (without leading zeros).
@@ -145,14 +145,14 @@ impl Ord for XsdNonNegativeIntegerStr {
 
 				match a.len().cmp(&b.len()) {
 					Ordering::Equal => {
-						if sign.is_negative() {
+						if sign == Sign::Minus {
 							a.cmp(b).reverse()
 						} else {
 							a.cmp(b)
 						}
 					}
 					other => {
-						if sign.is_negative() {
+						if sign == Sign::Minus {
 							other.reverse()
 						} else {
 							other
@@ -264,7 +264,7 @@ mod tests {
 		let n = XsdNonNegativeIntegerStr::new("-0").unwrap();
 		assert!(n.is_zero());
 		assert!(!n.is_positive());
-		assert_eq!(n.sign(), Sign::Zero);
+		assert_eq!(n.sign(), Sign::NoSign);
 	}
 
 	#[test]
