@@ -11,7 +11,7 @@ use std::{cmp::Ordering, hash::Hash, str::FromStr};
 /// outside the range permitted by XSD).
 #[derive(Debug, thiserror::Error)]
 #[error("invalid date value")]
-pub struct InvalidDateValue;
+pub struct InvalidXsdDateValue;
 
 /// A date, optionally with a timezone offset.
 ///
@@ -94,16 +94,16 @@ impl PartialOrd for XsdDate {
 /// input is not a syntactically valid `date` lexical representation, or
 /// because it does not denote a valid date value.
 #[derive(Debug, thiserror::Error)]
-pub enum DateFromStrError {
+pub enum XsdDateFromStrError {
 	#[error("invalid date syntax")]
 	Syntax(#[from] InvalidXsdDateStr<String>),
 
 	#[error(transparent)]
-	Value(#[from] InvalidDateValue),
+	Value(#[from] InvalidXsdDateValue),
 }
 
 impl FromStr for XsdDate {
-	type Err = DateFromStrError;
+	type Err = XsdDateFromStrError;
 
 	fn from_str(s: &str) -> Result<Self, Self::Err> {
 		let lexical_value =

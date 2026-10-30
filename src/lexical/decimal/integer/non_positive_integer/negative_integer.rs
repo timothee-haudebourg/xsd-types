@@ -4,7 +4,7 @@ use crate::lexical::{
 	XsdNonNegativeIntegerStr, lexical_form,
 };
 
-use super::{Overflow, XsdNonPositiveIntegerStr, XsdNonPositiveIntegerString};
+use super::{XsdNonPositiveIntegerStr, XsdNonPositiveIntegerString, XsdOverflow};
 use static_automata::Validate;
 use std::cmp::Ordering;
 use std::hash::{Hash, Hasher};
@@ -133,18 +133,18 @@ macro_rules! number_conversion {
 			}
 
 			impl<'a> TryFrom<&'a XsdNegativeIntegerStr> for $ty {
-				type Error = Overflow;
+				type Error = XsdOverflow;
 
-				fn try_from(i: &'a XsdNegativeIntegerStr) -> Result<Self, Overflow> {
-					i.as_str().parse().map_err(|_| Overflow)
+				fn try_from(i: &'a XsdNegativeIntegerStr) -> Result<Self, XsdOverflow> {
+					i.as_str().parse().map_err(|_| XsdOverflow)
 				}
 			}
 
 			impl TryFrom<XsdNegativeIntegerString> for $ty {
-				type Error = Overflow;
+				type Error = XsdOverflow;
 
-				fn try_from(i: XsdNegativeIntegerString) -> Result<Self, Overflow> {
-					i.as_str().parse().map_err(|_| Overflow)
+				fn try_from(i: XsdNegativeIntegerString) -> Result<Self, XsdOverflow> {
+					i.as_str().parse().map_err(|_| XsdOverflow)
 				}
 			}
 		)*

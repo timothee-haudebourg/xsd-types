@@ -1,7 +1,7 @@
 use static_automata::Validate;
 use str_newtype::StrNewType;
 
-use crate::{InvalidDateTimeValue, XsdError, utils::byte_index_of};
+use crate::{InvalidXsdDateTimeValue, XsdError, utils::byte_index_of};
 
 use super::XsdLexicalForm;
 
@@ -62,7 +62,7 @@ impl<'a> crate::XsdFromStr<'a> for &'a XsdDateTimeStr {
 }
 
 impl<'a> TryFrom<&'a XsdDateTimeStr> for crate::XsdDateTime {
-	type Error = InvalidDateTimeValue;
+	type Error = InvalidXsdDateTimeValue;
 
 	fn try_from(value: &'a XsdDateTimeStr) -> Result<crate::XsdDateTime, Self::Error> {
 		value.parts().to_datetime()
@@ -101,16 +101,16 @@ impl<'a> Parts<'a> {
 		}
 	}
 
-	fn to_datetime(&self) -> Result<crate::XsdDateTime, crate::InvalidDateTimeValue> {
+	fn to_datetime(&self) -> Result<crate::XsdDateTime, crate::InvalidXsdDateTimeValue> {
 		let month = time::Month::try_from(self.month.parse::<u8>().unwrap())
-			.map_err(|_| crate::InvalidDateTimeValue)?;
+			.map_err(|_| crate::InvalidXsdDateTimeValue)?;
 
 		let date = time::Date::from_calendar_date(
 			self.year.parse().unwrap(),
 			month,
 			self.day.parse().unwrap(),
 		)
-		.map_err(|_| crate::InvalidDateTimeValue)?;
+		.map_err(|_| crate::InvalidXsdDateTimeValue)?;
 
 		let (seconds, nanoseconds) = parse_seconds_decimal(self.seconds);
 
@@ -120,7 +120,7 @@ impl<'a> Parts<'a> {
 			seconds as u8,
 			nanoseconds,
 		)
-		.map_err(|_| crate::InvalidDateTimeValue)?;
+		.map_err(|_| crate::InvalidXsdDateTimeValue)?;
 
 		let datetime = time::PrimitiveDateTime::new(date, time);
 
@@ -128,7 +128,7 @@ impl<'a> Parts<'a> {
 			datetime,
 			self.timezone.map(|tz| parse_timezone(tz).unwrap()),
 		)
-		.ok_or(crate::InvalidDateTimeValue)
+		.ok_or(crate::InvalidXsdDateTimeValue)
 	}
 }
 

@@ -72,13 +72,13 @@ impl XsdNonNegativeInteger {
 
 	/// Creates a non negative integer from its signed big endian bytes
 	/// representation, failing if the represented value is negative.
-	pub fn from_signed_bytes_be(bytes: &[u8]) -> Result<Self, IntegerIsNegative> {
+	pub fn from_signed_bytes_be(bytes: &[u8]) -> Result<Self, XsdIntegerIsNegative> {
 		XsdInteger::from_signed_bytes_be(bytes).try_into()
 	}
 
 	/// Creates a non negative integer from its signed little endian bytes
 	/// representation, failing if the represented value is negative.
-	pub fn from_signed_bytes_le(bytes: &[u8]) -> Result<Self, IntegerIsNegative> {
+	pub fn from_signed_bytes_le(bytes: &[u8]) -> Result<Self, XsdIntegerIsNegative> {
 		XsdInteger::from_signed_bytes_le(bytes).try_into()
 	}
 
@@ -254,14 +254,14 @@ impl Borrow<BigInt> for XsdNonNegativeInteger {
 /// [`XsdNonNegativeInteger`].
 #[derive(Debug, thiserror::Error)]
 #[error("integer {0} is negative")]
-pub struct IntegerIsNegative(XsdInteger);
+pub struct XsdIntegerIsNegative(XsdInteger);
 
 impl TryFrom<XsdInteger> for XsdNonNegativeInteger {
-	type Error = IntegerIsNegative;
+	type Error = XsdIntegerIsNegative;
 
 	fn try_from(value: XsdInteger) -> Result<Self, Self::Error> {
 		if value.is_negative() {
-			Err(IntegerIsNegative(value))
+			Err(XsdIntegerIsNegative(value))
 		} else {
 			Ok(Self(value.into()))
 		}
@@ -286,16 +286,16 @@ from!(u8, u16, u32, u64, usize);
 /// target integer type that cannot represent its value.
 #[derive(Debug, thiserror::Error)]
 #[error("integer out of supported bounds: {0}")]
-pub struct NonNegativeIntegerOutOfTargetBounds(pub XsdNonNegativeInteger);
+pub struct XsdNonNegativeIntegerOutOfTargetBounds(pub XsdNonNegativeInteger);
 
 macro_rules! try_into {
 	{ $( $ty:ty ),* } => {
 		$(
 			impl TryFrom<XsdNonNegativeInteger> for $ty {
-				type Error = NonNegativeIntegerOutOfTargetBounds;
+				type Error = XsdNonNegativeIntegerOutOfTargetBounds;
 
 				fn try_from(value: XsdNonNegativeInteger) -> Result<Self, Self::Error> {
-					value.0.try_into().map_err(|e: TryFromBigIntError<BigInt>| NonNegativeIntegerOutOfTargetBounds(XsdNonNegativeInteger(e.into_original())))
+					value.0.try_into().map_err(|e: TryFromBigIntError<BigInt>| XsdNonNegativeIntegerOutOfTargetBounds(XsdNonNegativeInteger(e.into_original())))
 				}
 			}
 		)*

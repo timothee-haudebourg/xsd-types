@@ -4,7 +4,7 @@ use std::{borrow::Borrow, ops::Deref, str::FromStr};
 /// Error raised when a string is not a valid `token` value.
 #[derive(Debug, thiserror::Error)]
 #[error("invalid token `{0}`")]
-pub struct InvalidToken<T = String>(pub T);
+pub struct InvalidXsdToken<T = String>(pub T);
 
 /// Token value.
 ///
@@ -19,11 +19,11 @@ pub struct XsdToken(str);
 
 impl XsdToken {
 	/// Parses and validates the given string as a token.
-	pub fn new(value: &str) -> Result<&Self, InvalidToken<&str>> {
+	pub fn new(value: &str) -> Result<&Self, InvalidXsdToken<&str>> {
 		if Self::validate(value) {
 			Ok(unsafe { Self::new_unchecked(value) })
 		} else {
-			Err(InvalidToken(value))
+			Err(InvalidXsdToken(value))
 		}
 	}
 
@@ -96,11 +96,11 @@ pub struct XsdTokenBuf(String);
 
 impl XsdTokenBuf {
 	/// Parses and validates the given string as a token.
-	pub fn new(value: String) -> Result<Self, InvalidToken> {
+	pub fn new(value: String) -> Result<Self, InvalidXsdToken> {
 		if XsdToken::validate(&value) {
 			Ok(Self(value))
 		} else {
-			Err(InvalidToken(value))
+			Err(InvalidXsdToken(value))
 		}
 	}
 
@@ -145,16 +145,16 @@ impl Deref for XsdTokenBuf {
 }
 
 impl FromStr for XsdTokenBuf {
-	type Err = InvalidToken;
+	type Err = InvalidXsdToken;
 
 	fn from_str(s: &str) -> Result<Self, Self::Err> {
-		let lexical_value = XsdToken::new(s).map_err(|_| InvalidToken(s.to_owned()))?;
+		let lexical_value = XsdToken::new(s).map_err(|_| InvalidXsdToken(s.to_owned()))?;
 		Ok(lexical_value.to_owned())
 	}
 }
 
 impl TryFrom<String> for XsdTokenBuf {
-	type Error = InvalidToken<String>;
+	type Error = InvalidXsdToken<String>;
 
 	fn try_from(value: String) -> Result<Self, Self::Error> {
 		Self::new(value)

@@ -10,7 +10,7 @@ use str_newtype::StrNewType;
 pub use num_bigint::Sign;
 
 /// Error thrown when a conversion function overflowed.
-pub struct Overflow;
+pub struct XsdOverflow;
 
 mod integer;
 
@@ -215,18 +215,18 @@ macro_rules! integer_conversion {
 			}
 
 			impl<'a> TryFrom<&'a XsdDecimalStr> for $ty {
-				type Error = Overflow;
+				type Error = XsdOverflow;
 
-				fn try_from(i: &'a XsdDecimalStr) -> Result<Self, Overflow> {
-					i.as_str().parse().map_err(|_| Overflow)
+				fn try_from(i: &'a XsdDecimalStr) -> Result<Self, XsdOverflow> {
+					i.as_str().parse().map_err(|_| XsdOverflow)
 				}
 			}
 
 			impl TryFrom<XsdDecimalString> for $ty {
-				type Error = Overflow;
+				type Error = XsdOverflow;
 
-				fn try_from(i: XsdDecimalString) -> Result<Self, Overflow> {
-					i.as_str().parse().map_err(|_| Overflow)
+				fn try_from(i: XsdDecimalString) -> Result<Self, XsdOverflow> {
+					i.as_str().parse().map_err(|_| XsdOverflow)
 				}
 			}
 		)*

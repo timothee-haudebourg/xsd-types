@@ -1,7 +1,7 @@
 use crate::XsdError;
 use crate::lexical::{XsdLexicalForm, lexical_form};
 
-use super::{Overflow, Sign, XsdDecimalStr, XsdDecimalString};
+use super::{Sign, XsdDecimalStr, XsdDecimalString, XsdOverflow};
 use static_automata::Validate;
 use std::cmp::Ordering;
 use std::hash::{Hash, Hasher};
@@ -243,18 +243,18 @@ macro_rules! number_conversion {
 			}
 
 			impl<'a> TryFrom<&'a XsdIntegerStr> for $ty {
-				type Error = Overflow;
+				type Error = XsdOverflow;
 
-				fn try_from(i: &'a XsdIntegerStr) -> Result<Self, Overflow> {
-					i.as_str().parse().map_err(|_| Overflow)
+				fn try_from(i: &'a XsdIntegerStr) -> Result<Self, XsdOverflow> {
+					i.as_str().parse().map_err(|_| XsdOverflow)
 				}
 			}
 
 			impl TryFrom<XsdIntegerString> for $ty {
-				type Error = Overflow;
+				type Error = XsdOverflow;
 
-				fn try_from(i: XsdIntegerString) -> Result<Self, Overflow> {
-					i.as_str().parse().map_err(|_| Overflow)
+				fn try_from(i: XsdIntegerString) -> Result<Self, XsdOverflow> {
+					i.as_str().parse().map_err(|_| XsdOverflow)
 				}
 			}
 		)*

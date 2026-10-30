@@ -19,7 +19,7 @@ const PADDING: char = '=';
 /// Error raised when decoding an invalid base64-encoded byte string.
 #[derive(Debug, thiserror::Error)]
 #[error("invalid base64")]
-pub struct InvalidBase64;
+pub struct InvalidXsdBase64;
 
 /// Decoded `base64Binary` value, as an owned byte buffer.
 ///
@@ -40,7 +40,7 @@ impl XsdBase64BinaryBuf {
 	}
 
 	/// Decodes a base64-encoded byte string into its raw bytes.
-	pub fn decode(input: impl AsRef<[u8]>) -> Result<Self, InvalidBase64> {
+	pub fn decode(input: impl AsRef<[u8]>) -> Result<Self, InvalidXsdBase64> {
 		let input = input.as_ref();
 		let mut bytes = Vec::with_capacity(input.len() * 3 / 4);
 		let mut buffer = 0u16;
@@ -54,7 +54,7 @@ impl XsdBase64BinaryBuf {
 
 			if padding {
 				if c != b'=' {
-					return Err(InvalidBase64);
+					return Err(InvalidXsdBase64);
 				}
 			} else if c == b'=' {
 				padding = true
@@ -94,14 +94,14 @@ impl XsdBase64BinaryBuf {
 	}
 }
 
-fn decode_char(c: u8) -> Result<u8, InvalidBase64> {
+fn decode_char(c: u8) -> Result<u8, InvalidXsdBase64> {
 	match c {
 		b'A'..=b'Z' => Ok(c - b'A'),
 		b'a'..=b'z' => Ok(c - b'a' + 26),
 		b'0'..=b'9' => Ok(c - b'0' + 52),
 		b'+' => Ok(62),
 		b'/' => Ok(63),
-		_ => Err(InvalidBase64),
+		_ => Err(InvalidXsdBase64),
 	}
 }
 

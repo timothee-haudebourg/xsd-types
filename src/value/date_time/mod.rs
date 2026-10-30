@@ -13,20 +13,20 @@ pub use date_time_stamp::*;
 /// or a `chrono::DateTime`).
 #[derive(Debug, thiserror::Error)]
 #[error("missing timezone")]
-pub struct MissingTimezone;
+pub struct MissingXsdTimezone;
 
 /// Error raised when the components of a [`XsdDateTime`] do not form a valid
 /// date and time (e.g. an out-of-range day for the given month, or a
 /// timezone offset outside the range permitted by XSD).
 #[derive(Debug, thiserror::Error)]
 #[error("invalid datetime value")]
-pub struct InvalidDateTimeValue;
+pub struct InvalidXsdDateTimeValue;
 
 /// Error raised when a timezone offset falls outside the
 /// `-14:00..=+14:00` range permitted by XSD.
 #[derive(Debug, thiserror::Error)]
 #[error("timezone offset out of range")]
-pub struct InvalidOffset;
+pub struct InvalidXsdOffset;
 
 /// Returns whether `offset` is within the range permitted by the XSD
 /// `timezoneFrag` production (`-14:00` to `+14:00`, inclusive).
@@ -359,16 +359,16 @@ impl fmt::Display for DisplayYear {
 /// the input is not a syntactically valid `dateTime` lexical representation,
 /// or because it does not denote a valid date/time value.
 #[derive(Debug, thiserror::Error)]
-pub enum DateTimeFromStrError {
+pub enum XsdDateTimeFromStrError {
 	#[error("invalid date syntax")]
 	Syntax(#[from] InvalidXsdDateTimeStr<String>),
 
 	#[error(transparent)]
-	Value(#[from] InvalidDateTimeValue),
+	Value(#[from] InvalidXsdDateTimeValue),
 }
 
 impl FromStr for XsdDateTime {
-	type Err = DateTimeFromStrError;
+	type Err = XsdDateTimeFromStrError;
 
 	fn from_str(s: &str) -> Result<Self, Self::Err> {
 		let lexical_value = crate::lexical::XsdDateTimeStr::new(s)
@@ -378,28 +378,28 @@ impl FromStr for XsdDateTime {
 }
 
 impl TryFrom<time::OffsetDateTime> for XsdDateTime {
-	type Error = InvalidOffset;
+	type Error = InvalidXsdOffset;
 
 	fn try_from(value: time::OffsetDateTime) -> Result<Self, Self::Error> {
 		let date_time = time::PrimitiveDateTime::new(value.date(), value.time());
-		Self::new(date_time, Some(value.offset())).ok_or(InvalidOffset)
+		Self::new(date_time, Some(value.offset())).ok_or(InvalidXsdOffset)
 	}
 }
 
 impl TryFrom<XsdDateTime> for time::OffsetDateTime {
-	type Error = MissingTimezone;
+	type Error = MissingXsdTimezone;
 
-	fn try_from(value: XsdDateTime) -> Result<Self, MissingTimezone> {
+	fn try_from(value: XsdDateTime) -> Result<Self, MissingXsdTimezone> {
 		match value.offset {
 			Some(offset) => Ok(value.date_time.assume_offset(offset)),
-			None => Err(MissingTimezone),
+			None => Err(MissingXsdTimezone),
 		}
 	}
 }
 
 #[cfg(feature = "chrono")]
 impl TryFrom<chrono::DateTime<chrono::FixedOffset>> for XsdDateTime {
-	type Error = InvalidOffset;
+	type Error = InvalidXsdOffset;
 
 	fn try_from(value: chrono::DateTime<chrono::FixedOffset>) -> Result<Self, Self::Error> {
 		let offset = time::UtcOffset::from_whole_seconds(value.offset().local_minus_utc()).unwrap();
@@ -426,9 +426,9 @@ impl From<chrono::DateTime<chrono::Utc>> for XsdDateTime {
 
 #[cfg(feature = "chrono")]
 impl TryFrom<XsdDateTime> for chrono::DateTime<chrono::FixedOffset> {
-	type Error = MissingTimezone;
+	type Error = MissingXsdTimezone;
 
-	fn try_from(value: XsdDateTime) -> Result<Self, MissingTimezone> {
+	fn try_from(value: XsdDateTime) -> Result<Self, MissingXsdTimezone> {
 		use chrono::TimeZone;
 
 		let odt: time::OffsetDateTime = value.try_into()?;
@@ -439,9 +439,9 @@ impl TryFrom<XsdDateTime> for chrono::DateTime<chrono::FixedOffset> {
 
 #[cfg(feature = "chrono")]
 impl TryFrom<XsdDateTime> for chrono::DateTime<chrono::Utc> {
-	type Error = MissingTimezone;
+	type Error = MissingXsdTimezone;
 
-	fn try_from(value: XsdDateTime) -> Result<Self, MissingTimezone> {
+	fn try_from(value: XsdDateTime) -> Result<Self, MissingXsdTimezone> {
 		let fixed: chrono::DateTime<chrono::FixedOffset> = value.try_into()?;
 		Ok(fixed.into())
 	}

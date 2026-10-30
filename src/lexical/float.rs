@@ -1,5 +1,5 @@
 use super::{
-	Overflow, XsdDecimalStr, XsdIntegerStr, XsdNonNegativeIntegerStr, XsdNonPositiveIntegerStr,
+	XsdDecimalStr, XsdIntegerStr, XsdNonNegativeIntegerStr, XsdNonPositiveIntegerStr, XsdOverflow,
 	lexical_form,
 };
 use crate::XsdError;
@@ -123,18 +123,18 @@ macro_rules! integer_conversion {
 			}
 
 			impl<'a> TryFrom<&'a XsdFloatStr> for $ty {
-				type Error = Overflow;
+				type Error = XsdOverflow;
 
-				fn try_from(i: &'a XsdFloatStr) -> Result<Self, Overflow> {
-					i.as_str().parse().map_err(|_| Overflow)
+				fn try_from(i: &'a XsdFloatStr) -> Result<Self, XsdOverflow> {
+					i.as_str().parse().map_err(|_| XsdOverflow)
 				}
 			}
 
 			impl TryFrom<XsdFloatString> for $ty {
-				type Error = Overflow;
+				type Error = XsdOverflow;
 
-				fn try_from(i: XsdFloatString) -> Result<Self, Overflow> {
-					i.as_str().parse().map_err(|_| Overflow)
+				fn try_from(i: XsdFloatString) -> Result<Self, XsdOverflow> {
+					i.as_str().parse().map_err(|_| XsdOverflow)
 				}
 			}
 		)*

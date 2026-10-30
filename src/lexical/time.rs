@@ -1,7 +1,7 @@
 use static_automata::Validate;
 use str_newtype::StrNewType;
 
-use crate::{InvalidTimeValue, XsdError, utils::byte_index_of};
+use crate::{InvalidXsdTimeValue, XsdError, utils::byte_index_of};
 
 use super::{XsdLexicalForm, date_time::parse_seconds_decimal, parse_timezone};
 
@@ -48,7 +48,7 @@ impl<'a> crate::XsdFromStr<'a> for &'a XsdTimeStr {
 }
 
 impl<'a> TryFrom<&'a XsdTimeStr> for crate::XsdTime {
-	type Error = InvalidTimeValue;
+	type Error = InvalidXsdTimeValue;
 
 	fn try_from(value: &'a XsdTimeStr) -> Result<crate::XsdTime, Self::Error> {
 		value.parts().to_time()
@@ -78,7 +78,7 @@ impl<'a> Parts<'a> {
 		}
 	}
 
-	fn to_time(&self) -> Result<crate::XsdTime, crate::InvalidTimeValue> {
+	fn to_time(&self) -> Result<crate::XsdTime, crate::InvalidXsdTimeValue> {
 		let (seconds, nanoseconds) = parse_seconds_decimal(self.seconds);
 
 		let time = time::Time::from_hms_nano(
@@ -87,10 +87,10 @@ impl<'a> Parts<'a> {
 			seconds as u8,
 			nanoseconds,
 		)
-		.map_err(|_| crate::InvalidTimeValue)?;
+		.map_err(|_| crate::InvalidXsdTimeValue)?;
 
 		crate::XsdTime::new(time, self.timezone.map(|tz| parse_timezone(tz).unwrap()))
-			.ok_or(crate::InvalidTimeValue)
+			.ok_or(crate::InvalidXsdTimeValue)
 	}
 }
 

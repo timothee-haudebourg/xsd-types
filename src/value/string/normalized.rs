@@ -4,7 +4,7 @@ use std::{borrow::Borrow, ops::Deref, str::FromStr};
 /// Error raised when a string is not a valid `normalizedString` value.
 #[derive(Debug, thiserror::Error)]
 #[error("invalid normalized string `{0}`")]
-pub struct InvalidNormalizedStr<T = String>(pub T);
+pub struct InvalidXsdNormalizedStr<T = String>(pub T);
 
 /// Normalized string value.
 ///
@@ -18,11 +18,11 @@ pub struct XsdNormalizedStr(str);
 
 impl XsdNormalizedStr {
 	/// Parses and validates the given string as a normalized string.
-	pub fn new(value: &str) -> Result<&Self, InvalidNormalizedStr<&str>> {
+	pub fn new(value: &str) -> Result<&Self, InvalidXsdNormalizedStr<&str>> {
 		if Self::validate(value) {
 			Ok(unsafe { Self::new_unchecked(value) })
 		} else {
-			Err(InvalidNormalizedStr(value))
+			Err(InvalidXsdNormalizedStr(value))
 		}
 	}
 
@@ -75,11 +75,11 @@ pub struct XsdNormalizedString(String);
 
 impl XsdNormalizedString {
 	/// Parses and validates the given string as a normalized string.
-	pub fn new(value: String) -> Result<Self, InvalidNormalizedStr> {
+	pub fn new(value: String) -> Result<Self, InvalidXsdNormalizedStr> {
 		if XsdNormalizedStr::validate(&value) {
 			Ok(Self(value))
 		} else {
-			Err(InvalidNormalizedStr(value))
+			Err(InvalidXsdNormalizedStr(value))
 		}
 	}
 
@@ -125,17 +125,17 @@ impl Deref for XsdNormalizedString {
 }
 
 impl FromStr for XsdNormalizedString {
-	type Err = InvalidNormalizedStr<String>;
+	type Err = InvalidXsdNormalizedStr<String>;
 
 	fn from_str(s: &str) -> Result<Self, Self::Err> {
 		let lexical_value =
-			XsdNormalizedStr::new(s).map_err(|_| InvalidNormalizedStr(s.to_owned()))?;
+			XsdNormalizedStr::new(s).map_err(|_| InvalidXsdNormalizedStr(s.to_owned()))?;
 		Ok(lexical_value.to_owned())
 	}
 }
 
 impl TryFrom<String> for XsdNormalizedString {
-	type Error = InvalidNormalizedStr<String>;
+	type Error = InvalidXsdNormalizedStr<String>;
 
 	fn try_from(value: String) -> Result<Self, Self::Error> {
 		Self::new(value)

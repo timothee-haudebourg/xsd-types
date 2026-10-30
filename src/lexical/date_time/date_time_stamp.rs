@@ -1,7 +1,7 @@
 use static_automata::Validate;
 use str_newtype::StrNewType;
 
-use crate::{InvalidDateTimeStampValue, XsdError, utils::byte_index_of};
+use crate::{InvalidXsdDateTimeStampValue, XsdError, utils::byte_index_of};
 
 use super::{XsdLexicalForm, parse_timezone};
 
@@ -55,7 +55,7 @@ impl<'a> crate::XsdFromStr<'a> for &'a XsdDateTimeStampStr {
 }
 
 impl<'a> TryFrom<&'a XsdDateTimeStampStr> for crate::XsdDateTimeStamp {
-	type Error = InvalidDateTimeStampValue;
+	type Error = InvalidXsdDateTimeStampValue;
 
 	fn try_from(value: &'a XsdDateTimeStampStr) -> Result<crate::XsdDateTimeStamp, Self::Error> {
 		value.parts().to_datetime()
@@ -94,16 +94,16 @@ impl<'a> Parts<'a> {
 		}
 	}
 
-	fn to_datetime(&self) -> Result<crate::XsdDateTimeStamp, crate::InvalidDateTimeStampValue> {
+	fn to_datetime(&self) -> Result<crate::XsdDateTimeStamp, crate::InvalidXsdDateTimeStampValue> {
 		let month = time::Month::try_from(self.month.parse::<u8>().unwrap())
-			.map_err(|_| crate::InvalidDateTimeStampValue)?;
+			.map_err(|_| crate::InvalidXsdDateTimeStampValue)?;
 
 		let date = time::Date::from_calendar_date(
 			self.year.parse().unwrap(),
 			month,
 			self.day.parse().unwrap(),
 		)
-		.map_err(|_| crate::InvalidDateTimeStampValue)?;
+		.map_err(|_| crate::InvalidXsdDateTimeStampValue)?;
 
 		let (seconds, nanoseconds) = parse_seconds_decimal(self.seconds);
 
@@ -113,13 +113,13 @@ impl<'a> Parts<'a> {
 			seconds as u8,
 			nanoseconds,
 		)
-		.map_err(|_| crate::InvalidDateTimeStampValue)?;
+		.map_err(|_| crate::InvalidXsdDateTimeStampValue)?;
 
 		let datetime = time::PrimitiveDateTime::new(date, time);
 
-		let offset = parse_timezone(self.timezone).ok_or(crate::InvalidDateTimeStampValue)?;
+		let offset = parse_timezone(self.timezone).ok_or(crate::InvalidXsdDateTimeStampValue)?;
 
-		crate::XsdDateTimeStamp::new(datetime, offset).ok_or(crate::InvalidDateTimeStampValue)
+		crate::XsdDateTimeStamp::new(datetime, offset).ok_or(crate::InvalidXsdDateTimeStampValue)
 	}
 }
 

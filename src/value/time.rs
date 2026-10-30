@@ -11,7 +11,7 @@ use std::{cmp::Ordering, hash::Hash, str::FromStr};
 /// the range permitted by XSD).
 #[derive(Debug, thiserror::Error)]
 #[error("invalid time value")]
-pub struct InvalidTimeValue;
+pub struct InvalidXsdTimeValue;
 
 /// A time of day, optionally with a timezone offset.
 ///
@@ -117,16 +117,16 @@ impl<'a> XsdFromStr<'a> for XsdTime {
 /// input is not a syntactically valid `time` lexical representation, or
 /// because it does not denote a valid time value.
 #[derive(Debug, thiserror::Error)]
-pub enum TimeFromStrError {
+pub enum XsdTimeFromStrError {
 	#[error("invalid time syntax")]
 	Syntax(#[from] InvalidXsdTimeStr<String>),
 
 	#[error(transparent)]
-	Value(#[from] InvalidTimeValue),
+	Value(#[from] InvalidXsdTimeValue),
 }
 
 impl FromStr for XsdTime {
-	type Err = TimeFromStrError;
+	type Err = XsdTimeFromStrError;
 
 	fn from_str(s: &str) -> Result<Self, Self::Err> {
 		let lexical_value =

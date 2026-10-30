@@ -70,13 +70,13 @@ impl XsdNonPositiveInteger {
 
 	/// Creates a non positive integer from its signed big endian bytes
 	/// representation, failing if the represented value is positive.
-	pub fn from_signed_bytes_be(bytes: &[u8]) -> Result<Self, IntegerIsPositive> {
+	pub fn from_signed_bytes_be(bytes: &[u8]) -> Result<Self, XsdIntegerIsPositive> {
 		XsdInteger::from_signed_bytes_be(bytes).try_into()
 	}
 
 	/// Creates a non positive integer from its signed little endian bytes
 	/// representation, failing if the represented value is positive.
-	pub fn from_signed_bytes_le(bytes: &[u8]) -> Result<Self, IntegerIsPositive> {
+	pub fn from_signed_bytes_le(bytes: &[u8]) -> Result<Self, XsdIntegerIsPositive> {
 		XsdInteger::from_signed_bytes_le(bytes).try_into()
 	}
 
@@ -265,16 +265,16 @@ impl_integer_arithmetic!(
 /// target integer type that cannot represent its value.
 #[derive(Debug, thiserror::Error)]
 #[error("integer out of supported bounds: {0}")]
-pub struct NonPositiveIntegerOutOfTargetBounds(pub XsdNonPositiveInteger);
+pub struct XsdNonPositiveIntegerOutOfTargetBounds(pub XsdNonPositiveInteger);
 
 macro_rules! try_into {
 	{ $( $ty:ty ),* } => {
 		$(
 			impl TryFrom<XsdNonPositiveInteger> for $ty {
-				type Error = NonPositiveIntegerOutOfTargetBounds;
+				type Error = XsdNonPositiveIntegerOutOfTargetBounds;
 
 				fn try_from(value: XsdNonPositiveInteger) -> Result<Self, Self::Error> {
-					value.0.try_into().map_err(|e: TryFromBigIntError<BigInt>| NonPositiveIntegerOutOfTargetBounds(XsdNonPositiveInteger(e.into_original())))
+					value.0.try_into().map_err(|e: TryFromBigIntError<BigInt>| XsdNonPositiveIntegerOutOfTargetBounds(XsdNonPositiveInteger(e.into_original())))
 				}
 			}
 		)*
@@ -287,14 +287,14 @@ try_into!(u8, u16, u32, u64, usize, i8, i16, i32, i64, isize);
 /// [`XsdNonPositiveInteger`].
 #[derive(Debug, thiserror::Error)]
 #[error("integer {0} is positive")]
-pub struct IntegerIsPositive(XsdInteger);
+pub struct XsdIntegerIsPositive(XsdInteger);
 
 impl TryFrom<XsdInteger> for XsdNonPositiveInteger {
-	type Error = IntegerIsPositive;
+	type Error = XsdIntegerIsPositive;
 
 	fn try_from(value: XsdInteger) -> Result<Self, Self::Error> {
 		if value.is_positive() {
-			Err(IntegerIsPositive(value))
+			Err(XsdIntegerIsPositive(value))
 		} else {
 			Ok(Self(value.into()))
 		}

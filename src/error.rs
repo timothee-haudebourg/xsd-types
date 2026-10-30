@@ -1,7 +1,7 @@
 use crate::{
-	InvalidDateTimeStampValue, InvalidDateTimeValue, InvalidDateValue, InvalidNormalizedStr,
-	InvalidTimeValue, InvalidToken, InvalidXsdId, InvalidXsdIdRef, InvalidXsdLanguage,
-	InvalidXsdNCName, InvalidXsdNMToken, InvalidXsdName, lexical,
+	InvalidXsdDateTimeStampValue, InvalidXsdDateTimeValue, InvalidXsdDateValue, InvalidXsdId,
+	InvalidXsdIdRef, InvalidXsdLanguage, InvalidXsdNCName, InvalidXsdNMToken, InvalidXsdName,
+	InvalidXsdNormalizedStr, InvalidXsdTimeValue, InvalidXsdToken, lexical,
 };
 
 #[derive(Debug, thiserror::Error)]
@@ -19,8 +19,8 @@ impl From<std::convert::Infallible> for XsdError {
 	}
 }
 
-impl From<lexical::Overflow> for XsdError {
-	fn from(_: lexical::Overflow) -> Self {
+impl From<lexical::XsdOverflow> for XsdError {
+	fn from(_: lexical::XsdOverflow) -> Self {
 		Self::value("integer out of target bounds")
 	}
 }
@@ -38,12 +38,12 @@ macro_rules! value_error_from {
 }
 
 value_error_from! {
-	InvalidDateValue,
-	InvalidDateTimeValue,
-	InvalidDateTimeStampValue,
-	InvalidTimeValue,
-	InvalidToken<String>,
-	InvalidNormalizedStr<String>,
+	InvalidXsdDateValue,
+	InvalidXsdDateTimeValue,
+	InvalidXsdDateTimeStampValue,
+	InvalidXsdTimeValue,
+	InvalidXsdToken<String>,
+	InvalidXsdNormalizedStr<String>,
 	InvalidXsdId<String>,
 	InvalidXsdIdRef<String>,
 	InvalidXsdLanguage<String>,

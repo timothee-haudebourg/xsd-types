@@ -48,7 +48,7 @@ impl<'a> crate::XsdFromStr<'a> for &'a XsdDateStr {
 }
 
 impl<'a> TryFrom<&'a XsdDateStr> for crate::XsdDate {
-	type Error = crate::InvalidDateValue;
+	type Error = crate::InvalidXsdDateValue;
 
 	fn try_from(value: &'a XsdDateStr) -> Result<crate::XsdDate, Self::Error> {
 		value.parts().to_date()
@@ -73,25 +73,25 @@ impl<'a> Parts<'a> {
 		}
 	}
 
-	fn to_date(&self) -> Result<crate::XsdDate, crate::InvalidDateValue> {
-		let year = self.year.parse().map_err(|_| crate::InvalidDateValue)?;
-		let day = self.day.parse().map_err(|_| crate::InvalidDateValue)?;
+	fn to_date(&self) -> Result<crate::XsdDate, crate::InvalidXsdDateValue> {
+		let year = self.year.parse().map_err(|_| crate::InvalidXsdDateValue)?;
+		let day = self.day.parse().map_err(|_| crate::InvalidXsdDateValue)?;
 
 		let month = self
 			.month
 			.parse::<u8>()
-			.map_err(|_| crate::InvalidDateValue)?;
-		let month = time::Month::try_from(month).map_err(|_| crate::InvalidDateValue)?;
+			.map_err(|_| crate::InvalidXsdDateValue)?;
+		let month = time::Month::try_from(month).map_err(|_| crate::InvalidXsdDateValue)?;
 
 		let date = time::Date::from_calendar_date(year, month, day)
-			.map_err(|_| crate::InvalidDateValue)?;
+			.map_err(|_| crate::InvalidXsdDateValue)?;
 
 		let offset = match self.timezone {
-			Some(tz) => Some(parse_timezone(tz).ok_or(crate::InvalidDateValue)?),
+			Some(tz) => Some(parse_timezone(tz).ok_or(crate::InvalidXsdDateValue)?),
 			None => None,
 		};
 
-		crate::XsdDate::new(date, offset).ok_or(crate::InvalidDateValue)
+		crate::XsdDate::new(date, offset).ok_or(crate::InvalidXsdDateValue)
 	}
 }
 

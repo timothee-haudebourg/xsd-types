@@ -306,7 +306,7 @@ impl Borrow<BigInt> for XsdInteger {
 /// integer type that cannot represent its value.
 #[derive(Debug, thiserror::Error)]
 #[error("integer out of supported bounds: {0}")]
-pub struct IntegerOutOfTargetBounds(pub XsdInteger);
+pub struct XsdIntegerOutOfTargetBounds(pub XsdInteger);
 
 macro_rules! from {
 	{ $( $ty:ty ),* } => {
@@ -326,18 +326,18 @@ macro_rules! try_into {
 	{ $( $ty:ty ),* } => {
 		$(
 			impl TryFrom<XsdInteger> for $ty {
-				type Error = IntegerOutOfTargetBounds;
+				type Error = XsdIntegerOutOfTargetBounds;
 
 				fn try_from(value: XsdInteger) -> Result<Self, Self::Error> {
-					value.0.try_into().map_err(|e: TryFromBigIntError<BigInt>| IntegerOutOfTargetBounds(XsdInteger(e.into_original())))
+					value.0.try_into().map_err(|e: TryFromBigIntError<BigInt>| XsdIntegerOutOfTargetBounds(XsdInteger(e.into_original())))
 				}
 			}
 
 			impl<'a> TryFrom<&'a XsdInteger> for $ty {
-				type Error = IntegerOutOfTargetBounds;
+				type Error = XsdIntegerOutOfTargetBounds;
 
 				fn try_from(value: &'a XsdInteger) -> Result<Self, Self::Error> {
-					value.0.clone().try_into().map_err(|e: TryFromBigIntError<BigInt>| IntegerOutOfTargetBounds(XsdInteger(e.into_original()))) // TODO avoid cloning.
+					value.0.clone().try_into().map_err(|e: TryFromBigIntError<BigInt>| XsdIntegerOutOfTargetBounds(XsdInteger(e.into_original()))) // TODO avoid cloning.
 				}
 			}
 		)*

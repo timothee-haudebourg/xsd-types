@@ -10,7 +10,7 @@ use crate::{
 /// timezone offset outside the range permitted by XSD).
 #[derive(Debug, thiserror::Error)]
 #[error("invalid datetimestamp value")]
-pub struct InvalidDateTimeStampValue;
+pub struct InvalidXsdDateTimeStampValue;
 
 /// A date and time with a required timezone offset.
 ///
@@ -207,16 +207,16 @@ impl fmt::Display for XsdDateTimeStamp {
 /// because the input is not a syntactically valid `dateTimeStamp` lexical
 /// representation, or because it does not denote a valid date/time value.
 #[derive(Debug, thiserror::Error)]
-pub enum DateTimeStampFromStrError {
+pub enum XsdDateTimeStampFromStrError {
 	#[error("invalid date syntax")]
 	Syntax(#[from] InvalidXsdDateTimeStampStr<String>),
 
 	#[error(transparent)]
-	Value(#[from] InvalidDateTimeStampValue),
+	Value(#[from] InvalidXsdDateTimeStampValue),
 }
 
 impl FromStr for XsdDateTimeStamp {
-	type Err = DateTimeStampFromStrError;
+	type Err = XsdDateTimeStampFromStrError;
 
 	fn from_str(s: &str) -> Result<Self, Self::Err> {
 		let lexical_value = crate::lexical::XsdDateTimeStampStr::new(s)
@@ -226,11 +226,11 @@ impl FromStr for XsdDateTimeStamp {
 }
 
 impl TryFrom<time::OffsetDateTime> for XsdDateTimeStamp {
-	type Error = crate::InvalidOffset;
+	type Error = crate::InvalidXsdOffset;
 
 	fn try_from(value: time::OffsetDateTime) -> Result<Self, Self::Error> {
 		let date_time = time::PrimitiveDateTime::new(value.date(), value.time());
-		Self::new(date_time, value.offset()).ok_or(crate::InvalidOffset)
+		Self::new(date_time, value.offset()).ok_or(crate::InvalidXsdOffset)
 	}
 }
 
@@ -242,7 +242,7 @@ impl From<XsdDateTimeStamp> for time::OffsetDateTime {
 
 #[cfg(feature = "chrono")]
 impl TryFrom<chrono::DateTime<chrono::FixedOffset>> for XsdDateTimeStamp {
-	type Error = crate::InvalidOffset;
+	type Error = crate::InvalidXsdOffset;
 
 	fn try_from(value: chrono::DateTime<chrono::FixedOffset>) -> Result<Self, Self::Error> {
 		let offset = time::UtcOffset::from_whole_seconds(value.offset().local_minus_utc()).unwrap();

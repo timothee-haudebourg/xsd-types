@@ -14,7 +14,7 @@ const CHARS: [char; 16] = [
 /// Error raised when decoding an invalid hexadecimal-encoded byte string.
 #[derive(Debug, thiserror::Error)]
 #[error("invalid hexadecimal")]
-pub struct InvalidHex;
+pub struct InvalidXsdHex;
 
 /// Decoded `hexBinary` value, as an owned byte buffer.
 ///
@@ -35,7 +35,7 @@ impl XsdHexBinaryBuf {
 	}
 
 	/// Decodes a hexadecimal-encoded byte string into its raw bytes.
-	pub fn decode(input: impl AsRef<[u8]>) -> Result<Self, InvalidHex> {
+	pub fn decode(input: impl AsRef<[u8]>) -> Result<Self, InvalidXsdHex> {
 		let input = input.as_ref();
 		let mut bytes = Vec::with_capacity(input.len() / 2);
 
@@ -48,7 +48,7 @@ impl XsdHexBinaryBuf {
 					let b = decode_char(b)?;
 					bytes.push(a << 4 | b)
 				}
-				None => return Err(InvalidHex),
+				None => return Err(InvalidXsdHex),
 			}
 		}
 
@@ -76,12 +76,12 @@ impl XsdHexBinaryBuf {
 	}
 }
 
-fn decode_char(c: u8) -> Result<u8, InvalidHex> {
+fn decode_char(c: u8) -> Result<u8, InvalidXsdHex> {
 	match c {
 		b'0'..=b'9' => Ok(c - b'0'),
 		b'A'..=b'F' => Ok(0xa + (c - b'A')),
 		b'a'..=b'f' => Ok(0xa + (c - b'a')),
-		_ => Err(InvalidHex),
+		_ => Err(InvalidXsdHex),
 	}
 }
 

@@ -379,27 +379,27 @@ macro_rules! try_into_int {
 	($($ty:ident),*) => {
 		$(
 			impl TryFrom<XsdDecimal> for $ty {
-				type Error = FromDecimalError;
+				type Error = FromXsdDecimalError;
 
-				fn try_from(value: XsdDecimal) -> Result<Self, FromDecimalError> {
+				fn try_from(value: XsdDecimal) -> Result<Self, FromXsdDecimalError> {
 					match value.as_integer() {
 						Some(i) => {
-							i.try_into().map_err(|_| FromDecimalError)
+							i.try_into().map_err(|_| FromXsdDecimalError)
 						}
-						None => Err(FromDecimalError)
+						None => Err(FromXsdDecimalError)
 					}
 				}
 			}
 
 			impl<'a> TryFrom<&'a XsdDecimal> for $ty {
-				type Error = FromDecimalError;
+				type Error = FromXsdDecimalError;
 
-				fn try_from(value: &'a XsdDecimal) -> Result<Self, FromDecimalError> {
+				fn try_from(value: &'a XsdDecimal) -> Result<Self, FromXsdDecimalError> {
 					match value.as_integer() {
 						Some(i) => {
-							i.try_into().map_err(|_| FromDecimalError)
+							i.try_into().map_err(|_| FromXsdDecimalError)
 						}
-						None => Err(FromDecimalError)
+						None => Err(FromXsdDecimalError)
 					}
 				}
 			}
@@ -411,39 +411,39 @@ macro_rules! try_into_int {
 /// numeric type (e.g. it has a fractional part or is out of range).
 #[derive(Debug, thiserror::Error)]
 #[error("decimal number conversion failed")]
-pub struct FromDecimalError;
+pub struct FromXsdDecimalError;
 
 try_into_int!(u8, u16, u32, u64, i8, i16, i32, i64, usize, isize);
 
 impl TryFrom<XsdDecimal> for f32 {
-	type Error = FromDecimalError;
+	type Error = FromXsdDecimalError;
 
 	fn try_from(value: XsdDecimal) -> Result<Self, Self::Error> {
-		value.as_f32().ok_or(FromDecimalError)
+		value.as_f32().ok_or(FromXsdDecimalError)
 	}
 }
 
 impl TryFrom<XsdDecimal> for XsdFloat {
-	type Error = FromDecimalError;
+	type Error = FromXsdDecimalError;
 
 	fn try_from(value: XsdDecimal) -> Result<Self, Self::Error> {
-		value.as_float().ok_or(FromDecimalError)
+		value.as_float().ok_or(FromXsdDecimalError)
 	}
 }
 
 impl TryFrom<XsdDecimal> for f64 {
-	type Error = FromDecimalError;
+	type Error = FromXsdDecimalError;
 
 	fn try_from(value: XsdDecimal) -> Result<Self, Self::Error> {
-		value.as_f64().ok_or(FromDecimalError)
+		value.as_f64().ok_or(FromXsdDecimalError)
 	}
 }
 
 impl TryFrom<XsdDecimal> for XsdDouble {
-	type Error = FromDecimalError;
+	type Error = FromXsdDecimalError;
 
 	fn try_from(value: XsdDecimal) -> Result<Self, Self::Error> {
-		value.as_double().ok_or(FromDecimalError)
+		value.as_double().ok_or(FromXsdDecimalError)
 	}
 }
 
@@ -489,17 +489,17 @@ impl Deref for XsdDecimal {
 /// finite decimal representation.
 #[derive(Debug, thiserror::Error)]
 #[error("no decimal representation for rational number {0}")]
-pub struct NoDecimalRepresentation(pub BigRational);
+pub struct NoXsdDecimalRepresentation(pub BigRational);
 
 impl TryFrom<BigRational> for XsdDecimal {
-	type Error = NoDecimalRepresentation;
+	type Error = NoXsdDecimalRepresentation;
 
 	#[inline(always)]
 	fn try_from(value: BigRational) -> Result<Self, Self::Error> {
 		if is_decimal(&value) {
 			Ok(unsafe { Self::new_unchecked(value) })
 		} else {
-			Err(NoDecimalRepresentation(value))
+			Err(NoXsdDecimalRepresentation(value))
 		}
 	}
 }
@@ -580,7 +580,7 @@ impl<'de> serde::Deserialize<'de> for XsdDecimal {
 /// (NaN or infinite) into a [`XsdDecimal`], which has no representation for
 /// such values.
 #[derive(Debug, thiserror::Error)]
-pub enum NonDecimalFloat {
+pub enum NonXsdDecimalFloat {
 	/// The float is NaN.
 	#[error("float is NaN")]
 	Nan,
@@ -595,16 +595,16 @@ pub enum NonDecimalFloat {
 }
 
 impl TryFrom<XsdFloat> for XsdDecimal {
-	type Error = NonDecimalFloat;
+	type Error = NonXsdDecimalFloat;
 
 	fn try_from(value: XsdFloat) -> Result<Self, Self::Error> {
 		if value.is_nan() {
-			Err(NonDecimalFloat::Nan)
+			Err(NonXsdDecimalFloat::Nan)
 		} else if value.is_infinite() {
 			if value.is_positive() {
-				Err(NonDecimalFloat::PositiveInfinity)
+				Err(NonXsdDecimalFloat::PositiveInfinity)
 			} else {
-				Err(NonDecimalFloat::NegativeInfinity)
+				Err(NonXsdDecimalFloat::NegativeInfinity)
 			}
 		} else {
 			Ok(BigRational::from_float(value.into_f32())
@@ -616,16 +616,16 @@ impl TryFrom<XsdFloat> for XsdDecimal {
 }
 
 impl TryFrom<XsdDouble> for XsdDecimal {
-	type Error = NonDecimalFloat;
+	type Error = NonXsdDecimalFloat;
 
 	fn try_from(value: XsdDouble) -> Result<Self, Self::Error> {
 		if value.is_nan() {
-			Err(NonDecimalFloat::Nan)
+			Err(NonXsdDecimalFloat::Nan)
 		} else if value.is_infinite() {
 			if value.is_sign_positive() {
-				Err(NonDecimalFloat::PositiveInfinity)
+				Err(NonXsdDecimalFloat::PositiveInfinity)
 			} else {
-				Err(NonDecimalFloat::NegativeInfinity)
+				Err(NonXsdDecimalFloat::NegativeInfinity)
 			}
 		} else {
 			Ok(BigRational::from_float(*value).unwrap().try_into().unwrap())

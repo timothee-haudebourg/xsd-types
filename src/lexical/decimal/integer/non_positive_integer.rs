@@ -2,8 +2,8 @@ use crate::XsdError;
 use crate::lexical::{XsdLexicalForm, lexical_form};
 
 use super::{
-	Overflow, Sign, XsdDecimalStr, XsdDecimalString, XsdIntegerStr, XsdIntegerString,
-	XsdNonNegativeIntegerStr,
+	Sign, XsdDecimalStr, XsdDecimalString, XsdIntegerStr, XsdIntegerString,
+	XsdNonNegativeIntegerStr, XsdOverflow,
 };
 use static_automata::Validate;
 use std::cmp::Ordering;
@@ -211,18 +211,18 @@ macro_rules! number_conversion {
 			}
 
 			impl<'a> TryFrom<&'a XsdNonPositiveIntegerStr> for $ty {
-				type Error = Overflow;
+				type Error = XsdOverflow;
 
-				fn try_from(i: &'a XsdNonPositiveIntegerStr) -> Result<Self, Overflow> {
-					i.as_str().parse().map_err(|_| Overflow)
+				fn try_from(i: &'a XsdNonPositiveIntegerStr) -> Result<Self, XsdOverflow> {
+					i.as_str().parse().map_err(|_| XsdOverflow)
 				}
 			}
 
 			impl TryFrom<XsdNonPositiveIntegerString> for $ty {
-				type Error = Overflow;
+				type Error = XsdOverflow;
 
-				fn try_from(i: XsdNonPositiveIntegerString) -> Result<Self, Overflow> {
-					i.as_str().parse().map_err(|_| Overflow)
+				fn try_from(i: XsdNonPositiveIntegerString) -> Result<Self, XsdOverflow> {
+					i.as_str().parse().map_err(|_| XsdOverflow)
 				}
 			}
 		)*

@@ -1,4 +1,4 @@
-use super::{Overflow, XsdDecimalStr, XsdFloatStr, XsdFloatString, XsdIntegerStr, lexical_form};
+use super::{XsdDecimalStr, XsdFloatStr, XsdFloatString, XsdIntegerStr, XsdOverflow, lexical_form};
 use crate::XsdError;
 use crate::lexical::XsdLexicalForm;
 use static_automata::Validate;
@@ -120,18 +120,18 @@ macro_rules! integer_conversion {
 			}
 
 			impl<'a> TryFrom<&'a XsdDoubleStr> for $ty {
-				type Error = Overflow;
+				type Error = XsdOverflow;
 
-				fn try_from(i: &'a XsdDoubleStr) -> Result<Self, Overflow> {
-					i.as_str().parse().map_err(|_| Overflow)
+				fn try_from(i: &'a XsdDoubleStr) -> Result<Self, XsdOverflow> {
+					i.as_str().parse().map_err(|_| XsdOverflow)
 				}
 			}
 
 			impl TryFrom<XsdDoubleString> for $ty {
-				type Error = Overflow;
+				type Error = XsdOverflow;
 
-				fn try_from(i: XsdDoubleString) -> Result<Self, Overflow> {
-					i.as_str().parse().map_err(|_| Overflow)
+				fn try_from(i: XsdDoubleString) -> Result<Self, XsdOverflow> {
+					i.as_str().parse().map_err(|_| XsdOverflow)
 				}
 			}
 		)*
