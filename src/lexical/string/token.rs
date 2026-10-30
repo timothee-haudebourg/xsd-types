@@ -1,21 +1,21 @@
 use crate::lexical::XsdLexicalForm;
 use crate::{InvalidToken, XsdError};
-pub use crate::{Token, TokenBuf};
+pub use crate::{XsdToken, XsdTokenBuf};
 
-impl XsdLexicalForm for Token {
-	type Value = crate::TokenBuf;
+impl XsdLexicalForm for XsdToken {
+	type Value = crate::XsdTokenBuf;
 }
 
-impl<'a> crate::XsdFromStr<'a> for &'a Token {
+impl<'a> crate::XsdFromStr<'a> for &'a XsdToken {
 	fn xsd_from_str(value: &'a str) -> Result<Self, XsdError> {
-		Token::new(value).map_err(|_| XsdError::lexical_form(InvalidToken(value)))
+		XsdToken::new(value).map_err(|_| XsdError::lexical_form(InvalidToken(value)))
 	}
 }
 
-impl<'a> TryFrom<&'a Token> for crate::TokenBuf {
+impl<'a> TryFrom<&'a XsdToken> for crate::XsdTokenBuf {
 	type Error = InvalidToken<String>;
 
-	fn try_from(value: &'a Token) -> Result<crate::TokenBuf, Self::Error> {
+	fn try_from(value: &'a XsdToken) -> Result<crate::XsdTokenBuf, Self::Error> {
 		value.as_str().parse()
 	}
 }

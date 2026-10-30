@@ -205,14 +205,14 @@ mod tests {
 	use std::collections::hash_map::DefaultHasher;
 
 	use super::*;
-	use crate::{lexical, DateTime};
+	use crate::{lexical, XsdDateTime};
 
 	/// Lexical form of a `dateTime` that is valid but not canonical: the
 	/// canonical form drops the trailing zero of the fractional seconds.
 	const NON_CANONICAL: &str = "2002-10-10T12:00:00.50-05:30";
 	const CANONICAL: &str = "2002-10-10T12:00:00.5-05:30";
 
-	fn literal(lexical_form: &str) -> XsdLiteral<DateTime> {
+	fn literal(lexical_form: &str) -> XsdLiteral<XsdDateTime> {
 		XsdLiteral::from_string(lexical_form.to_owned()).unwrap()
 	}
 
@@ -224,7 +224,7 @@ mod tests {
 
 	#[test]
 	fn new_computes_canonical_lexical_form() {
-		let value: DateTime = NON_CANONICAL.parse().unwrap();
+		let value: XsdDateTime = NON_CANONICAL.parse().unwrap();
 		let literal = XsdLiteral::new(value);
 
 		assert_eq!(literal.as_lexical_form().as_str(), CANONICAL);
@@ -240,15 +240,15 @@ mod tests {
 
 		// The value itself is the same as the one parsed directly, and its own
 		// canonical lexical form is different from the one preserved.
-		let value: DateTime = NON_CANONICAL.parse().unwrap();
+		let value: XsdDateTime = NON_CANONICAL.parse().unwrap();
 		assert_eq!(*literal.as_value(), value);
 		assert_eq!(literal.as_value().to_lexical_form().as_str(), CANONICAL);
 	}
 
 	#[test]
 	fn try_from_lexical_form_preserves_lexical_form() {
-		let lexical_form = lexical::DateTimeBuf::new(NON_CANONICAL.to_owned()).unwrap();
-		let literal = XsdLiteral::<DateTime>::try_from_lexical_form(lexical_form).unwrap();
+		let lexical_form = lexical::XsdDateTimeString::new(NON_CANONICAL.to_owned()).unwrap();
+		let literal = XsdLiteral::<XsdDateTime>::try_from_lexical_form(lexical_form).unwrap();
 
 		assert_eq!(literal.as_lexical_form().as_str(), NON_CANONICAL);
 	}
@@ -257,7 +257,7 @@ mod tests {
 	fn from_string_rejects_invalid_lexical_form() {
 		for input in ["", "not a date", "2002-10-10", "2002-10-10T12:00"] {
 			assert!(
-				XsdLiteral::<DateTime>::from_string(input.to_owned()).is_err(),
+				XsdLiteral::<XsdDateTime>::from_string(input.to_owned()).is_err(),
 				"{input:?}"
 			);
 		}
@@ -266,7 +266,7 @@ mod tests {
 	#[test]
 	fn from_string_rejects_invalid_value() {
 		// Syntactically valid, but there is no 30th of February.
-		let result = XsdLiteral::<DateTime>::from_string("2002-02-30T12:00:00".to_owned());
+		let result = XsdLiteral::<XsdDateTime>::from_string("2002-02-30T12:00:00".to_owned());
 		assert!(result.is_err());
 	}
 
@@ -278,14 +278,14 @@ mod tests {
 
 	#[test]
 	fn into_lexical_form_computes_canonical_form_if_missing() {
-		let value: DateTime = NON_CANONICAL.parse().unwrap();
+		let value: XsdDateTime = NON_CANONICAL.parse().unwrap();
 		let lexical_form = XsdLiteral::new(value).into_lexical_form();
 		assert_eq!(lexical_form.as_str(), CANONICAL);
 	}
 
 	#[test]
 	fn into_value_discards_lexical_form() {
-		let value: DateTime = NON_CANONICAL.parse().unwrap();
+		let value: XsdDateTime = NON_CANONICAL.parse().unwrap();
 		assert_eq!(literal(NON_CANONICAL).into_value(), value);
 	}
 
@@ -294,7 +294,7 @@ mod tests {
 		let mut literal = literal(NON_CANONICAL);
 		assert_eq!(literal.as_lexical_form().as_str(), NON_CANONICAL);
 
-		let other: DateTime = "1999-12-31T23:59:59Z".parse().unwrap();
+		let other: XsdDateTime = "1999-12-31T23:59:59Z".parse().unwrap();
 		*literal.as_value_mut() = other;
 
 		assert_eq!(*literal.as_value(), other);
@@ -335,7 +335,7 @@ mod tests {
 
 	#[test]
 	fn clone_without_lexical_form_stays_lazy() {
-		let value: DateTime = NON_CANONICAL.parse().unwrap();
+		let value: XsdDateTime = NON_CANONICAL.parse().unwrap();
 		let clone = XsdLiteral::new(value).clone();
 
 		assert_eq!(clone.to_string(), CANONICAL);
@@ -374,12 +374,12 @@ mod tests {
 
 	#[test]
 	fn from_value_and_borrowing() {
-		let value: DateTime = NON_CANONICAL.parse().unwrap();
+		let value: XsdDateTime = NON_CANONICAL.parse().unwrap();
 		let literal = XsdLiteral::from(value);
 
 		assert_eq!(*literal, value);
-		assert_eq!(AsRef::<DateTime>::as_ref(&literal), &value);
-		assert_eq!(Borrow::<DateTime>::borrow(&literal), &value);
+		assert_eq!(AsRef::<XsdDateTime>::as_ref(&literal), &value);
+		assert_eq!(Borrow::<XsdDateTime>::borrow(&literal), &value);
 	}
 
 	#[test]

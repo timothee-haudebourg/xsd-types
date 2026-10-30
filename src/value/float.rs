@@ -9,15 +9,15 @@ use crate::{lexical, Datatype, XsdFromStr, XsdTyped, XsdValue};
 
 /// Value space of the XSD `float` datatype.
 ///
-/// This is the decoded counterpart of [`lexical::Float`]: it stores the
+/// This is the decoded counterpart of [`lexical::XsdFloatStr`]: it stores the
 /// parsed IEEE 754 single-precision floating point value rather than its
 /// lexical (string) representation.
 /// See: <https://www.w3.org/TR/xmlschema11-2/#float>.
 #[derive(Debug, Clone, Copy, PartialEq, PartialOrd)]
 #[repr(transparent)]
-pub struct Float(pub f32);
+pub struct XsdFloat(pub f32);
 
-impl Float {
+impl XsdFloat {
 	/// Negative infinity.
 	pub const NEG_INFINITY: Self = Self(f32::NEG_INFINITY);
 
@@ -99,66 +99,67 @@ const XSD_CANONICAL_FLOAT: pretty_dtoa::FmtFloatConfig = pretty_dtoa::FmtFloatCo
 	.force_e_notation()
 	.capitalize_e(true);
 
-impl fmt::Display for Float {
+impl fmt::Display for XsdFloat {
 	fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
 		pretty_dtoa::ftoa(self.0, XSD_CANONICAL_FLOAT).fmt(f)
 	}
 }
 
-impl XsdTyped for Float {
+impl XsdTyped for XsdFloat {
 	#[inline(always)]
 	fn datatype(&self) -> Datatype {
 		Datatype::Float
 	}
 }
 
-impl XsdValue for Float {
-	type LexicalForm = lexical::Float;
+impl XsdValue for XsdFloat {
+	type LexicalForm = lexical::XsdFloatStr;
 
-	fn to_lexical_form(&self) -> lexical::FloatBuf {
+	fn to_lexical_form(&self) -> lexical::XsdFloatString {
 		if self.0.is_finite() {
 			// `Display` emits the canonical lexical form of finite values by
 			// contract, so it is always valid and this cannot panic.
-			lexical::FloatBuf::new(self.to_string())
+			lexical::XsdFloatString::new(self.to_string())
 				.expect("Display emits a valid float lexical form for finite values")
 		} else {
 			// `Display` emits `inf`/`-inf`, which are not valid lexical forms,
 			// so special values go through the infallible conversion instead
 			// (`NaN`, `INF`, `-INF`).
-			lexical::FloatBuf::from(self.0)
+			lexical::XsdFloatString::from(self.0)
 		}
 	}
 }
 
-impl<'a> XsdFromStr<'a> for Float {
+impl<'a> XsdFromStr<'a> for XsdFloat {
 	fn xsd_from_str(lexical_value: &'a str) -> Result<Self, crate::XsdError> {
-		crate::xsd_parse_via::<lexical::Float, Self>(lexical_value)
+		crate::xsd_parse_via::<lexical::XsdFloatStr, Self>(lexical_value)
 	}
 }
 
-impl<'a> From<&'a lexical::Float> for Float {
-	fn from(value: &'a lexical::Float) -> Self {
+impl<'a> From<&'a lexical::XsdFloatStr> for XsdFloat {
+	fn from(value: &'a lexical::XsdFloatStr) -> Self {
 		Self::new(value.into())
 	}
 }
 
-impl From<lexical::FloatBuf> for Float {
-	fn from(value: lexical::FloatBuf) -> Self {
+impl From<lexical::XsdFloatString> for XsdFloat {
+	fn from(value: lexical::XsdFloatString) -> Self {
 		Self::new(value.into())
 	}
 }
 
-impl FromStr for Float {
-	type Err = lexical::InvalidFloat<String>;
+impl FromStr for XsdFloat {
+	type Err = lexical::InvalidXsdFloatStr<String>;
 
 	fn from_str(s: &str) -> Result<Self, Self::Err> {
-		let l = lexical::Float::new(s).map_err(|_| lexical::InvalidFloat(s.to_owned()))?;
+		let l =
+			lexical::XsdFloatStr::new(s).map_err(|_| lexical::InvalidXsdFloatStr(s.to_owned()))?;
 		Ok(l.into())
 	}
 }
 
 #[cfg(feature = "serde")]
-impl serde::Serialize for Float {
+impl serde::Serialize for XsdFloat {
 	fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
 	where
 		S: serde::Serializer,
@@ -168,7 +169,7 @@ impl serde::Serialize for Float {
 }
 
 #[cfg(feature = "serde")]
-impl<'de> serde::Deserialize<'de> for Float {
+impl<'de> serde::Deserialize<'de> for XsdFloat {
 	fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
 	where
 		D: serde::Deserializer<'de>,
@@ -176,7 +177,7 @@ impl<'de> serde::Deserialize<'de> for Float {
 		struct Visitor;
 
 		impl<'de> serde::de::Visitor<'de> for Visitor {
-			type Value = Float;
+			type Value = XsdFloat;
 
 			fn expecting(&self, formatter: &mut fmt::Formatter) -> fmt::Result {
 				formatter.write_str("a http://www.w3.org/2001/XMLSchema#float")
@@ -194,42 +195,42 @@ impl<'de> serde::Deserialize<'de> for Float {
 	}
 }
 
-impl From<f32> for Float {
+impl From<f32> for XsdFloat {
 	#[inline(always)]
 	fn from(value: f32) -> Self {
 		Self(value)
 	}
 }
 
-impl From<Float> for f32 {
+impl From<XsdFloat> for f32 {
 	#[inline(always)]
-	fn from(value: Float) -> Self {
+	fn from(value: XsdFloat) -> Self {
 		value.0
 	}
 }
 
-impl From<Float> for f64 {
+impl From<XsdFloat> for f64 {
 	#[inline(always)]
-	fn from(value: Float) -> Self {
+	fn from(value: XsdFloat) -> Self {
 		value.0 as f64
 	}
 }
 
-impl AsRef<f32> for Float {
+impl AsRef<f32> for XsdFloat {
 	#[inline(always)]
 	fn as_ref(&self) -> &f32 {
 		&self.0
 	}
 }
 
-impl Borrow<f32> for Float {
+impl Borrow<f32> for XsdFloat {
 	#[inline(always)]
 	fn borrow(&self) -> &f32 {
 		&self.0
 	}
 }
 
-impl Add for Float {
+impl Add for XsdFloat {
 	type Output = Self;
 
 	#[inline(always)]
@@ -238,7 +239,7 @@ impl Add for Float {
 	}
 }
 
-impl Sub for Float {
+impl Sub for XsdFloat {
 	type Output = Self;
 
 	#[inline(always)]
@@ -247,7 +248,7 @@ impl Sub for Float {
 	}
 }
 
-impl Mul for Float {
+impl Mul for XsdFloat {
 	type Output = Self;
 
 	#[inline(always)]
@@ -256,7 +257,7 @@ impl Mul for Float {
 	}
 }
 
-impl Div for Float {
+impl Div for XsdFloat {
 	type Output = Self;
 
 	#[inline(always)]
@@ -273,28 +274,28 @@ mod tests {
 	// incomparable with any value in the value space including itself".
 	#[test]
 	fn nan_is_not_equal_to_itself() {
-		assert_ne!(Float::NAN, Float::NAN);
+		assert_ne!(XsdFloat::NAN, XsdFloat::NAN);
 	}
 
 	#[test]
 	fn nan_is_incomparable() {
-		assert_eq!(Float::NAN.partial_cmp(&Float::NAN), None);
-		assert_eq!(Float::NAN.partial_cmp(&Float::new(0.0)), None);
+		assert_eq!(XsdFloat::NAN.partial_cmp(&XsdFloat::NAN), None);
+		assert_eq!(XsdFloat::NAN.partial_cmp(&XsdFloat::new(0.0)), None);
 	}
 
 	// <https://www.w3.org/TR/xmlschema11-2/#float>: "0 = −0 (although they are
 	// not identical)".
 	#[test]
 	fn positive_and_negative_zero_are_equal() {
-		assert_eq!(Float::new(0.0), Float::new(-0.0));
+		assert_eq!(XsdFloat::new(0.0), XsdFloat::new(-0.0));
 	}
 
 	fn assert_lexical_form_round_trip(input: &str) {
-		let value: Float = input.parse().unwrap();
+		let value: XsdFloat = input.parse().unwrap();
 		let lexical = value.to_lexical_form();
 		assert_eq!(lexical.as_str(), input);
 
-		let reparsed = Float::xsd_from_str(lexical.as_str()).unwrap();
+		let reparsed = XsdFloat::xsd_from_str(lexical.as_str()).unwrap();
 		if value.is_nan() {
 			assert!(reparsed.is_nan());
 		} else {

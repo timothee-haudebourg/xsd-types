@@ -1,6 +1,6 @@
 use crate::{
-	format_nanoseconds, lexical::InvalidDuration, Datatype, DurationDatatype, XsdFromStr, XsdTyped,
-	XsdValue,
+	format_nanoseconds, lexical::InvalidXsdDurationStr, Datatype, DurationDatatype, XsdFromStr,
+	XsdTyped, XsdValue,
 };
 use core::fmt;
 use std::{cmp::Ordering, hash::Hash, str::FromStr};
@@ -18,14 +18,14 @@ pub use year_month_duration::*;
 /// nanoseconds), as described by the XSD 1.1 Datatypes specification.
 /// See: <https://www.w3.org/TR/xmlschema11-2/#duration>.
 #[derive(Debug, Clone, Copy)]
-pub struct Duration {
+pub struct XsdDuration {
 	is_negative: bool,
 	months: u32,
 	seconds: u32,
 	nano_seconds: u32,
 }
 
-impl Duration {
+impl XsdDuration {
 	/// Creates a new duration from its sign, number of months, number of
 	/// seconds, and sub-second nanoseconds.
 	///
@@ -86,10 +86,10 @@ impl Duration {
 
 /// Adds this duration to `reference`, following the `dateTimePlusDuration`
 /// algorithm: <https://www.w3.org/TR/xmlschema11-2/#adding-durations-to-dateTimes>.
-impl std::ops::Add<Duration> for time::PrimitiveDateTime {
+impl std::ops::Add<XsdDuration> for time::PrimitiveDateTime {
 	type Output = Self;
 
-	fn add(self, rhs: Duration) -> Self::Output {
+	fn add(self, rhs: XsdDuration) -> Self::Output {
 		let date = self.date();
 
 		let total_months = i64::from(date.year()) * 12
@@ -144,7 +144,7 @@ const DURATION_ORDER_REFERENCES: [time::PrimitiveDateTime; 4] = [
 	),
 ];
 
-impl PartialEq for Duration {
+impl PartialEq for XsdDuration {
 	fn eq(&self, other: &Self) -> bool {
 		self.signed_months() == other.signed_months()
 			&& self.signed_seconds() == other.signed_seconds()
@@ -152,9 +152,9 @@ impl PartialEq for Duration {
 	}
 }
 
-impl Eq for Duration {}
+impl Eq for XsdDuration {}
 
-impl Hash for Duration {
+impl Hash for XsdDuration {
 	fn hash<H: std::hash::Hasher>(&self, state: &mut H) {
 		self.signed_months().hash(state);
 		self.signed_seconds().hash(state);
@@ -166,7 +166,7 @@ impl Hash for Duration {
 /// as one another if and only if adding each of them to every one of the
 /// four reference date/times produces results in that same relative order.
 /// See <https://www.w3.org/TR/xmlschema11-2/#duration>.
-impl PartialOrd for Duration {
+impl PartialOrd for XsdDuration {
 	fn partial_cmp(&self, other: &Self) -> Option<Ordering> {
 		let mut result = None;
 
@@ -184,40 +184,40 @@ impl PartialOrd for Duration {
 	}
 }
 
-impl XsdTyped for Duration {
+impl XsdTyped for XsdDuration {
 	fn datatype(&self) -> Datatype {
 		Datatype::Duration(DurationDatatype::Duration)
 	}
 }
 
-impl XsdValue for Duration {
-	type LexicalForm = crate::lexical::Duration;
+impl XsdValue for XsdDuration {
+	type LexicalForm = crate::lexical::XsdDurationStr;
 
-	fn to_lexical_form(&self) -> crate::lexical::DurationBuf {
+	fn to_lexical_form(&self) -> crate::lexical::XsdDurationString {
 		// `Display` emits the canonical lexical form by contract, so it is
 		// always valid and this cannot panic.
-		crate::lexical::DurationBuf::new(self.to_string())
+		crate::lexical::XsdDurationString::new(self.to_string())
 			.expect("Display emits a valid duration lexical form")
 	}
 }
 
-impl<'a> XsdFromStr<'a> for Duration {
+impl<'a> XsdFromStr<'a> for XsdDuration {
 	fn xsd_from_str(lexical_value: &'a str) -> Result<Self, crate::XsdError> {
-		crate::xsd_parse_via::<crate::lexical::Duration, Self>(lexical_value)
+		crate::xsd_parse_via::<crate::lexical::XsdDurationStr, Self>(lexical_value)
 	}
 }
 
-impl FromStr for Duration {
-	type Err = InvalidDuration<String>;
+impl FromStr for XsdDuration {
+	type Err = InvalidXsdDurationStr<String>;
 
 	fn from_str(s: &str) -> Result<Self, Self::Err> {
-		let lexical_value =
-			crate::lexical::Duration::new(s).map_err(|_| InvalidDuration(s.to_owned()))?;
+		let lexical_value = crate::lexical::XsdDurationStr::new(s)
+			.map_err(|_| InvalidXsdDurationStr(s.to_owned()))?;
 		Ok(lexical_value.into())
 	}
 }
 
-impl fmt::Display for Duration {
+impl fmt::Display for XsdDuration {
 	fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
 		if self.months == 0 && self.seconds == 0 && self.nano_seconds == 0 {
 			// The canonical form of the zero duration has no sign.
@@ -277,7 +277,7 @@ impl fmt::Display for Duration {
 }
 
 #[cfg(feature = "serde")]
-impl serde::Serialize for Duration {
+impl serde::Serialize for XsdDuration {
 	fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
 	where
 		S: serde::Serializer,
@@ -287,7 +287,7 @@ impl serde::Serialize for Duration {
 }
 
 #[cfg(feature = "serde")]
-impl<'de> serde::Deserialize<'de> for Duration {
+impl<'de> serde::Deserialize<'de> for XsdDuration {
 	fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
 	where
 		D: serde::Deserializer<'de>,
@@ -295,7 +295,7 @@ impl<'de> serde::Deserialize<'de> for Duration {
 		struct Visitor;
 
 		impl<'de> serde::de::Visitor<'de> for Visitor {
-			type Value = Duration;
+			type Value = XsdDuration;
 
 			fn expecting(&self, formatter: &mut fmt::Formatter) -> fmt::Result {
 				formatter.write_str("a http://www.w3.org/2001/XMLSchema#duration")
@@ -320,23 +320,23 @@ mod tests {
 
 	#[test]
 	fn equality_ignores_sign_of_zero() {
-		let a = Duration::from_str("PT0S").unwrap();
-		let b = Duration::from_str("-PT0S").unwrap();
+		let a = XsdDuration::from_str("PT0S").unwrap();
+		let b = XsdDuration::from_str("-PT0S").unwrap();
 		assert_eq!(a, b);
 	}
 
 	#[test]
 	fn one_year_equals_twelve_months() {
-		let a = Duration::from_str("P1Y").unwrap();
-		let b = Duration::from_str("P12M").unwrap();
+		let a = XsdDuration::from_str("P1Y").unwrap();
+		let b = XsdDuration::from_str("P12M").unwrap();
 		assert_eq!(a, b);
 		assert_eq!(a.partial_cmp(&b), Some(Ordering::Equal));
 	}
 
 	#[test]
 	fn one_day_is_less_than_two_days() {
-		let a = Duration::from_str("P1D").unwrap();
-		let b = Duration::from_str("P2D").unwrap();
+		let a = XsdDuration::from_str("P1D").unwrap();
+		let b = XsdDuration::from_str("P2D").unwrap();
 		assert!(a < b);
 	}
 
@@ -345,24 +345,24 @@ mod tests {
 	// 1903-03-01T00:00:00Z + P1M > 1903-03-01T00:00:00Z + P30D, so P1M <> P30D.
 	#[test]
 	fn one_month_and_thirty_days_are_incomparable() {
-		let one_month = Duration::from_str("P1M").unwrap();
-		let thirty_days = Duration::from_str("P30D").unwrap();
+		let one_month = XsdDuration::from_str("P1M").unwrap();
+		let thirty_days = XsdDuration::from_str("P30D").unwrap();
 		assert_eq!(one_month.partial_cmp(&thirty_days), None);
 		assert_ne!(one_month, thirty_days);
 	}
 
 	#[test]
 	fn negative_duration_is_less_than_positive() {
-		let a = Duration::from_str("-P1D").unwrap();
-		let b = Duration::from_str("P1D").unwrap();
+		let a = XsdDuration::from_str("-P1D").unwrap();
+		let b = XsdDuration::from_str("P1D").unwrap();
 		assert!(a < b);
 	}
 
 	fn assert_lexical_form_round_trip(input: &str) {
-		let value = <Duration as XsdFromStr>::xsd_from_str(input).unwrap();
+		let value = <XsdDuration as XsdFromStr>::xsd_from_str(input).unwrap();
 		let lexical = value.to_lexical_form();
 		assert_eq!(lexical.as_str(), input);
-		assert_eq!(Duration::from_str(lexical.as_str()).unwrap(), value);
+		assert_eq!(XsdDuration::from_str(lexical.as_str()).unwrap(), value);
 	}
 
 	#[test]
@@ -385,7 +385,7 @@ mod tests {
 	#[test]
 	fn to_lexical_form_of_zero_is_pt0s() {
 		for input in ["PT0S", "-PT0S", "P0Y", "P0D"] {
-			let value = Duration::from_str(input).unwrap();
+			let value = XsdDuration::from_str(input).unwrap();
 			assert_eq!(value.to_lexical_form().as_str(), "PT0S");
 			assert_eq!(value.to_string(), "PT0S");
 		}

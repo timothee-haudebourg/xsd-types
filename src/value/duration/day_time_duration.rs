@@ -1,6 +1,6 @@
 use crate::{
-	format_nanoseconds, lexical::duration::InvalidDayTimeDuration, Datatype, DurationDatatype,
-	XsdFromStr, XsdTyped, XsdValue,
+	format_nanoseconds, lexical::duration::InvalidXsdDayTimeDurationStr, Datatype,
+	DurationDatatype, XsdFromStr, XsdTyped, XsdValue,
 };
 use core::fmt;
 use std::{cmp::Ordering, hash::Hash, str::FromStr};
@@ -11,13 +11,13 @@ use std::{cmp::Ordering, hash::Hash, str::FromStr};
 /// restriction of `duration` where the number of months is always zero.
 /// See: <https://www.w3.org/TR/xmlschema11-2/#dayTimeDuration>.
 #[derive(Debug, Clone, Copy)]
-pub struct DayTimeDuration {
+pub struct XsdDayTimeDuration {
 	is_negative: bool,
 	seconds: u32,
 	nano_seconds: u32,
 }
 
-impl DayTimeDuration {
+impl XsdDayTimeDuration {
 	/// Creates a new day time duration from its sign, number of seconds, and
 	/// sub-second nanoseconds.
 	///
@@ -65,16 +65,16 @@ impl DayTimeDuration {
 	}
 }
 
-impl PartialEq for DayTimeDuration {
+impl PartialEq for XsdDayTimeDuration {
 	fn eq(&self, other: &Self) -> bool {
 		self.signed_seconds() == other.signed_seconds()
 			&& self.signed_nano_seconds() == other.signed_nano_seconds()
 	}
 }
 
-impl Eq for DayTimeDuration {}
+impl Eq for XsdDayTimeDuration {}
 
-impl Hash for DayTimeDuration {
+impl Hash for XsdDayTimeDuration {
 	fn hash<H: std::hash::Hasher>(&self, state: &mut H) {
 		self.signed_seconds().hash(state);
 		self.signed_nano_seconds().hash(state);
@@ -83,13 +83,13 @@ impl Hash for DayTimeDuration {
 
 /// Since `months` is always zero, `dayTimeDuration` is totally ordered by its
 /// number of seconds: <https://www.w3.org/TR/xmlschema11-2/#dayTimeDuration>.
-impl PartialOrd for DayTimeDuration {
+impl PartialOrd for XsdDayTimeDuration {
 	fn partial_cmp(&self, other: &Self) -> Option<Ordering> {
 		Some(self.cmp(other))
 	}
 }
 
-impl Ord for DayTimeDuration {
+impl Ord for XsdDayTimeDuration {
 	fn cmp(&self, other: &Self) -> Ordering {
 		self.signed_seconds()
 			.cmp(&other.signed_seconds())
@@ -97,40 +97,40 @@ impl Ord for DayTimeDuration {
 	}
 }
 
-impl XsdTyped for DayTimeDuration {
+impl XsdTyped for XsdDayTimeDuration {
 	fn datatype(&self) -> Datatype {
 		Datatype::Duration(DurationDatatype::DayTimeDuration)
 	}
 }
 
-impl XsdValue for DayTimeDuration {
-	type LexicalForm = crate::lexical::DayTimeDuration;
+impl XsdValue for XsdDayTimeDuration {
+	type LexicalForm = crate::lexical::XsdDayTimeDurationStr;
 
-	fn to_lexical_form(&self) -> crate::lexical::DayTimeDurationBuf {
+	fn to_lexical_form(&self) -> crate::lexical::XsdDayTimeDurationString {
 		// `Display` emits the canonical lexical form by contract, so it is
 		// always valid and this cannot panic.
-		crate::lexical::DayTimeDurationBuf::new(self.to_string())
+		crate::lexical::XsdDayTimeDurationString::new(self.to_string())
 			.expect("Display emits a valid dayTimeDuration lexical form")
 	}
 }
 
-impl<'a> XsdFromStr<'a> for DayTimeDuration {
+impl<'a> XsdFromStr<'a> for XsdDayTimeDuration {
 	fn xsd_from_str(lexical_value: &'a str) -> Result<Self, crate::XsdError> {
-		crate::xsd_parse_via::<crate::lexical::DayTimeDuration, Self>(lexical_value)
+		crate::xsd_parse_via::<crate::lexical::XsdDayTimeDurationStr, Self>(lexical_value)
 	}
 }
 
-impl FromStr for DayTimeDuration {
-	type Err = InvalidDayTimeDuration<String>;
+impl FromStr for XsdDayTimeDuration {
+	type Err = InvalidXsdDayTimeDurationStr<String>;
 
 	fn from_str(s: &str) -> Result<Self, Self::Err> {
-		let lexical_value = crate::lexical::DayTimeDuration::new(s)
-			.map_err(|_| InvalidDayTimeDuration(s.to_owned()))?;
+		let lexical_value = crate::lexical::XsdDayTimeDurationStr::new(s)
+			.map_err(|_| InvalidXsdDayTimeDurationStr(s.to_owned()))?;
 		Ok(lexical_value.into())
 	}
 }
 
-impl fmt::Display for DayTimeDuration {
+impl fmt::Display for XsdDayTimeDuration {
 	fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
 		if self.seconds == 0 && self.nano_seconds == 0 {
 			// The canonical form of the zero duration has no sign.
@@ -179,7 +179,7 @@ impl fmt::Display for DayTimeDuration {
 }
 
 #[cfg(feature = "serde")]
-impl serde::Serialize for DayTimeDuration {
+impl serde::Serialize for XsdDayTimeDuration {
 	fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
 	where
 		S: serde::Serializer,
@@ -189,7 +189,7 @@ impl serde::Serialize for DayTimeDuration {
 }
 
 #[cfg(feature = "serde")]
-impl<'de> serde::Deserialize<'de> for DayTimeDuration {
+impl<'de> serde::Deserialize<'de> for XsdDayTimeDuration {
 	fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
 	where
 		D: serde::Deserializer<'de>,
@@ -197,7 +197,7 @@ impl<'de> serde::Deserialize<'de> for DayTimeDuration {
 		struct Visitor;
 
 		impl<'de> serde::de::Visitor<'de> for Visitor {
-			type Value = DayTimeDuration;
+			type Value = XsdDayTimeDuration;
 
 			fn expecting(&self, formatter: &mut fmt::Formatter) -> fmt::Result {
 				formatter.write_str("a http://www.w3.org/2001/XMLSchema#dayTimeDuration")
@@ -220,10 +220,13 @@ mod tests {
 	use super::*;
 
 	fn assert_lexical_form_round_trip(input: &str) {
-		let value = <DayTimeDuration as XsdFromStr>::xsd_from_str(input).unwrap();
+		let value = <XsdDayTimeDuration as XsdFromStr>::xsd_from_str(input).unwrap();
 		let lexical = value.to_lexical_form();
 		assert_eq!(lexical.as_str(), input);
-		assert_eq!(DayTimeDuration::from_str(lexical.as_str()).unwrap(), value);
+		assert_eq!(
+			XsdDayTimeDuration::from_str(lexical.as_str()).unwrap(),
+			value
+		);
 	}
 
 	#[test]
@@ -244,7 +247,7 @@ mod tests {
 	#[test]
 	fn to_lexical_form_of_zero_is_pt0s() {
 		for input in ["PT0S", "-PT0S", "P0D"] {
-			let value = DayTimeDuration::from_str(input).unwrap();
+			let value = XsdDayTimeDuration::from_str(input).unwrap();
 			assert_eq!(value.to_lexical_form().as_str(), "PT0S");
 			assert_eq!(value.to_string(), "PT0S");
 		}

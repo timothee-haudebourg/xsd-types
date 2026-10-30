@@ -5,20 +5,20 @@ use crate::XsdError;
 
 use super::XsdLexicalForm;
 
-/// Qualified Name.
+/// Qualified XsdName.
 ///
 /// ```abnf
-/// QName = PrefixedName / UnprefixedName
+/// XsdQName = PrefixedName / UnprefixedName
 ///
 /// PrefixedName = Prefix ":" LocalPart
 ///
 /// UnprefixedName = LocalPart
 ///
-/// Prefix = NCName
+/// Prefix = XsdNCName
 ///
-/// LocalPart = NCName
+/// LocalPart = XsdNCName
 ///
-/// NCName = NCNameStartChar *NCNameChar
+/// XsdNCName = NCNameStartChar *NCNameChar
 ///
 /// NCNameStartChar = ALPHA / "_" / %xC0-D6 / %xD8-F6 / %xF8-2FF / %x370-37D / %x37F-1FFF / %x200C-200D / %x2070-218F / %x2C00-2FEF / %x3001-D7FF / %xF900-FDCF / %xFDF0-FFFD / %x10000-EFFFF
 ///
@@ -26,22 +26,22 @@ use super::XsdLexicalForm;
 /// ```
 #[derive(Validate, StrNewType, PartialEq, Eq, PartialOrd, Ord, Hash)]
 #[automaton(super::grammar::QName)]
-#[newtype(owned(QNameBuf, derive(PartialEq, Eq, PartialOrd, Ord, Hash)))]
+#[newtype(owned(XsdQNameBuf, derive(PartialEq, Eq, PartialOrd, Ord, Hash)))]
 #[cfg_attr(feature = "serde", newtype(serde))]
-pub struct QName(str);
+pub struct XsdQName(str);
 
-impl XsdLexicalForm for QName {
-	type Value = QNameBuf;
+impl XsdLexicalForm for XsdQName {
+	type Value = XsdQNameBuf;
 }
 
-impl<'a> crate::XsdFromStr<'a> for &'a QName {
+impl<'a> crate::XsdFromStr<'a> for &'a XsdQName {
 	fn xsd_from_str(value: &'a str) -> Result<Self, XsdError> {
-		QName::new(value).map_err(|_| XsdError::lexical_form(InvalidQName(value)))
+		XsdQName::new(value).map_err(|_| XsdError::lexical_form(InvalidXsdQName(value)))
 	}
 }
 
-impl<'a> From<&'a QName> for QNameBuf {
-	fn from(value: &'a QName) -> QNameBuf {
+impl<'a> From<&'a XsdQName> for XsdQNameBuf {
+	fn from(value: &'a XsdQName) -> XsdQNameBuf {
 		value.to_owned()
 	}
 }

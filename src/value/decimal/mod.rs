@@ -10,9 +10,9 @@ use num_rational::BigRational;
 use num_traits::{Signed, ToPrimitive, Zero};
 
 use crate::{
-	lexical, Datatype, DecimalDatatype, Double, Float, IntDatatype, LongDatatype,
-	NonNegativeIntegerDatatype, NonPositiveIntegerDatatype, ShortDatatype, UnsignedIntDatatype,
-	UnsignedLongDatatype, UnsignedShortDatatype, XsdFromStr, XsdTyped, XsdValue,
+	lexical, Datatype, DecimalDatatype, IntDatatype, LongDatatype, NonNegativeIntegerDatatype,
+	NonPositiveIntegerDatatype, ShortDatatype, UnsignedIntDatatype, UnsignedLongDatatype,
+	UnsignedShortDatatype, XsdDouble, XsdFloat, XsdFromStr, XsdTyped, XsdValue,
 };
 
 /// Sign of a decimal or integer value, re-exported from [`num_bigint`].
@@ -42,46 +42,46 @@ static TEN: LazyLock<BigInt> = LazyLock::new(|| 10u32.into());
 
 /// Decimal number.
 ///
-/// This is the value-space counterpart of [`lexical::Decimal`]: it stores
+/// This is the value-space counterpart of [`lexical::XsdDecimalStr`]: it stores
 /// the decoded number rather than its lexical (string) representation.
 /// See: <https://www.w3.org/TR/xmlschema11-2/#decimal>.
 ///
 /// Internally a decimal number is represented as a `BigRational` with a finite
 /// decimal representation.
 #[derive(Clone)]
-pub struct Decimal {
+pub struct XsdDecimal {
 	data: BigRational,
 }
 
-impl PartialEq for Decimal {
+impl PartialEq for XsdDecimal {
 	fn eq(&self, other: &Self) -> bool {
 		self.data.eq(&other.data)
 	}
 }
 
-impl Eq for Decimal {}
+impl Eq for XsdDecimal {}
 
-impl PartialOrd for Decimal {
+impl PartialOrd for XsdDecimal {
 	fn partial_cmp(&self, other: &Self) -> Option<std::cmp::Ordering> {
 		Some(self.cmp(other))
 	}
 }
 
-impl Ord for Decimal {
+impl Ord for XsdDecimal {
 	fn cmp(&self, other: &Self) -> std::cmp::Ordering {
 		self.data.cmp(&other.data)
 	}
 }
 
-impl Hash for Decimal {
+impl Hash for XsdDecimal {
 	fn hash<H: std::hash::Hasher>(&self, state: &mut H) {
 		self.data.hash(state)
 	}
 }
 
-impl fmt::Debug for Decimal {
+impl fmt::Debug for XsdDecimal {
 	fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-		write!(f, "Decimal({:?})", self.data)
+		write!(f, "XsdDecimal({:?})", self.data)
 	}
 }
 
@@ -130,7 +130,7 @@ pub fn is_decimal(r: &BigRational) -> bool {
 
 /// Returns the decimal lexical representation of the given rational number, if
 /// any.
-pub fn decimal_lexical_form(r: &BigRational) -> Option<lexical::DecimalBuf> {
+pub fn decimal_lexical_form(r: &BigRational) -> Option<lexical::XsdDecimalString> {
 	use std::fmt::Write;
 
 	let mut fraction = String::new();
@@ -163,13 +163,13 @@ pub fn decimal_lexical_form(r: &BigRational) -> Option<lexical::DecimalBuf> {
 			write!(output, ".{}", &fraction).unwrap();
 		}
 
-		Some(unsafe { lexical::DecimalBuf::new_unchecked(output) })
+		Some(unsafe { lexical::XsdDecimalString::new_unchecked(output) })
 	} else {
 		None
 	}
 }
 
-impl Decimal {
+impl XsdDecimal {
 	/// Creates a new decimal number from a rational number.
 	///
 	/// # Safety
@@ -217,20 +217,20 @@ impl Decimal {
 		self.data.is_negative()
 	}
 
-	/// Returns this value as an [`Integer`] reference, if it has no
+	/// Returns this value as an [`XsdInteger`] reference, if it has no
 	/// fractional part.
-	pub fn as_integer(&self) -> Option<&Integer> {
+	pub fn as_integer(&self) -> Option<&XsdInteger> {
 		if self.data.is_integer() {
-			Some(Integer::from_bigint_ref(self.data.numer()))
+			Some(XsdInteger::from_bigint_ref(self.data.numer()))
 		} else {
 			None
 		}
 	}
 
-	/// Converts this value into an [`Integer`], if it has no fractional part.
-	pub fn into_integer(self) -> Option<Integer> {
+	/// Converts this value into an [`XsdInteger`], if it has no fractional part.
+	pub fn into_integer(self) -> Option<XsdInteger> {
 		if self.data.is_integer() {
-			Some(Integer::from(self.data.numer().clone())) // TODO avoid cloning.
+			Some(XsdInteger::from(self.data.numer().clone())) // TODO avoid cloning.
 		} else {
 			None
 		}
@@ -285,36 +285,36 @@ impl Decimal {
 		self.data.to_f32()
 	}
 
-	/// Converts this value into a [`Float`] (XSD `float`), if it can be
+	/// Converts this value into a [`XsdFloat`] (XSD `float`), if it can be
 	/// represented as an `f32`.
-	pub fn as_float(&self) -> Option<Float> {
-		self.as_f32().map(Float::from)
+	pub fn as_float(&self) -> Option<XsdFloat> {
+		self.as_f32().map(XsdFloat::from)
 	}
 
-	/// Converts this value into a [`Double`] (XSD `double`), if it can be
+	/// Converts this value into a [`XsdDouble`] (XSD `double`), if it can be
 	/// represented as an `f64`.
-	pub fn as_double(&self) -> Option<Double> {
-		self.as_f64().map(Double::from)
+	pub fn as_double(&self) -> Option<XsdDouble> {
+		self.as_f64().map(XsdDouble::from)
 	}
 }
 
-impl fmt::Display for Decimal {
+impl fmt::Display for XsdDecimal {
 	#[inline(always)]
 	fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
 		fmt::Display::fmt(&self.to_lexical_form(), f)
 	}
 }
 
-impl<'a> From<&'a lexical::Decimal> for Decimal {
+impl<'a> From<&'a lexical::XsdDecimalStr> for XsdDecimal {
 	#[inline(always)]
-	fn from(value: &'a lexical::Decimal) -> Self {
+	fn from(value: &'a lexical::XsdDecimalStr) -> Self {
 		value.to_owned().into()
 	}
 }
 
-impl From<lexical::DecimalBuf> for Decimal {
+impl From<lexical::XsdDecimalString> for XsdDecimal {
 	#[inline(always)]
-	fn from(value: lexical::DecimalBuf) -> Self {
+	fn from(value: lexical::XsdDecimalString) -> Self {
 		// The sign belongs to the whole number, not just the integer part:
 		// work on the magnitude and negate at the end (`-0.5` has an integer
 		// part of `-0`, which is zero).
@@ -347,12 +347,13 @@ impl From<lexical::DecimalBuf> for Decimal {
 	}
 }
 
-impl FromStr for Decimal {
-	type Err = lexical::InvalidDecimal<String>;
+impl FromStr for XsdDecimal {
+	type Err = lexical::InvalidXsdDecimalStr<String>;
 
 	#[inline(always)]
 	fn from_str(s: &str) -> Result<Self, Self::Err> {
-		let l = lexical::Decimal::new(s).map_err(|_| lexical::InvalidDecimal(s.to_owned()))?;
+		let l = lexical::XsdDecimalStr::new(s)
+			.map_err(|_| lexical::InvalidXsdDecimalStr(s.to_owned()))?;
 		Ok(l.value())
 	}
 }
@@ -360,7 +361,7 @@ impl FromStr for Decimal {
 macro_rules! from_int {
 	($($ty:ident),*) => {
 		$(
-			impl From<$ty> for Decimal {
+			impl From<$ty> for XsdDecimal {
 				fn from(value: $ty) -> Self {
 					Self {
 						data: BigInt::from(value).into(),
@@ -376,10 +377,10 @@ from_int!(u8, u16, u32, u64, i8, i16, i32, i64, usize, isize);
 macro_rules! try_into_int {
 	($($ty:ident),*) => {
 		$(
-			impl TryFrom<Decimal> for $ty {
+			impl TryFrom<XsdDecimal> for $ty {
 				type Error = FromDecimalError;
 
-				fn try_from(value: Decimal) -> Result<Self, FromDecimalError> {
+				fn try_from(value: XsdDecimal) -> Result<Self, FromDecimalError> {
 					match value.as_integer() {
 						Some(i) => {
 							i.try_into().map_err(|_| FromDecimalError)
@@ -389,10 +390,10 @@ macro_rules! try_into_int {
 				}
 			}
 
-			impl<'a> TryFrom<&'a Decimal> for $ty {
+			impl<'a> TryFrom<&'a XsdDecimal> for $ty {
 				type Error = FromDecimalError;
 
-				fn try_from(value: &'a Decimal) -> Result<Self, FromDecimalError> {
+				fn try_from(value: &'a XsdDecimal) -> Result<Self, FromDecimalError> {
 					match value.as_integer() {
 						Some(i) => {
 							i.try_into().map_err(|_| FromDecimalError)
@@ -405,7 +406,7 @@ macro_rules! try_into_int {
 	};
 }
 
-/// Error raised when a [`Decimal`] cannot be converted into the target
+/// Error raised when a [`XsdDecimal`] cannot be converted into the target
 /// numeric type (e.g. it has a fractional part or is out of range).
 #[derive(Debug, thiserror::Error)]
 #[error("decimal number conversion failed")]
@@ -413,68 +414,68 @@ pub struct FromDecimalError;
 
 try_into_int!(u8, u16, u32, u64, i8, i16, i32, i64, usize, isize);
 
-impl TryFrom<Decimal> for f32 {
+impl TryFrom<XsdDecimal> for f32 {
 	type Error = FromDecimalError;
 
-	fn try_from(value: Decimal) -> Result<Self, Self::Error> {
+	fn try_from(value: XsdDecimal) -> Result<Self, Self::Error> {
 		value.as_f32().ok_or(FromDecimalError)
 	}
 }
 
-impl TryFrom<Decimal> for Float {
+impl TryFrom<XsdDecimal> for XsdFloat {
 	type Error = FromDecimalError;
 
-	fn try_from(value: Decimal) -> Result<Self, Self::Error> {
+	fn try_from(value: XsdDecimal) -> Result<Self, Self::Error> {
 		value.as_float().ok_or(FromDecimalError)
 	}
 }
 
-impl TryFrom<Decimal> for f64 {
+impl TryFrom<XsdDecimal> for f64 {
 	type Error = FromDecimalError;
 
-	fn try_from(value: Decimal) -> Result<Self, Self::Error> {
+	fn try_from(value: XsdDecimal) -> Result<Self, Self::Error> {
 		value.as_f64().ok_or(FromDecimalError)
 	}
 }
 
-impl TryFrom<Decimal> for Double {
+impl TryFrom<XsdDecimal> for XsdDouble {
 	type Error = FromDecimalError;
 
-	fn try_from(value: Decimal) -> Result<Self, Self::Error> {
+	fn try_from(value: XsdDecimal) -> Result<Self, Self::Error> {
 		value.as_double().ok_or(FromDecimalError)
 	}
 }
 
-impl From<BigInt> for Decimal {
+impl From<BigInt> for XsdDecimal {
 	#[inline(always)]
 	fn from(value: BigInt) -> Self {
 		Self { data: value.into() }
 	}
 }
 
-impl From<Integer> for Decimal {
+impl From<XsdInteger> for XsdDecimal {
 	#[inline(always)]
-	fn from(value: Integer) -> Self {
+	fn from(value: XsdInteger) -> Self {
 		let n: BigInt = value.into();
 		n.into()
 	}
 }
 
-impl AsRef<BigRational> for Decimal {
+impl AsRef<BigRational> for XsdDecimal {
 	#[inline(always)]
 	fn as_ref(&self) -> &BigRational {
 		&self.data
 	}
 }
 
-impl Borrow<BigRational> for Decimal {
+impl Borrow<BigRational> for XsdDecimal {
 	#[inline(always)]
 	fn borrow(&self) -> &BigRational {
 		&self.data
 	}
 }
 
-impl Deref for Decimal {
+impl Deref for XsdDecimal {
 	type Target = BigRational;
 
 	#[inline(always)]
@@ -489,7 +490,7 @@ impl Deref for Decimal {
 #[error("no decimal representation for rational number {0}")]
 pub struct NoDecimalRepresentation(pub BigRational);
 
-impl TryFrom<BigRational> for Decimal {
+impl TryFrom<BigRational> for XsdDecimal {
 	type Error = NoDecimalRepresentation;
 
 	#[inline(always)]
@@ -502,42 +503,43 @@ impl TryFrom<BigRational> for Decimal {
 	}
 }
 
-impl From<Decimal> for BigRational {
+impl From<XsdDecimal> for BigRational {
 	#[inline(always)]
-	fn from(value: Decimal) -> Self {
+	fn from(value: XsdDecimal) -> Self {
 		value.data
 	}
 }
 
-impl XsdTyped for Decimal {
+impl XsdTyped for XsdDecimal {
 	#[inline(always)]
 	fn datatype(&self) -> Datatype {
 		self.decimal_type().into()
 	}
 }
 
-impl XsdValue for Decimal {
-	type LexicalForm = lexical::Decimal;
+impl XsdValue for XsdDecimal {
+	type LexicalForm = lexical::XsdDecimalStr;
 
 	/// Returns the canonical lexical form of this decimal number.
 	///
 	/// This is recomputed on every call. Wrap the value in an
 	/// [`XsdLiteral`](crate::XsdLiteral) to cache it.
-	fn to_lexical_form(&self) -> lexical::DecimalBuf {
-		// A `Decimal` always has a finite decimal representation (see
-		// `Decimal::new_unchecked`), so this cannot panic.
-		decimal_lexical_form(&self.data).expect("a `Decimal` has a finite decimal representation")
+	fn to_lexical_form(&self) -> lexical::XsdDecimalString {
+		// A `XsdDecimal` always has a finite decimal representation (see
+		// `XsdDecimal::new_unchecked`), so this cannot panic.
+		decimal_lexical_form(&self.data)
+			.expect("a `XsdDecimal` has a finite decimal representation")
 	}
 }
 
-impl<'a> XsdFromStr<'a> for Decimal {
+impl<'a> XsdFromStr<'a> for XsdDecimal {
 	fn xsd_from_str(lexical_value: &'a str) -> Result<Self, crate::XsdError> {
-		crate::xsd_parse_via::<lexical::Decimal, Self>(lexical_value)
+		crate::xsd_parse_via::<lexical::XsdDecimalStr, Self>(lexical_value)
 	}
 }
 
 #[cfg(feature = "serde")]
-impl serde::Serialize for Decimal {
+impl serde::Serialize for XsdDecimal {
 	fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
 	where
 		S: serde::Serializer,
@@ -547,7 +549,7 @@ impl serde::Serialize for Decimal {
 }
 
 #[cfg(feature = "serde")]
-impl<'de> serde::Deserialize<'de> for Decimal {
+impl<'de> serde::Deserialize<'de> for XsdDecimal {
 	fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
 	where
 		D: serde::Deserializer<'de>,
@@ -555,7 +557,7 @@ impl<'de> serde::Deserialize<'de> for Decimal {
 		struct Visitor;
 
 		impl<'de> serde::de::Visitor<'de> for Visitor {
-			type Value = Decimal;
+			type Value = XsdDecimal;
 
 			fn expecting(&self, formatter: &mut fmt::Formatter) -> fmt::Result {
 				formatter.write_str("a http://www.w3.org/2001/XMLSchema#decimal")
@@ -573,8 +575,8 @@ impl<'de> serde::Deserialize<'de> for Decimal {
 	}
 }
 
-/// Error raised when trying to convert a non-finite [`Float`] or [`Double`]
-/// (NaN or infinite) into a [`Decimal`], which has no representation for
+/// Error raised when trying to convert a non-finite [`XsdFloat`] or [`XsdDouble`]
+/// (NaN or infinite) into a [`XsdDecimal`], which has no representation for
 /// such values.
 #[derive(Debug, thiserror::Error)]
 pub enum NonDecimalFloat {
@@ -591,10 +593,10 @@ pub enum NonDecimalFloat {
 	NegativeInfinity,
 }
 
-impl TryFrom<Float> for Decimal {
+impl TryFrom<XsdFloat> for XsdDecimal {
 	type Error = NonDecimalFloat;
 
-	fn try_from(value: Float) -> Result<Self, Self::Error> {
+	fn try_from(value: XsdFloat) -> Result<Self, Self::Error> {
 		if value.is_nan() {
 			Err(NonDecimalFloat::Nan)
 		} else if value.is_infinite() {
@@ -612,10 +614,10 @@ impl TryFrom<Float> for Decimal {
 	}
 }
 
-impl TryFrom<Double> for Decimal {
+impl TryFrom<XsdDouble> for XsdDecimal {
 	type Error = NonDecimalFloat;
 
-	fn try_from(value: Double) -> Result<Self, Self::Error> {
+	fn try_from(value: XsdDouble) -> Result<Self, Self::Error> {
 		if value.is_nan() {
 			Err(NonDecimalFloat::Nan)
 		} else if value.is_infinite() {
@@ -645,10 +647,10 @@ mod tests {
 			"-3.25",
 			"123456789012345678901234567890.000001",
 		] {
-			let value: Decimal = canonical.parse().unwrap();
+			let value: XsdDecimal = canonical.parse().unwrap();
 			let lexical = value.to_lexical_form();
 			assert_eq!(lexical.as_str(), canonical);
-			assert_eq!(lexical.as_str().parse::<Decimal>().unwrap(), value);
+			assert_eq!(lexical.as_str().parse::<XsdDecimal>().unwrap(), value);
 		}
 	}
 
@@ -656,7 +658,7 @@ mod tests {
 	fn to_lexical_form_is_canonical() {
 		// Non-canonical inputs are normalized.
 		for (input, canonical) in [("0.0", "0"), ("+1.50", "1.5"), ("007", "7"), ("-0", "0")] {
-			let value: Decimal = input.parse().unwrap();
+			let value: XsdDecimal = input.parse().unwrap();
 			assert_eq!(value.to_lexical_form().as_str(), canonical);
 		}
 	}
@@ -670,7 +672,7 @@ mod tests {
 			("+3.25", 13, 4),
 			("-0.0", 0, 1),
 		] {
-			let value: Decimal = input.parse().unwrap();
+			let value: XsdDecimal = input.parse().unwrap();
 			assert_eq!(
 				BigRational::from(value),
 				BigRational::new(numer.into(), denom.into()),
@@ -681,7 +683,7 @@ mod tests {
 
 	#[test]
 	fn to_lexical_form_from_xsd_parse() {
-		let value = <Decimal as XsdFromStr>::xsd_from_str("3.14").unwrap();
+		let value = <XsdDecimal as XsdFromStr>::xsd_from_str("3.14").unwrap();
 		assert_eq!(value.to_lexical_form().as_str(), "3.14");
 	}
 }

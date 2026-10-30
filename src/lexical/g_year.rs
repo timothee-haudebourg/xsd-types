@@ -5,7 +5,7 @@ use crate::{lexical::parse_timezone, utils::byte_index_of, XsdError};
 
 use super::XsdLexicalForm;
 
-/// GYear.
+/// XsdGYearStr.
 ///
 /// This is the `gYearLexicalRep` production of the XSD 1.1 Datatypes
 /// specification: <https://www.w3.org/TR/xmlschema11-2/#nt-gYearRep>.
@@ -15,10 +15,10 @@ use super::XsdLexicalForm;
 /// ```
 #[derive(Validate, StrNewType, PartialEq, Eq, PartialOrd, Ord, Hash)]
 #[automaton(super::grammar::GYear)]
-#[newtype(owned(GYearBuf, derive(PartialEq, Eq, PartialOrd, Ord, Hash)))]
-pub struct GYear(str);
+#[newtype(owned(XsdGYearString, derive(PartialEq, Eq, PartialOrd, Ord, Hash)))]
+pub struct XsdGYearStr(str);
 
-impl GYear {
+impl XsdGYearStr {
 	pub fn parts(&self) -> Parts<'_> {
 		let year_end =
 			byte_index_of(self.0.as_bytes(), 4, [b'+', b'-', b'Z']).unwrap_or(self.0.len());
@@ -34,18 +34,18 @@ impl GYear {
 	}
 }
 
-impl XsdLexicalForm for GYear {
-	type Value = crate::GYear;
+impl XsdLexicalForm for XsdGYearStr {
+	type Value = crate::XsdGYear;
 }
 
-impl<'a> crate::XsdFromStr<'a> for &'a GYear {
+impl<'a> crate::XsdFromStr<'a> for &'a XsdGYearStr {
 	fn xsd_from_str(value: &'a str) -> Result<Self, XsdError> {
-		GYear::new(value).map_err(|_| XsdError::lexical_form(InvalidGYear(value)))
+		XsdGYearStr::new(value).map_err(|_| XsdError::lexical_form(InvalidXsdGYearStr(value)))
 	}
 }
 
-impl<'a> From<&'a GYear> for crate::GYear {
-	fn from(value: &'a GYear) -> crate::GYear {
+impl<'a> From<&'a XsdGYearStr> for crate::XsdGYear {
+	fn from(value: &'a XsdGYearStr) -> crate::XsdGYear {
 		value.parts().to_g_year_month()
 	}
 }
@@ -61,10 +61,10 @@ impl<'a> Parts<'a> {
 		Self { year, timezone }
 	}
 
-	fn to_g_year_month(&self) -> crate::GYear {
+	fn to_g_year_month(&self) -> crate::XsdGYear {
 		// The offset comes from the grammar-validated lexical form, so it is
-		// always within the range `GYear::new` requires.
-		crate::GYear::new(
+		// always within the range `XsdGYearStr::new` requires.
+		crate::XsdGYear::new(
 			self.year.parse().unwrap(),
 			self.timezone.map(|tz| parse_timezone(tz).unwrap()),
 		)
@@ -85,10 +85,10 @@ mod tests {
 		];
 
 		for (input, parts) in vectors {
-			let lexical_repr = GYear::new(input).unwrap();
+			let lexical_repr = XsdGYearStr::new(input).unwrap();
 			assert_eq!(lexical_repr.parts(), parts);
 
-			let value: crate::GYear = lexical_repr.into();
+			let value: crate::XsdGYear = lexical_repr.into();
 			assert_eq!(value.to_string().as_str(), input)
 		}
 	}
@@ -98,15 +98,15 @@ mod tests {
 	/// <https://www.w3.org/TR/xmlschema11-2/#nt-yrFrag>.
 	#[test]
 	fn year_zero_accepted() {
-		assert!(GYear::new("0000").is_ok());
+		assert!(XsdGYearStr::new("0000").is_ok());
 	}
 
 	/// A year fragment shorter than 4 digits is not a valid `yearFrag`,
 	/// even though it starts with a nonzero digit.
 	#[test]
 	fn short_year_rejected() {
-		assert!(GYear::new("5").is_err());
-		assert!(GYear::new("05").is_err());
-		assert!(GYear::new("005").is_err());
+		assert!(XsdGYearStr::new("5").is_err());
+		assert!(XsdGYearStr::new("05").is_err());
+		assert!(XsdGYearStr::new("005").is_err());
 	}
 }

@@ -8,7 +8,7 @@ use crate::{lexical::XsdLexicalForm, XsdError};
 /// See: <https://www.w3.org/TR/xmlschema11-2/#IDREF>.
 ///
 /// ```abnf
-/// NCName        = (Letter / "_") *NCNameChar
+/// XsdNCName        = (Letter / "_") *NCNameChar
 /// NCNameChar    = Letter / Digit / "." / "-" / "_" / CombiningChar / Extender
 ///
 /// Letter        = BaseChar / Ideographic
@@ -20,24 +20,24 @@ use crate::{lexical::XsdLexicalForm, XsdError};
 /// ```
 #[derive(Validate, StrNewType, PartialEq, Eq, PartialOrd, Ord, Hash)]
 #[automaton(super::grammar::IdRef)]
-#[newtype(owned(IdRefBuf, derive(PartialEq, Eq, PartialOrd, Ord, Hash)))]
+#[newtype(owned(XsdIdRefBuf, derive(PartialEq, Eq, PartialOrd, Ord, Hash)))]
 #[cfg_attr(feature = "serde", newtype(serde))]
-pub struct IdRef(str);
+pub struct XsdIdRef(str);
 
-impl XsdLexicalForm for IdRef {
-	type Value = IdRefBuf;
+impl XsdLexicalForm for XsdIdRef {
+	type Value = XsdIdRefBuf;
 }
 
-impl<'a> crate::XsdFromStr<'a> for &'a IdRef {
+impl<'a> crate::XsdFromStr<'a> for &'a XsdIdRef {
 	fn xsd_from_str(value: &'a str) -> Result<Self, XsdError> {
-		IdRef::new(value).map_err(|_| XsdError::lexical_form(InvalidIdRef(value)))
+		XsdIdRef::new(value).map_err(|_| XsdError::lexical_form(InvalidXsdIdRef(value)))
 	}
 }
 
-impl<'a> TryFrom<&'a IdRef> for IdRefBuf {
-	type Error = InvalidIdRef<String>;
+impl<'a> TryFrom<&'a XsdIdRef> for XsdIdRefBuf {
+	type Error = InvalidXsdIdRef<String>;
 
-	fn try_from(value: &'a IdRef) -> Result<IdRefBuf, Self::Error> {
+	fn try_from(value: &'a XsdIdRef) -> Result<XsdIdRefBuf, Self::Error> {
 		value.as_str().parse()
 	}
 }

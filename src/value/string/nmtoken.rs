@@ -2,25 +2,25 @@
 ///
 /// Value space representation of the `NMTOKEN` datatype.
 /// See: <https://www.w3.org/TR/xmlschema11-2/#NMTOKEN>.
-pub use crate::lexical::NMToken;
-pub use crate::lexical::{InvalidNMToken, NMTokenBuf};
+pub use crate::lexical::XsdNMToken;
+pub use crate::lexical::{InvalidXsdNMToken, XsdNMTokenBuf};
 
-impl<'a> crate::XsdFromStr<'a> for NMTokenBuf {
+impl<'a> crate::XsdFromStr<'a> for XsdNMTokenBuf {
 	fn xsd_from_str(lexical_value: &'a str) -> Result<Self, crate::XsdError> {
-		crate::xsd_parse_via::<NMToken, Self>(lexical_value)
+		crate::xsd_parse_via::<XsdNMToken, Self>(lexical_value)
 	}
 }
 
-impl crate::XsdTyped for NMTokenBuf {
+impl crate::XsdTyped for XsdNMTokenBuf {
 	fn datatype(&self) -> crate::Datatype {
 		crate::TokenDatatype::NMToken.into()
 	}
 }
 
-impl crate::XsdValue for NMTokenBuf {
-	type LexicalForm = NMToken;
+impl crate::XsdValue for XsdNMTokenBuf {
+	type LexicalForm = XsdNMToken;
 
-	fn to_lexical_form(&self) -> NMTokenBuf {
+	fn to_lexical_form(&self) -> XsdNMTokenBuf {
 		self.clone()
 	}
 }
@@ -29,14 +29,14 @@ impl crate::XsdValue for NMTokenBuf {
 mod tests {
 	use crate::{XsdFromStr, XsdValue};
 
-	use super::NMTokenBuf;
+	use super::XsdNMTokenBuf;
 
 	#[test]
 	fn lexical_form_round_trip() {
 		let input = "1-token:a.b_c";
-		let value = NMTokenBuf::xsd_from_str(input).unwrap();
+		let value = XsdNMTokenBuf::xsd_from_str(input).unwrap();
 		let lexical = value.to_lexical_form();
 		assert_eq!(lexical.as_str(), input);
-		assert!(NMTokenBuf::xsd_from_str(lexical.as_str()).unwrap() == value);
+		assert!(XsdNMTokenBuf::xsd_from_str(lexical.as_str()).unwrap() == value);
 	}
 }

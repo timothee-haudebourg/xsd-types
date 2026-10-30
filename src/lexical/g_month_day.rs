@@ -5,7 +5,7 @@ use crate::{lexical::parse_timezone, XsdError};
 
 use super::XsdLexicalForm;
 
-/// GMonthDay.
+/// XsdGMonthDayStr.
 ///
 /// This is the `gMonthDayLexicalRep` production of the XSD 1.1
 /// Datatypes specification:
@@ -16,10 +16,10 @@ use super::XsdLexicalForm;
 /// ```
 #[derive(Validate, StrNewType, PartialEq, Eq, PartialOrd, Ord, Hash)]
 #[automaton(super::grammar::GMonthDay)]
-#[newtype(owned(GMonthDayBuf, derive(PartialEq, Eq, PartialOrd, Ord, Hash)))]
-pub struct GMonthDay(str);
+#[newtype(owned(XsdGMonthDayString, derive(PartialEq, Eq, PartialOrd, Ord, Hash)))]
+pub struct XsdGMonthDayStr(str);
 
-impl GMonthDay {
+impl XsdGMonthDayStr {
 	pub fn parts(&self) -> Parts<'_> {
 		Parts {
 			month: &self.0[2..4],
@@ -33,18 +33,19 @@ impl GMonthDay {
 	}
 }
 
-impl XsdLexicalForm for GMonthDay {
-	type Value = crate::GMonthDay;
+impl XsdLexicalForm for XsdGMonthDayStr {
+	type Value = crate::XsdGMonthDay;
 }
 
-impl<'a> crate::XsdFromStr<'a> for &'a GMonthDay {
+impl<'a> crate::XsdFromStr<'a> for &'a XsdGMonthDayStr {
 	fn xsd_from_str(value: &'a str) -> Result<Self, XsdError> {
-		GMonthDay::new(value).map_err(|_| XsdError::lexical_form(InvalidGMonthDay(value)))
+		XsdGMonthDayStr::new(value)
+			.map_err(|_| XsdError::lexical_form(InvalidXsdGMonthDayStr(value)))
 	}
 }
 
-impl<'a> From<&'a GMonthDay> for crate::GMonthDay {
-	fn from(value: &'a GMonthDay) -> crate::GMonthDay {
+impl<'a> From<&'a XsdGMonthDayStr> for crate::XsdGMonthDay {
+	fn from(value: &'a XsdGMonthDayStr) -> crate::XsdGMonthDay {
 		value.parts().to_g_month_day()
 	}
 }
@@ -65,8 +66,8 @@ impl<'a> Parts<'a> {
 		}
 	}
 
-	fn to_g_month_day(&self) -> crate::GMonthDay {
-		crate::GMonthDay::new(
+	fn to_g_month_day(&self) -> crate::XsdGMonthDay {
+		crate::XsdGMonthDay::new(
 			self.month.parse().unwrap(),
 			self.day.parse().unwrap(),
 			self.timezone.map(|tz| parse_timezone(tz).unwrap()),
@@ -88,10 +89,10 @@ mod tests {
 		];
 
 		for (input, parts) in vectors {
-			let lexical_repr = GMonthDay::new(input).unwrap();
+			let lexical_repr = XsdGMonthDayStr::new(input).unwrap();
 			assert_eq!(lexical_repr.parts(), parts);
 
-			let value: crate::GMonthDay = lexical_repr.into();
+			let value: crate::XsdGMonthDay = lexical_repr.into();
 			assert_eq!(value.to_string().as_str(), input)
 		}
 	}

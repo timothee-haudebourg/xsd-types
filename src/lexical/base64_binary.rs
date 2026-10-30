@@ -9,12 +9,12 @@ use crate::XsdError;
 
 /// Base 64 string.
 ///
-/// This is the `Base64Binary` production of the XSD 1.1 Datatypes
+/// This is the `XsdBase64BinaryStr` production of the XSD 1.1 Datatypes
 /// specification:
-/// <https://www.w3.org/TR/xmlschema11-2/#nt-Base64Binary>.
+/// <https://www.w3.org/TR/xmlschema11-2/#nt-XsdBase64BinaryStr>.
 ///
 /// ```abnf
-/// Base64Binary = [ *B64quad B64final ]
+/// XsdBase64BinaryStr = [ *B64quad B64final ]
 ///
 /// B64quad = B64 B64 B64 B64
 ///
@@ -42,75 +42,77 @@ use crate::XsdError;
 /// ```
 #[derive(Validate, StrNewType)]
 #[automaton(super::grammar::Base64Binary)]
-#[newtype(owned(Base64BinaryBuf, derive(PartialEq, Eq)))]
-pub struct Base64Binary(str);
+#[newtype(owned(XsdBase64BinaryString, derive(PartialEq, Eq)))]
+pub struct XsdBase64BinaryStr(str);
 
-impl XsdLexicalForm for Base64Binary {
-	type Value = crate::Base64BinaryBuf;
+impl XsdLexicalForm for XsdBase64BinaryStr {
+	type Value = crate::XsdBase64BinaryBuf;
 }
 
-impl<'a> crate::XsdFromStr<'a> for &'a Base64Binary {
+impl<'a> crate::XsdFromStr<'a> for &'a XsdBase64BinaryStr {
 	fn xsd_from_str(value: &'a str) -> Result<Self, XsdError> {
-		Base64Binary::new(value).map_err(|_| XsdError::lexical_form(InvalidBase64Binary(value)))
+		XsdBase64BinaryStr::new(value)
+			.map_err(|_| XsdError::lexical_form(InvalidXsdBase64BinaryStr(value)))
 	}
 }
 
 lexical_form! {
-	ty: Base64Binary,
-	buffer: Base64BinaryBuf,
-	value: crate::Base64BinaryBuf,
-	error: InvalidBase64Binary,
+	ty: XsdBase64BinaryStr,
+	buffer: XsdBase64BinaryString,
+	value: crate::XsdBase64BinaryBuf,
+	error: InvalidXsdBase64BinaryStr,
 	parent_forms: {}
 }
 
-impl Base64Binary {
+impl XsdBase64BinaryStr {
 	#[inline(always)]
-	pub fn value(&self) -> crate::Base64BinaryBuf {
-		crate::Base64BinaryBuf::decode(self.as_bytes()).unwrap()
+	pub fn value(&self) -> crate::XsdBase64BinaryBuf {
+		crate::XsdBase64BinaryBuf::decode(self.as_bytes()).unwrap()
 	}
 }
 
-impl PartialEq for Base64Binary {
+impl PartialEq for XsdBase64BinaryStr {
 	fn eq(&self, other: &Self) -> bool {
 		self.as_str() == other.as_str()
 	}
 }
 
-impl Eq for Base64Binary {}
+impl Eq for XsdBase64BinaryStr {}
 
-impl Hash for Base64Binary {
+impl Hash for XsdBase64BinaryStr {
 	fn hash<H: Hasher>(&self, h: &mut H) {
 		self.as_str().hash(h)
 	}
 }
 
-impl Ord for Base64Binary {
+impl Ord for XsdBase64BinaryStr {
 	fn cmp(&self, other: &Self) -> Ordering {
 		self.as_str().cmp(other.as_str())
 	}
 }
 
-impl PartialOrd for Base64Binary {
+impl PartialOrd for XsdBase64BinaryStr {
 	fn partial_cmp(&self, other: &Self) -> Option<Ordering> {
 		Some(self.cmp(other))
 	}
 }
 
-impl Default for Base64BinaryBuf {
+impl Default for XsdBase64BinaryString {
 	fn default() -> Self {
 		unsafe { Self::new_unchecked(String::new()) }
 	}
 }
 
-impl PartialOrd for Base64BinaryBuf {
+impl PartialOrd for XsdBase64BinaryString {
 	fn partial_cmp(&self, other: &Self) -> Option<Ordering> {
 		Some(self.cmp(other))
 	}
 }
 
-impl Ord for Base64BinaryBuf {
+impl Ord for XsdBase64BinaryString {
 	fn cmp(&self, other: &Self) -> Ordering {
-		self.as_base64_binary().cmp(other.as_base64_binary())
+		self.as_xsd_base64_binary_str()
+			.cmp(other.as_xsd_base64_binary_str())
 	}
 }
 
@@ -120,13 +122,13 @@ mod tests {
 
 	#[test]
 	fn parse_empty() {
-		assert!(Base64Binary::new("").is_ok());
+		assert!(XsdBase64BinaryStr::new("").is_ok());
 	}
 
 	#[test]
 	fn parse_full_quad() {
 		// "Man" encoded as base64, with no padding required.
-		assert!(Base64Binary::new("TWFu").is_ok());
+		assert!(XsdBase64BinaryStr::new("TWFu").is_ok());
 	}
 
 	/// A `Padded16` group (two octets) ends with a `B16char`, whose
@@ -135,7 +137,7 @@ mod tests {
 	#[test]
 	fn parse_padded16() {
 		// "Ma" encoded as base64.
-		assert!(Base64Binary::new("TWE=").is_ok());
+		assert!(XsdBase64BinaryStr::new("TWE=").is_ok());
 	}
 
 	/// A `Padded8` group (one octet) ends with a `B04char`, whose 6-bit
@@ -144,7 +146,7 @@ mod tests {
 	#[test]
 	fn parse_padded8() {
 		// "M" encoded as base64.
-		assert!(Base64Binary::new("TQ==").is_ok());
+		assert!(XsdBase64BinaryStr::new("TQ==").is_ok());
 	}
 
 	/// `F` is not a valid `B16char` (its 6-bit value does not end in
@@ -152,27 +154,27 @@ mod tests {
 	/// it uses only characters from the base64 alphabet.
 	#[test]
 	fn parse_padded16_invalid_char_rejected() {
-		assert!(Base64Binary::new("TWF=").is_err());
+		assert!(XsdBase64BinaryStr::new("TWF=").is_err());
 	}
 
 	/// `F` is not a valid `B04char` (its 6-bit value does not end in
 	/// `0000`), so this is not a well-formed `Padded8` group.
 	#[test]
 	fn parse_padded8_invalid_char_rejected() {
-		assert!(Base64Binary::new("TF==").is_err());
+		assert!(XsdBase64BinaryStr::new("TF==").is_err());
 	}
 
 	/// `B16char`/`B04char` are case-sensitive: lowercase `e` is not a
 	/// substitute for uppercase `E`.
 	#[test]
 	fn parse_padded16_wrong_case_rejected() {
-		assert!(Base64Binary::new("TWe=").is_err());
+		assert!(XsdBase64BinaryStr::new("TWe=").is_err());
 	}
 
 	/// A final group of characters that isn't padded and isn't a full
 	/// quad is not a valid `B64final`.
 	#[test]
 	fn parse_incomplete_group_rejected() {
-		assert!(Base64Binary::new("TWE").is_err());
+		assert!(XsdBase64BinaryStr::new("TWE").is_err());
 	}
 }

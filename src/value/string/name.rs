@@ -1,26 +1,26 @@
 /// Name value.
 ///
-/// Value space representation of the `Name` datatype.
+/// Value space representation of the `XsdName` datatype.
 /// See: <https://www.w3.org/TR/xmlschema11-2/#Name>.
-pub use crate::lexical::Name;
-pub use crate::lexical::{InvalidName, NameBuf};
+pub use crate::lexical::XsdName;
+pub use crate::lexical::{InvalidXsdName, XsdNameBuf};
 
-impl<'a> crate::XsdFromStr<'a> for NameBuf {
+impl<'a> crate::XsdFromStr<'a> for XsdNameBuf {
 	fn xsd_from_str(lexical_value: &'a str) -> Result<Self, crate::XsdError> {
-		crate::xsd_parse_via::<Name, Self>(lexical_value)
+		crate::xsd_parse_via::<XsdName, Self>(lexical_value)
 	}
 }
 
-impl crate::XsdTyped for NameBuf {
+impl crate::XsdTyped for XsdNameBuf {
 	fn datatype(&self) -> crate::Datatype {
 		crate::NameDatatype::Name.into()
 	}
 }
 
-impl crate::XsdValue for NameBuf {
-	type LexicalForm = Name;
+impl crate::XsdValue for XsdNameBuf {
+	type LexicalForm = XsdName;
 
-	fn to_lexical_form(&self) -> NameBuf {
+	fn to_lexical_form(&self) -> XsdNameBuf {
 		self.clone()
 	}
 }
@@ -29,14 +29,14 @@ impl crate::XsdValue for NameBuf {
 mod tests {
 	use crate::{XsdFromStr, XsdValue};
 
-	use super::NameBuf;
+	use super::XsdNameBuf;
 
 	#[test]
 	fn lexical_form_round_trip() {
 		let input = "xs:name-1.a_b";
-		let value = NameBuf::xsd_from_str(input).unwrap();
+		let value = XsdNameBuf::xsd_from_str(input).unwrap();
 		let lexical = value.to_lexical_form();
 		assert_eq!(lexical.as_str(), input);
-		assert!(NameBuf::xsd_from_str(lexical.as_str()).unwrap() == value);
+		assert!(XsdNameBuf::xsd_from_str(lexical.as_str()).unwrap() == value);
 	}
 }

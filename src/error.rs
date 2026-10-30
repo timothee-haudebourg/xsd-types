@@ -1,7 +1,7 @@
 use crate::{
-	lexical, InvalidDateTimeStampValue, InvalidDateTimeValue, InvalidDateValue, InvalidId,
-	InvalidIdRef, InvalidLanguage, InvalidNCName, InvalidNMToken, InvalidName,
-	InvalidNormalizedStr, InvalidTimeValue, InvalidToken,
+	lexical, InvalidDateTimeStampValue, InvalidDateTimeValue, InvalidDateValue,
+	InvalidNormalizedStr, InvalidTimeValue, InvalidToken, InvalidXsdId, InvalidXsdIdRef,
+	InvalidXsdLanguage, InvalidXsdNCName, InvalidXsdNMToken, InvalidXsdName,
 };
 
 #[derive(Debug, thiserror::Error)]
@@ -44,12 +44,12 @@ value_error_from! {
 	InvalidTimeValue,
 	InvalidToken<String>,
 	InvalidNormalizedStr<String>,
-	InvalidId<String>,
-	InvalidIdRef<String>,
-	InvalidLanguage<String>,
-	InvalidName<String>,
-	InvalidNCName<String>,
-	InvalidNMToken<String>,
+	InvalidXsdId<String>,
+	InvalidXsdIdRef<String>,
+	InvalidXsdLanguage<String>,
+	InvalidXsdName<String>,
+	InvalidXsdNCName<String>,
+	InvalidXsdNMToken<String>,
 }
 
 impl XsdError {

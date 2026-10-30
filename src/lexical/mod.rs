@@ -54,25 +54,28 @@ pub mod time;
 
 pub use base64_binary::*;
 pub use boolean::*;
-pub use date::{Date, DateBuf, InvalidDate};
+pub use date::{InvalidXsdDateStr, XsdDateStr, XsdDateString};
 pub(crate) use date_time::parse_timezone;
-pub use date_time::{DateTime, DateTimeBuf, DateTimeStamp, DateTimeStampBuf, InvalidDateTime};
-pub use decimal::*;
-pub use double::{Double, DoubleBuf, InvalidDouble};
-pub use duration::{
-	DayTimeDuration, DayTimeDurationBuf, Duration, DurationBuf, InvalidDuration, YearMonthDuration,
-	YearMonthDurationBuf,
+pub use date_time::{
+	InvalidXsdDateTimeStr, XsdDateTimeStampStr, XsdDateTimeStampString, XsdDateTimeStr,
+	XsdDateTimeString,
 };
-pub use float::{Float, FloatBuf, InvalidFloat};
-pub use g_day::{GDay, GDayBuf, InvalidGDay};
-pub use g_month::{GMonth, GMonthBuf, InvalidGMonth};
-pub use g_month_day::{GMonthDay, GMonthDayBuf, InvalidGMonthDay};
-pub use g_year::{GYear, GYearBuf, InvalidGYear};
-pub use g_year_month::{GYearMonth, GYearMonthBuf, InvalidGYearMonth};
+pub use decimal::*;
+pub use double::{InvalidXsdDoubleStr, XsdDoubleStr, XsdDoubleString};
+pub use duration::{
+	InvalidXsdDurationStr, XsdDayTimeDurationStr, XsdDayTimeDurationString, XsdDurationStr,
+	XsdDurationString, XsdYearMonthDurationStr, XsdYearMonthDurationString,
+};
+pub use float::{InvalidXsdFloatStr, XsdFloatStr, XsdFloatString};
+pub use g_day::{InvalidXsdGDayStr, XsdGDayStr, XsdGDayString};
+pub use g_month::{InvalidXsdGMonthStr, XsdGMonthStr, XsdGMonthString};
+pub use g_month_day::{InvalidXsdGMonthDayStr, XsdGMonthDayStr, XsdGMonthDayString};
+pub use g_year::{InvalidXsdGYearStr, XsdGYearStr, XsdGYearString};
+pub use g_year_month::{InvalidXsdGYearMonthStr, XsdGYearMonthStr, XsdGYearMonthString};
 pub use hex_binary::*;
 pub use q_name::*;
 pub use string::*;
-pub use time::{InvalidTime, Time, TimeBuf};
+pub use time::{InvalidXsdTimeStr, XsdTimeStr, XsdTimeString};
 
 /// Lexical type.
 pub trait XsdLexicalForm: ToOwned<Owned: TryFrom<String, Error: ToString>> {

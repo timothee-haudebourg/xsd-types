@@ -5,7 +5,7 @@ use crate::{lexical::parse_timezone, utils::byte_index_of, XsdError};
 
 use super::XsdLexicalForm;
 
-/// Date.
+/// XsdDateStr.
 ///
 /// This is the `dateLexicalRep` production of the XSD 1.1 Datatypes
 /// specification: <https://www.w3.org/TR/xmlschema11-2/#nt-dateRep>.
@@ -15,10 +15,10 @@ use super::XsdLexicalForm;
 /// ```
 #[derive(Validate, StrNewType, PartialEq, Eq, PartialOrd, Ord, Hash)]
 #[automaton(super::grammar::Date)]
-#[newtype(owned(DateBuf, derive(PartialEq, Eq, PartialOrd, Ord, Hash)))]
-pub struct Date(str);
+#[newtype(owned(XsdDateString, derive(PartialEq, Eq, PartialOrd, Ord, Hash)))]
+pub struct XsdDateStr(str);
 
-impl Date {
+impl XsdDateStr {
 	pub fn parts(&self) -> Parts<'_> {
 		let year_end = byte_index_of(self.0.as_bytes(), 4, b'-').unwrap();
 		let month_end = year_end + 3;
@@ -37,20 +37,20 @@ impl Date {
 	}
 }
 
-impl XsdLexicalForm for Date {
-	type Value = crate::Date;
+impl XsdLexicalForm for XsdDateStr {
+	type Value = crate::XsdDate;
 }
 
-impl<'a> crate::XsdFromStr<'a> for &'a Date {
+impl<'a> crate::XsdFromStr<'a> for &'a XsdDateStr {
 	fn xsd_from_str(value: &'a str) -> Result<Self, XsdError> {
-		Date::new(value).map_err(|_| XsdError::lexical_form(InvalidDate(value)))
+		XsdDateStr::new(value).map_err(|_| XsdError::lexical_form(InvalidXsdDateStr(value)))
 	}
 }
 
-impl<'a> TryFrom<&'a Date> for crate::Date {
+impl<'a> TryFrom<&'a XsdDateStr> for crate::XsdDate {
 	type Error = crate::InvalidDateValue;
 
-	fn try_from(value: &'a Date) -> Result<crate::Date, Self::Error> {
+	fn try_from(value: &'a XsdDateStr) -> Result<crate::XsdDate, Self::Error> {
 		value.parts().to_date()
 	}
 }
@@ -73,7 +73,7 @@ impl<'a> Parts<'a> {
 		}
 	}
 
-	fn to_date(&self) -> Result<crate::Date, crate::InvalidDateValue> {
+	fn to_date(&self) -> Result<crate::XsdDate, crate::InvalidDateValue> {
 		let year = self.year.parse().map_err(|_| crate::InvalidDateValue)?;
 		let day = self.day.parse().map_err(|_| crate::InvalidDateValue)?;
 
@@ -91,7 +91,7 @@ impl<'a> Parts<'a> {
 			None => None,
 		};
 
-		crate::Date::new(date, offset).ok_or(crate::InvalidDateValue)
+		crate::XsdDate::new(date, offset).ok_or(crate::InvalidDateValue)
 	}
 }
 
@@ -113,10 +113,10 @@ mod tests {
 		];
 
 		for (input, parts) in vectors {
-			let lexical_repr = Date::new(input).unwrap();
+			let lexical_repr = XsdDateStr::new(input).unwrap();
 			assert_eq!(lexical_repr.parts(), parts);
 
-			let value = crate::Date::try_from(lexical_repr).unwrap();
+			let value = crate::XsdDate::try_from(lexical_repr).unwrap();
 			assert_eq!(value.to_string().as_str(), input)
 		}
 	}
@@ -126,16 +126,16 @@ mod tests {
 	/// <https://www.w3.org/TR/xmlschema11-2/#nt-yrFrag>.
 	#[test]
 	fn year_zero_accepted() {
-		assert!(Date::new("0000-01-01").is_ok());
+		assert!(XsdDateStr::new("0000-01-01").is_ok());
 	}
 
 	/// A year fragment shorter than 4 digits is not a valid `yearFrag`,
 	/// even though it starts with a nonzero digit.
 	#[test]
 	fn short_year_rejected() {
-		assert!(Date::new("5-01-01").is_err());
-		assert!(Date::new("05-01-01").is_err());
-		assert!(Date::new("005-01-01").is_err());
+		assert!(XsdDateStr::new("5-01-01").is_err());
+		assert!(XsdDateStr::new("05-01-01").is_err());
+		assert!(XsdDateStr::new("005-01-01").is_err());
 	}
 
 	/// Years outside of `-9999..=9999` require the `large-dates` feature of
@@ -149,10 +149,10 @@ mod tests {
 		)];
 
 		for (input, parts) in vectors {
-			let lexical_repr = Date::new(input).unwrap();
+			let lexical_repr = XsdDateStr::new(input).unwrap();
 			assert_eq!(lexical_repr.parts(), parts);
 
-			let value = crate::Date::try_from(lexical_repr).unwrap();
+			let value = crate::XsdDate::try_from(lexical_repr).unwrap();
 			assert_eq!(value.to_string().as_str(), input)
 		}
 	}

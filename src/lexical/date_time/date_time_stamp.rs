@@ -5,7 +5,7 @@ use crate::{utils::byte_index_of, InvalidDateTimeStampValue, XsdError};
 
 use super::{parse_timezone, XsdLexicalForm};
 
-/// Date and time with required timezone offset.
+/// XsdDateStr and time with required timezone offset.
 ///
 /// This is the `dateTimeStampLexicalRep` production of the XSD 1.1
 /// Datatypes specification:
@@ -18,10 +18,10 @@ use super::{parse_timezone, XsdLexicalForm};
 /// ```
 #[derive(Validate, StrNewType, PartialEq, Eq, PartialOrd, Ord, Hash)]
 #[automaton(super::super::grammar::DateTimeStamp)]
-#[newtype(owned(DateTimeStampBuf, derive(PartialEq, Eq, PartialOrd, Ord, Hash)))]
-pub struct DateTimeStamp(str);
+#[newtype(owned(XsdDateTimeStampString, derive(PartialEq, Eq, PartialOrd, Ord, Hash)))]
+pub struct XsdDateTimeStampStr(str);
 
-impl DateTimeStamp {
+impl XsdDateTimeStampStr {
 	pub fn parts(&self) -> Parts<'_> {
 		let year_end = byte_index_of(self.0.as_bytes(), 4, b'-').unwrap();
 		let month_end = year_end + 3;
@@ -43,20 +43,21 @@ impl DateTimeStamp {
 	}
 }
 
-impl XsdLexicalForm for DateTimeStamp {
-	type Value = crate::DateTimeStamp;
+impl XsdLexicalForm for XsdDateTimeStampStr {
+	type Value = crate::XsdDateTimeStamp;
 }
 
-impl<'a> crate::XsdFromStr<'a> for &'a DateTimeStamp {
+impl<'a> crate::XsdFromStr<'a> for &'a XsdDateTimeStampStr {
 	fn xsd_from_str(value: &'a str) -> Result<Self, XsdError> {
-		DateTimeStamp::new(value).map_err(|_| XsdError::lexical_form(InvalidDateTimeStamp(value)))
+		XsdDateTimeStampStr::new(value)
+			.map_err(|_| XsdError::lexical_form(InvalidXsdDateTimeStampStr(value)))
 	}
 }
 
-impl<'a> TryFrom<&'a DateTimeStamp> for crate::DateTimeStamp {
+impl<'a> TryFrom<&'a XsdDateTimeStampStr> for crate::XsdDateTimeStamp {
 	type Error = InvalidDateTimeStampValue;
 
-	fn try_from(value: &'a DateTimeStamp) -> Result<crate::DateTimeStamp, Self::Error> {
+	fn try_from(value: &'a XsdDateTimeStampStr) -> Result<crate::XsdDateTimeStamp, Self::Error> {
 		value.parts().to_datetime()
 	}
 }
@@ -93,7 +94,7 @@ impl<'a> Parts<'a> {
 		}
 	}
 
-	fn to_datetime(&self) -> Result<crate::DateTimeStamp, crate::InvalidDateTimeStampValue> {
+	fn to_datetime(&self) -> Result<crate::XsdDateTimeStamp, crate::InvalidDateTimeStampValue> {
 		let month = time::Month::try_from(self.month.parse::<u8>().unwrap())
 			.map_err(|_| crate::InvalidDateTimeStampValue)?;
 
@@ -118,7 +119,7 @@ impl<'a> Parts<'a> {
 
 		let offset = parse_timezone(self.timezone).ok_or(crate::InvalidDateTimeStampValue)?;
 
-		crate::DateTimeStamp::new(datetime, offset).ok_or(crate::InvalidDateTimeStampValue)
+		crate::XsdDateTimeStamp::new(datetime, offset).ok_or(crate::InvalidDateTimeStampValue)
 	}
 }
 
@@ -159,10 +160,10 @@ mod tests {
 		];
 
 		for (input, parts) in vectors {
-			let lexical_repr = DateTimeStamp::new(input).unwrap();
+			let lexical_repr = XsdDateTimeStampStr::new(input).unwrap();
 			assert_eq!(lexical_repr.parts(), parts);
 
-			let value = crate::DateTimeStamp::try_from(lexical_repr).unwrap();
+			let value = crate::XsdDateTimeStamp::try_from(lexical_repr).unwrap();
 			assert_eq!(value.to_string().as_str(), input)
 		}
 	}
@@ -184,10 +185,10 @@ mod tests {
 		];
 
 		for (input, parts) in vectors {
-			let lexical_repr = DateTimeStamp::new(input).unwrap();
+			let lexical_repr = XsdDateTimeStampStr::new(input).unwrap();
 			assert_eq!(lexical_repr.parts(), parts);
 
-			let value = crate::DateTimeStamp::try_from(lexical_repr).unwrap();
+			let value = crate::XsdDateTimeStamp::try_from(lexical_repr).unwrap();
 			assert_eq!(value.to_string().as_str(), input)
 		}
 	}

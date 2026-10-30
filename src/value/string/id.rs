@@ -2,25 +2,25 @@
 ///
 /// Value space representation of the `ID` datatype.
 /// See: <https://www.w3.org/TR/xmlschema11-2/#ID>.
-pub use crate::lexical::Id;
-pub use crate::lexical::{IdBuf, InvalidId};
+pub use crate::lexical::XsdId;
+pub use crate::lexical::{InvalidXsdId, XsdIdBuf};
 
-impl<'a> crate::XsdFromStr<'a> for IdBuf {
+impl<'a> crate::XsdFromStr<'a> for XsdIdBuf {
 	fn xsd_from_str(lexical_value: &'a str) -> Result<Self, crate::XsdError> {
-		crate::xsd_parse_via::<Id, Self>(lexical_value)
+		crate::xsd_parse_via::<XsdId, Self>(lexical_value)
 	}
 }
 
-impl crate::XsdTyped for IdBuf {
+impl crate::XsdTyped for XsdIdBuf {
 	fn datatype(&self) -> crate::Datatype {
 		crate::NCNameDatatype::Id.into()
 	}
 }
 
-impl crate::XsdValue for IdBuf {
-	type LexicalForm = Id;
+impl crate::XsdValue for XsdIdBuf {
+	type LexicalForm = XsdId;
 
-	fn to_lexical_form(&self) -> IdBuf {
+	fn to_lexical_form(&self) -> XsdIdBuf {
 		self.clone()
 	}
 }
@@ -29,14 +29,14 @@ impl crate::XsdValue for IdBuf {
 mod tests {
 	use crate::{XsdFromStr, XsdValue};
 
-	use super::IdBuf;
+	use super::XsdIdBuf;
 
 	#[test]
 	fn lexical_form_round_trip() {
 		let input = "id-1.a_b";
-		let value = IdBuf::xsd_from_str(input).unwrap();
+		let value = XsdIdBuf::xsd_from_str(input).unwrap();
 		let lexical = value.to_lexical_form();
 		assert_eq!(lexical.as_str(), input);
-		assert!(IdBuf::xsd_from_str(lexical.as_str()).unwrap() == value);
+		assert!(XsdIdBuf::xsd_from_str(lexical.as_str()).unwrap() == value);
 	}
 }

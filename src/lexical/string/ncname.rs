@@ -3,12 +3,12 @@ use str_newtype::StrNewType;
 
 use crate::{lexical::XsdLexicalForm, XsdError};
 
-/// NCName.
+/// XsdNCName.
 ///
 /// See: <https://www.w3.org/TR/xmlschema11-2/#NCName>.
 ///
 /// ```abnf
-/// NCName        = (Letter / "_") *NCNameChar
+/// XsdNCName        = (Letter / "_") *NCNameChar
 /// NCNameChar    = Letter / Digit / "." / "-" / "_" / CombiningChar / Extender
 ///
 /// Letter        = BaseChar / Ideographic
@@ -20,24 +20,24 @@ use crate::{lexical::XsdLexicalForm, XsdError};
 /// ```
 #[derive(Validate, StrNewType, PartialEq, Eq, PartialOrd, Ord, Hash)]
 #[automaton(super::grammar::NCName)]
-#[newtype(owned(NCNameBuf, derive(PartialEq, Eq, PartialOrd, Ord, Hash)))]
+#[newtype(owned(XsdNCNameBuf, derive(PartialEq, Eq, PartialOrd, Ord, Hash)))]
 #[cfg_attr(feature = "serde", newtype(serde))]
-pub struct NCName(str);
+pub struct XsdNCName(str);
 
-impl XsdLexicalForm for NCName {
-	type Value = NCNameBuf;
+impl XsdLexicalForm for XsdNCName {
+	type Value = XsdNCNameBuf;
 }
 
-impl<'a> crate::XsdFromStr<'a> for &'a NCName {
+impl<'a> crate::XsdFromStr<'a> for &'a XsdNCName {
 	fn xsd_from_str(value: &'a str) -> Result<Self, XsdError> {
-		NCName::new(value).map_err(|_| XsdError::lexical_form(InvalidNCName(value)))
+		XsdNCName::new(value).map_err(|_| XsdError::lexical_form(InvalidXsdNCName(value)))
 	}
 }
 
-impl<'a> TryFrom<&'a NCName> for NCNameBuf {
-	type Error = InvalidNCName<String>;
+impl<'a> TryFrom<&'a XsdNCName> for XsdNCNameBuf {
+	type Error = InvalidXsdNCName<String>;
 
-	fn try_from(value: &'a NCName) -> Result<NCNameBuf, Self::Error> {
+	fn try_from(value: &'a XsdNCName) -> Result<XsdNCNameBuf, Self::Error> {
 		value.as_str().parse()
 	}
 }

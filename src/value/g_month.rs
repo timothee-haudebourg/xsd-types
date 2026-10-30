@@ -1,5 +1,5 @@
 use crate::{
-	format_timezone, is_valid_offset, lexical::InvalidGMonth, seven_property_model_date_time,
+	format_timezone, is_valid_offset, lexical::InvalidXsdGMonthStr, seven_property_model_date_time,
 	seven_property_model_eq, seven_property_model_partial_cmp, Datatype, XsdFromStr, XsdTyped,
 	XsdValue,
 };
@@ -10,19 +10,19 @@ use std::{cmp::Ordering, hash::Hash, str::FromStr};
 ///
 /// This is the value space of the XSD `gMonth` datatype: a decoded month
 /// number paired with an optional XSD timezone offset, as opposed to its
-/// lexical (string) representation, [`lexical::GMonth`](crate::lexical::GMonth).
+/// lexical (string) representation, [`lexical::XsdGMonthStr`](crate::lexical::XsdGMonthStr).
 /// Two distinct months are always far enough apart (at least 28 days) that
 /// they remain totally ordered even accounting for the `±14:00` offset
 /// uncertainty window.
 /// See: <https://www.w3.org/TR/xmlschema11-2/#gMonth>.
 #[derive(Debug, Clone, Copy)]
-pub struct GMonth {
+pub struct XsdGMonth {
 	month: u8,
 	offset: Option<time::UtcOffset>,
 }
 
-impl GMonth {
-	/// Creates a new `GMonth`, or returns `None` if `month` is outside
+impl XsdGMonth {
+	/// Creates a new `XsdGMonth`, or returns `None` if `month` is outside
 	/// `1..=12`, or `offset` is outside the `-14:00..=+14:00` range permitted
 	/// by XSD.
 	pub fn new(month: u8, offset: Option<time::UtcOffset>) -> Option<Self> {
@@ -43,7 +43,7 @@ impl GMonth {
 		self.offset
 	}
 
-	/// Deconstructs this `GMonth` into its month and timezone offset.
+	/// Deconstructs this `XsdGMonth` into its month and timezone offset.
 	pub fn into_parts(self) -> (u8, Option<time::UtcOffset>) {
 		(self.month, self.offset)
 	}
@@ -55,17 +55,17 @@ impl GMonth {
 	}
 }
 
-impl FromStr for GMonth {
-	type Err = InvalidGMonth<String>;
+impl FromStr for XsdGMonth {
+	type Err = InvalidXsdGMonthStr<String>;
 
 	fn from_str(s: &str) -> Result<Self, Self::Err> {
 		let lexical_value =
-			crate::lexical::GMonth::new(s).map_err(|_| InvalidGMonth(s.to_owned()))?;
+			crate::lexical::XsdGMonthStr::new(s).map_err(|_| InvalidXsdGMonthStr(s.to_owned()))?;
 		Ok(lexical_value.into())
 	}
 }
 
-impl PartialEq for GMonth {
+impl PartialEq for XsdGMonth {
 	fn eq(&self, other: &Self) -> bool {
 		seven_property_model_eq(
 			self.effective_date_time(),
@@ -76,26 +76,26 @@ impl PartialEq for GMonth {
 	}
 }
 
-impl Eq for GMonth {}
+impl Eq for XsdGMonth {}
 
-impl Hash for GMonth {
+impl Hash for XsdGMonth {
 	fn hash<H: std::hash::Hasher>(&self, state: &mut H) {
 		self.month.hash(state);
 		self.offset.hash(state)
 	}
 }
 
-impl PartialOrd for GMonth {
+impl PartialOrd for XsdGMonth {
 	fn partial_cmp(&self, other: &Self) -> Option<Ordering> {
 		Some(self.cmp(other))
 	}
 }
 
-impl Ord for GMonth {
+impl Ord for XsdGMonth {
 	fn cmp(&self, other: &Self) -> Ordering {
 		// Two distinct months are always at least 28 days apart in the
 		// reference year, far more than the `±14:00` offset uncertainty
-		// window (28 hours), so `GMonth` values are always comparable.
+		// window (28 hours), so `XsdGMonth` values are always comparable.
 		seven_property_model_partial_cmp(
 			self.effective_date_time(),
 			self.offset,
@@ -106,30 +106,30 @@ impl Ord for GMonth {
 	}
 }
 
-impl XsdTyped for GMonth {
+impl XsdTyped for XsdGMonth {
 	fn datatype(&self) -> Datatype {
 		Datatype::GMonth
 	}
 }
 
-impl XsdValue for GMonth {
-	type LexicalForm = crate::lexical::GMonth;
+impl XsdValue for XsdGMonth {
+	type LexicalForm = crate::lexical::XsdGMonthStr;
 
-	fn to_lexical_form(&self) -> crate::lexical::GMonthBuf {
+	fn to_lexical_form(&self) -> crate::lexical::XsdGMonthString {
 		// `Display` emits the canonical lexical form by contract, so it is
 		// always valid and this cannot panic.
-		crate::lexical::GMonthBuf::new(self.to_string())
+		crate::lexical::XsdGMonthString::new(self.to_string())
 			.expect("Display emits a valid gMonth lexical form")
 	}
 }
 
-impl<'a> XsdFromStr<'a> for GMonth {
+impl<'a> XsdFromStr<'a> for XsdGMonth {
 	fn xsd_from_str(lexical_value: &'a str) -> Result<Self, crate::XsdError> {
-		crate::xsd_parse_via::<crate::lexical::GMonth, Self>(lexical_value)
+		crate::xsd_parse_via::<crate::lexical::XsdGMonthStr, Self>(lexical_value)
 	}
 }
 
-impl fmt::Display for GMonth {
+impl fmt::Display for XsdGMonth {
 	fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
 		write!(f, "--{:02}", self.month)?;
 
@@ -138,7 +138,7 @@ impl fmt::Display for GMonth {
 }
 
 #[cfg(feature = "serde")]
-impl serde::Serialize for GMonth {
+impl serde::Serialize for XsdGMonth {
 	fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
 	where
 		S: serde::Serializer,
@@ -148,7 +148,7 @@ impl serde::Serialize for GMonth {
 }
 
 #[cfg(feature = "serde")]
-impl<'de> serde::Deserialize<'de> for GMonth {
+impl<'de> serde::Deserialize<'de> for XsdGMonth {
 	fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
 	where
 		D: serde::Deserializer<'de>,
@@ -156,7 +156,7 @@ impl<'de> serde::Deserialize<'de> for GMonth {
 		struct Visitor;
 
 		impl<'de> serde::de::Visitor<'de> for Visitor {
-			type Value = GMonth;
+			type Value = XsdGMonth;
 
 			fn expecting(&self, formatter: &mut fmt::Formatter) -> fmt::Result {
 				formatter.write_str("a http://www.w3.org/2001/XMLSchema#gMonth")
@@ -176,35 +176,35 @@ impl<'de> serde::Deserialize<'de> for GMonth {
 
 #[cfg(test)]
 mod tests {
-	use super::GMonth;
+	use super::XsdGMonth;
 	use crate::XsdValue;
 
 	#[test]
 	fn to_lexical_form_roundtrip() {
 		for s in ["--01", "--12Z", "--06+14:00", "--02-05:30"] {
-			let value: GMonth = s.parse().unwrap();
+			let value: XsdGMonth = s.parse().unwrap();
 			let lexical = value.to_lexical_form();
 			assert_eq!(lexical.as_str(), s);
-			assert_eq!(lexical.as_str().parse::<GMonth>().unwrap(), value);
+			assert_eq!(lexical.as_str().parse::<XsdGMonth>().unwrap(), value);
 		}
 	}
 
 	#[test]
 	fn ord_without_offset_is_direct() {
-		let a = GMonth::new(2, None).unwrap();
-		let b = GMonth::new(3, None).unwrap();
+		let a = XsdGMonth::new(2, None).unwrap();
+		let b = XsdGMonth::new(3, None).unwrap();
 
 		assert!(a < b);
 	}
 
-	// Two distinct `GMonth` values are always at least 28 days apart (their
+	// Two distinct `XsdGMonth` values are always at least 28 days apart (their
 	// effective dates fall in the same reference year, 1972), which is far
 	// more than the `±14:00` offset uncertainty window (28 hours), so they
 	// are always totally ordered, even with extreme offsets.
 	#[test]
 	fn ord_is_always_definite() {
-		let a = GMonth::new(2, None).unwrap();
-		let b = GMonth::new(3, Some(time::UtcOffset::from_hms(14, 0, 0).unwrap())).unwrap();
+		let a = XsdGMonth::new(2, None).unwrap();
+		let b = XsdGMonth::new(3, Some(time::UtcOffset::from_hms(14, 0, 0).unwrap())).unwrap();
 
 		assert_eq!(a.cmp(&b), std::cmp::Ordering::Less);
 		assert_eq!(a.partial_cmp(&b), Some(std::cmp::Ordering::Less));
@@ -212,15 +212,15 @@ mod tests {
 
 	#[test]
 	fn eq_ignores_representation() {
-		let a = GMonth::new(2, None).unwrap();
-		let b = GMonth::new(2, None).unwrap();
+		let a = XsdGMonth::new(2, None).unwrap();
+		let b = XsdGMonth::new(2, None).unwrap();
 
 		assert_eq!(a, b);
 	}
 
 	#[test]
 	fn from_str_roundtrip() {
-		let m: GMonth = "--02+05:00".parse().unwrap();
+		let m: XsdGMonth = "--02+05:00".parse().unwrap();
 		assert_eq!(m.month(), 2);
 		assert_eq!(
 			m.offset(),
@@ -232,6 +232,6 @@ mod tests {
 	#[test]
 	fn new_rejects_out_of_range_offset() {
 		let offset = time::UtcOffset::from_hms(15, 0, 0).unwrap();
-		assert!(GMonth::new(2, Some(offset)).is_none());
+		assert!(XsdGMonth::new(2, Some(offset)).is_none());
 	}
 }

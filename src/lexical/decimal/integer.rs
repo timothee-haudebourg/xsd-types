@@ -1,7 +1,7 @@
 use crate::lexical::{lexical_form, XsdLexicalForm};
 use crate::XsdError;
 
-use super::{Decimal, DecimalBuf, Overflow, Sign};
+use super::{Overflow, Sign, XsdDecimalStr, XsdDecimalString};
 use static_automata::Validate;
 use std::cmp::Ordering;
 use std::hash::{Hash, Hasher};
@@ -14,11 +14,11 @@ mod non_positive_integer;
 pub use non_negative_integer::*;
 pub use non_positive_integer::*;
 
-/// Integer number.
+/// XsdIntegerStr number.
 ///
 /// `integer` has no numbered grammar production of its own in the XSD
 /// 1.1 Datatypes specification: it is defined by restricting
-/// `decimal`'s lexical space (see [`Decimal`]) to `noDecimalPtNumeral`
+/// `decimal`'s lexical space (see [`XsdDecimalStr`]) to `noDecimalPtNumeral`
 /// forms, i.e. disallowing a decimal point.
 /// See: <https://www.w3.org/TR/xmlschema11-2/#integer>.
 ///
@@ -27,30 +27,30 @@ pub use non_positive_integer::*;
 /// ```
 #[derive(Validate, StrNewType)]
 #[automaton(crate::lexical::grammar::Integer)]
-#[newtype(owned(IntegerBuf, derive(PartialEq, Eq)))]
-pub struct Integer(str);
+#[newtype(owned(XsdIntegerString, derive(PartialEq, Eq)))]
+pub struct XsdIntegerStr(str);
 
-impl XsdLexicalForm for Integer {
-	type Value = crate::Integer;
+impl XsdLexicalForm for XsdIntegerStr {
+	type Value = crate::XsdInteger;
 }
 
-impl<'a> crate::XsdFromStr<'a> for &'a Integer {
+impl<'a> crate::XsdFromStr<'a> for &'a XsdIntegerStr {
 	fn xsd_from_str(value: &'a str) -> Result<Self, XsdError> {
-		Integer::new(value).map_err(|_| XsdError::lexical_form(InvalidInteger(value)))
+		XsdIntegerStr::new(value).map_err(|_| XsdError::lexical_form(InvalidXsdIntegerStr(value)))
 	}
 }
 
 lexical_form! {
-	ty: Integer,
-	buffer: IntegerBuf,
-	value: crate::Integer,
-	error: InvalidInteger,
+	ty: XsdIntegerStr,
+	buffer: XsdIntegerString,
+	value: crate::XsdInteger,
+	error: InvalidXsdIntegerStr,
 	parent_forms: {
-		as_decimal: Decimal, DecimalBuf
+		as_decimal: XsdDecimalStr, XsdDecimalString
 	}
 }
 
-impl Integer {
+impl XsdIntegerStr {
 	/// Returns `true` if `self` is positive
 	/// and `false` is the number is zero or negative.
 	pub fn is_positive(&self) -> bool {
@@ -112,17 +112,17 @@ impl Integer {
 	/// Returns the absolute value of `self`.
 	///
 	/// The returned integer is in canonical form (without leading zeros).
-	pub fn abs(&self) -> &NonNegativeInteger {
+	pub fn abs(&self) -> &XsdNonNegativeIntegerStr {
 		let mut last_zero = 0;
 		for (i, c) in self.0.as_bytes().iter().enumerate() {
 			match c {
 				b'+' | b'-' => (),
 				b'0' => last_zero = i,
-				_ => return unsafe { NonNegativeInteger::new_unchecked(&self.0[i..]) },
+				_ => return unsafe { XsdNonNegativeIntegerStr::new_unchecked(&self.0[i..]) },
 			}
 		}
 
-		unsafe { NonNegativeInteger::new_unchecked(&self.0[last_zero..]) }
+		unsafe { XsdNonNegativeIntegerStr::new_unchecked(&self.0[last_zero..]) }
 	}
 
 	/// Returns the canonical form of `self` (without leading zeros).
@@ -149,26 +149,26 @@ impl Integer {
 	}
 
 	#[inline(always)]
-	pub fn value(&self) -> crate::Integer {
-		crate::Integer::from_str(self.as_str()).unwrap()
+	pub fn value(&self) -> crate::XsdInteger {
+		crate::XsdInteger::from_str(self.as_str()).unwrap()
 	}
 }
 
-impl PartialEq for Integer {
+impl PartialEq for XsdIntegerStr {
 	fn eq(&self, other: &Self) -> bool {
 		self.as_canonical_str() == other.as_canonical_str()
 	}
 }
 
-impl Eq for Integer {}
+impl Eq for XsdIntegerStr {}
 
-impl Hash for Integer {
+impl Hash for XsdIntegerStr {
 	fn hash<H: Hasher>(&self, h: &mut H) {
 		self.as_canonical_str().hash(h)
 	}
 }
 
-impl Ord for Integer {
+impl Ord for XsdIntegerStr {
 	fn cmp(&self, other: &Self) -> Ordering {
 		let sign = self.sign();
 		let other_sign = other.sign();
@@ -199,13 +199,13 @@ impl Ord for Integer {
 	}
 }
 
-impl PartialOrd for Integer {
+impl PartialOrd for XsdIntegerStr {
 	fn partial_cmp(&self, other: &Self) -> Option<Ordering> {
 		Some(self.cmp(other))
 	}
 }
 
-impl IntegerBuf {
+impl XsdIntegerString {
 	pub fn zero() -> Self {
 		unsafe { Self::new_unchecked("0".to_string()) }
 	}
@@ -215,45 +215,45 @@ impl IntegerBuf {
 	}
 }
 
-impl Default for IntegerBuf {
+impl Default for XsdIntegerString {
 	fn default() -> Self {
 		Self::zero()
 	}
 }
 
-impl PartialOrd for IntegerBuf {
+impl PartialOrd for XsdIntegerString {
 	fn partial_cmp(&self, other: &Self) -> Option<Ordering> {
 		Some(self.cmp(other))
 	}
 }
 
-impl Ord for IntegerBuf {
+impl Ord for XsdIntegerString {
 	fn cmp(&self, other: &Self) -> Ordering {
-		self.as_integer().cmp(other.as_integer())
+		self.as_xsd_integer_str().cmp(other.as_xsd_integer_str())
 	}
 }
 
 macro_rules! number_conversion {
 	{ $($ty:ty),* } => {
 		$(
-			impl From<$ty> for IntegerBuf {
+			impl From<$ty> for XsdIntegerString {
 				fn from(i: $ty) -> Self {
-					unsafe { IntegerBuf::new_unchecked(i.to_string()) }
+					unsafe { XsdIntegerString::new_unchecked(i.to_string()) }
 				}
 			}
 
-			impl<'a> TryFrom<&'a Integer> for $ty {
+			impl<'a> TryFrom<&'a XsdIntegerStr> for $ty {
 				type Error = Overflow;
 
-				fn try_from(i: &'a Integer) -> Result<Self, Overflow> {
+				fn try_from(i: &'a XsdIntegerStr) -> Result<Self, Overflow> {
 					i.as_str().parse().map_err(|_| Overflow)
 				}
 			}
 
-			impl TryFrom<IntegerBuf> for $ty {
+			impl TryFrom<XsdIntegerString> for $ty {
 				type Error = Overflow;
 
-				fn try_from(i: IntegerBuf) -> Result<Self, Overflow> {
+				fn try_from(i: XsdIntegerString) -> Result<Self, Overflow> {
 					i.as_str().parse().map_err(|_| Overflow)
 				}
 			}
@@ -289,7 +289,7 @@ mod tests {
 			("0", false, false, true),
 			("-0", false, false, true),
 		] {
-			let i = Integer::new(input).unwrap();
+			let i = XsdIntegerStr::new(input).unwrap();
 			assert_eq!(i.is_negative(), negative, "is_negative({input})");
 			assert_eq!(i.is_positive(), positive, "is_positive({input})");
 			assert_eq!(i.is_zero(), zero, "is_zero({input})");
@@ -298,108 +298,117 @@ mod tests {
 
 	#[test]
 	fn parse_01() {
-		Integer::new("0").unwrap();
+		XsdIntegerStr::new("0").unwrap();
 	}
 
 	#[test]
 	#[should_panic]
 	fn parse_02() {
-		Integer::new("+").unwrap();
+		XsdIntegerStr::new("+").unwrap();
 	}
 
 	#[test]
 	#[should_panic]
 	fn parse_03() {
-		Integer::new("-").unwrap();
+		XsdIntegerStr::new("-").unwrap();
 	}
 
 	#[test]
 	#[should_panic]
 	fn parse_04() {
-		Integer::new("012+").unwrap();
+		XsdIntegerStr::new("012+").unwrap();
 	}
 
 	#[test]
 	fn parse_05() {
-		Integer::new("+42").unwrap();
+		XsdIntegerStr::new("+42").unwrap();
 	}
 
 	#[test]
 	fn parse_06() {
-		Integer::new("-42").unwrap();
+		XsdIntegerStr::new("-42").unwrap();
 	}
 
 	#[test]
 	fn abs_01() {
-		assert_eq!(Integer::new("01").unwrap().abs().as_str(), "1")
+		assert_eq!(XsdIntegerStr::new("01").unwrap().abs().as_str(), "1")
 	}
 
 	#[test]
 	fn abs_02() {
-		assert_eq!(Integer::new("00").unwrap().abs().as_str(), "0")
+		assert_eq!(XsdIntegerStr::new("00").unwrap().abs().as_str(), "0")
 	}
 
 	#[test]
 	fn abs_03() {
-		assert_eq!(Integer::new("+00000").unwrap().abs().as_str(), "0")
+		assert_eq!(XsdIntegerStr::new("+00000").unwrap().abs().as_str(), "0")
 	}
 
 	#[test]
 	fn abs_04() {
-		assert_eq!(Integer::new("-00000").unwrap().abs().as_str(), "0")
+		assert_eq!(XsdIntegerStr::new("-00000").unwrap().abs().as_str(), "0")
 	}
 
 	#[test]
 	fn abs_05() {
-		assert_eq!(Integer::new("-00100").unwrap().abs().as_str(), "100")
+		assert_eq!(XsdIntegerStr::new("-00100").unwrap().abs().as_str(), "100")
 	}
 
 	#[test]
 	fn eq_01() {
-		assert_eq!(Integer::new("+001").unwrap(), Integer::new("1").unwrap())
+		assert_eq!(
+			XsdIntegerStr::new("+001").unwrap(),
+			XsdIntegerStr::new("1").unwrap()
+		)
 	}
 
 	#[test]
 	fn eq_02() {
-		assert_ne!(Integer::new("-001").unwrap(), Integer::new("1").unwrap())
+		assert_ne!(
+			XsdIntegerStr::new("-001").unwrap(),
+			XsdIntegerStr::new("1").unwrap()
+		)
 	}
 
 	#[test]
 	fn eq_03() {
-		assert_eq!(Integer::new("-000").unwrap(), Integer::new("+0").unwrap())
+		assert_eq!(
+			XsdIntegerStr::new("-000").unwrap(),
+			XsdIntegerStr::new("+0").unwrap()
+		)
 	}
 
 	#[test]
 	fn cmp_01() {
-		assert!(Integer::new("123").unwrap() < Integer::new("456").unwrap())
+		assert!(XsdIntegerStr::new("123").unwrap() < XsdIntegerStr::new("456").unwrap())
 	}
 
 	#[test]
 	fn cmp_02() {
-		assert!(Integer::new("1230").unwrap() > Integer::new("456").unwrap())
+		assert!(XsdIntegerStr::new("1230").unwrap() > XsdIntegerStr::new("456").unwrap())
 	}
 
 	#[test]
 	fn cmp_03() {
-		assert!(Integer::new("-1230").unwrap() < Integer::new("456").unwrap())
+		assert!(XsdIntegerStr::new("-1230").unwrap() < XsdIntegerStr::new("456").unwrap())
 	}
 
 	#[test]
 	fn cmp_04() {
-		assert!(Integer::new("-1230").unwrap() < Integer::new("-456").unwrap())
+		assert!(XsdIntegerStr::new("-1230").unwrap() < XsdIntegerStr::new("-456").unwrap())
 	}
 
 	#[test]
 	fn cmp_05() {
-		assert!(Integer::new("-123").unwrap() > Integer::new("-456").unwrap())
+		assert!(XsdIntegerStr::new("-123").unwrap() > XsdIntegerStr::new("-456").unwrap())
 	}
 
 	#[test]
 	fn cmp_06() {
 		assert_eq!(
-			Integer::new("+123456")
+			XsdIntegerStr::new("+123456")
 				.unwrap()
-				.cmp(Integer::new("0000123456").unwrap()),
+				.cmp(XsdIntegerStr::new("0000123456").unwrap()),
 			Ordering::Equal
 		)
 	}

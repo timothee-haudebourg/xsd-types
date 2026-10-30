@@ -21,75 +21,77 @@ use crate::XsdError;
 /// ```
 #[derive(Validate, StrNewType)]
 #[automaton(super::grammar::HexBinary)]
-#[newtype(owned(HexBinaryBuf, derive(PartialEq, Eq)))]
-pub struct HexBinary(str);
+#[newtype(owned(XsdHexBinaryString, derive(PartialEq, Eq)))]
+pub struct XsdHexBinaryStr(str);
 
-impl XsdLexicalForm for HexBinary {
-	type Value = crate::HexBinaryBuf;
+impl XsdLexicalForm for XsdHexBinaryStr {
+	type Value = crate::XsdHexBinaryBuf;
 }
 
-impl<'a> crate::XsdFromStr<'a> for &'a HexBinary {
+impl<'a> crate::XsdFromStr<'a> for &'a XsdHexBinaryStr {
 	fn xsd_from_str(value: &'a str) -> Result<Self, XsdError> {
-		HexBinary::new(value).map_err(|_| XsdError::lexical_form(InvalidHexBinary(value)))
+		XsdHexBinaryStr::new(value)
+			.map_err(|_| XsdError::lexical_form(InvalidXsdHexBinaryStr(value)))
 	}
 }
 
 lexical_form! {
-	ty: HexBinary,
-	buffer: HexBinaryBuf,
-	value: crate::HexBinaryBuf,
-	error: InvalidHexBinary,
+	ty: XsdHexBinaryStr,
+	buffer: XsdHexBinaryString,
+	value: crate::XsdHexBinaryBuf,
+	error: InvalidXsdHexBinaryStr,
 	parent_forms: {}
 }
 
-impl HexBinary {
+impl XsdHexBinaryStr {
 	#[inline(always)]
-	pub fn value(&self) -> crate::HexBinaryBuf {
-		crate::HexBinaryBuf::decode(self.as_bytes()).unwrap()
+	pub fn value(&self) -> crate::XsdHexBinaryBuf {
+		crate::XsdHexBinaryBuf::decode(self.as_bytes()).unwrap()
 	}
 }
 
-impl PartialEq for HexBinary {
+impl PartialEq for XsdHexBinaryStr {
 	fn eq(&self, other: &Self) -> bool {
 		self.as_str() == other.as_str()
 	}
 }
 
-impl Eq for HexBinary {}
+impl Eq for XsdHexBinaryStr {}
 
-impl Hash for HexBinary {
+impl Hash for XsdHexBinaryStr {
 	fn hash<H: Hasher>(&self, h: &mut H) {
 		self.as_str().hash(h)
 	}
 }
 
-impl Ord for HexBinary {
+impl Ord for XsdHexBinaryStr {
 	fn cmp(&self, other: &Self) -> Ordering {
 		self.as_str().cmp(other.as_str())
 	}
 }
 
-impl PartialOrd for HexBinary {
+impl PartialOrd for XsdHexBinaryStr {
 	fn partial_cmp(&self, other: &Self) -> Option<Ordering> {
 		Some(self.cmp(other))
 	}
 }
 
-impl Default for HexBinaryBuf {
+impl Default for XsdHexBinaryString {
 	fn default() -> Self {
 		unsafe { Self::new_unchecked(String::new()) }
 	}
 }
 
-impl PartialOrd for HexBinaryBuf {
+impl PartialOrd for XsdHexBinaryString {
 	fn partial_cmp(&self, other: &Self) -> Option<Ordering> {
 		Some(self.cmp(other))
 	}
 }
 
-impl Ord for HexBinaryBuf {
+impl Ord for XsdHexBinaryString {
 	fn cmp(&self, other: &Self) -> Ordering {
-		self.as_hex_binary().cmp(other.as_hex_binary())
+		self.as_xsd_hex_binary_str()
+			.cmp(other.as_xsd_hex_binary_str())
 	}
 }
 
@@ -99,36 +101,36 @@ mod tests {
 
 	#[test]
 	fn parse_hex_digits() {
-		HexBinary::new("1FaB").unwrap();
+		XsdHexBinaryStr::new("1FaB").unwrap();
 	}
 
 	#[test]
 	fn parse_empty() {
-		HexBinary::new("").unwrap();
+		XsdHexBinaryStr::new("").unwrap();
 	}
 
 	#[test]
 	fn parse_odd_length() {
 		// An odd number of hex digits is not a valid `hexBinary`.
-		HexBinary::new("1").unwrap_err();
+		XsdHexBinaryStr::new("1").unwrap_err();
 	}
 
 	#[test]
 	fn parse_non_hex_letter() {
 		// `g` is not a hex digit.
-		HexBinary::new("g0").unwrap_err();
+		XsdHexBinaryStr::new("g0").unwrap_err();
 	}
 
 	#[test]
 	fn parse_base64_alphabet_rejected() {
 		// This is a valid base64 string, but not a valid hex string (`+` and
 		// `/` are not hex digits, and `z` is out of the hex digit range).
-		HexBinary::new("+/z=").unwrap_err();
+		XsdHexBinaryStr::new("+/z=").unwrap_err();
 	}
 
 	#[test]
 	fn value_roundtrip() {
-		let hex = HexBinary::new("4D616E").unwrap();
+		let hex = XsdHexBinaryStr::new("4D616E").unwrap();
 		assert_eq!(hex.value().as_bytes(), b"Man");
 	}
 }

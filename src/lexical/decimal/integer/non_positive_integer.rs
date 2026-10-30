@@ -1,7 +1,10 @@
 use crate::lexical::{lexical_form, XsdLexicalForm};
 use crate::XsdError;
 
-use super::{Decimal, DecimalBuf, Integer, IntegerBuf, NonNegativeInteger, Overflow, Sign};
+use super::{
+	Overflow, Sign, XsdDecimalStr, XsdDecimalString, XsdIntegerStr, XsdIntegerString,
+	XsdNonNegativeIntegerStr,
+};
 use static_automata::Validate;
 use std::cmp::Ordering;
 use std::hash::{Hash, Hasher};
@@ -16,7 +19,7 @@ pub use negative_integer::*;
 ///
 /// `nonPositiveInteger` has no numbered grammar production of its own
 /// in the XSD 1.1 Datatypes specification: it is defined by
-/// restricting [`Integer`]'s lexical space with a `maxInclusive` of 0.
+/// restricting [`XsdIntegerStr`]'s lexical space with a `maxInclusive` of 0.
 /// See: <https://www.w3.org/TR/xmlschema11-2/#nonPositiveInteger>.
 ///
 /// ```abnf
@@ -26,32 +29,32 @@ pub use negative_integer::*;
 /// ```
 #[derive(Validate, StrNewType)]
 #[automaton(crate::lexical::grammar::NonPositiveInteger)]
-#[newtype(owned(NonPositiveIntegerBuf, derive(PartialEq, Eq)))]
-pub struct NonPositiveInteger(str);
+#[newtype(owned(XsdNonPositiveIntegerString, derive(PartialEq, Eq)))]
+pub struct XsdNonPositiveIntegerStr(str);
 
-impl XsdLexicalForm for NonPositiveInteger {
-	type Value = crate::NonPositiveInteger;
+impl XsdLexicalForm for XsdNonPositiveIntegerStr {
+	type Value = crate::XsdNonPositiveInteger;
 }
 
-impl<'a> crate::XsdFromStr<'a> for &'a NonPositiveInteger {
+impl<'a> crate::XsdFromStr<'a> for &'a XsdNonPositiveIntegerStr {
 	fn xsd_from_str(value: &'a str) -> Result<Self, XsdError> {
-		NonPositiveInteger::new(value)
-			.map_err(|_| XsdError::lexical_form(InvalidNonPositiveInteger(value)))
+		XsdNonPositiveIntegerStr::new(value)
+			.map_err(|_| XsdError::lexical_form(InvalidXsdNonPositiveIntegerStr(value)))
 	}
 }
 
 lexical_form! {
-	ty: NonPositiveInteger,
-	buffer: NonPositiveIntegerBuf,
-	value: crate::NonPositiveInteger,
-	error: InvalidNonPositiveInteger,
+	ty: XsdNonPositiveIntegerStr,
+	buffer: XsdNonPositiveIntegerString,
+	value: crate::XsdNonPositiveInteger,
+	error: InvalidXsdNonPositiveIntegerStr,
 	parent_forms: {
-		as_integer: Integer, IntegerBuf,
-		as_decimal: Decimal, DecimalBuf
+		as_integer: XsdIntegerStr, XsdIntegerString,
+		as_decimal: XsdDecimalStr, XsdDecimalString
 	}
 }
 
-impl NonPositiveInteger {
+impl XsdNonPositiveIntegerStr {
 	/// Returns `true` if `self` is negative
 	/// and `false` is the number is zero.
 	pub fn is_negative(&self) -> bool {
@@ -91,37 +94,37 @@ impl NonPositiveInteger {
 	/// Returns the absolute value of `self`.
 	///
 	/// The returned integer is in canonical form (without leading zeros).
-	pub fn abs(&self) -> &NonNegativeInteger {
+	pub fn abs(&self) -> &XsdNonNegativeIntegerStr {
 		let mut last_zero = 0;
 		for (i, c) in self.0.as_bytes().iter().enumerate() {
 			match c {
 				b'+' | b'-' => (),
 				b'0' => last_zero = i,
-				_ => return unsafe { NonNegativeInteger::new_unchecked(&self.0[i..]) },
+				_ => return unsafe { XsdNonNegativeIntegerStr::new_unchecked(&self.0[i..]) },
 			}
 		}
 
-		unsafe { NonNegativeInteger::new_unchecked(&self.0[last_zero..]) }
+		unsafe { XsdNonNegativeIntegerStr::new_unchecked(&self.0[last_zero..]) }
 	}
 
 	#[inline(always)]
-	pub fn value(&self) -> crate::NonPositiveInteger {
+	pub fn value(&self) -> crate::XsdNonPositiveInteger {
 		use num_bigint::BigInt;
 		unsafe {
-			crate::NonPositiveInteger::new_unchecked(BigInt::from_str(self.as_str()).unwrap())
+			crate::XsdNonPositiveInteger::new_unchecked(BigInt::from_str(self.as_str()).unwrap())
 		}
 	}
 }
 
-impl PartialEq for NonPositiveInteger {
+impl PartialEq for XsdNonPositiveIntegerStr {
 	fn eq(&self, other: &Self) -> bool {
 		self.sign() == other.sign() && self.abs() == other.abs()
 	}
 }
 
-impl Eq for NonPositiveInteger {}
+impl Eq for XsdNonPositiveIntegerStr {}
 
-impl Hash for NonPositiveInteger {
+impl Hash for XsdNonPositiveIntegerStr {
 	fn hash<H: Hasher>(&self, h: &mut H) {
 		match self.sign() {
 			Sign::Zero => 0.hash(h),
@@ -133,7 +136,7 @@ impl Hash for NonPositiveInteger {
 	}
 }
 
-impl Ord for NonPositiveInteger {
+impl Ord for XsdNonPositiveIntegerStr {
 	fn cmp(&self, other: &Self) -> Ordering {
 		let sign = self.sign();
 		let other_sign = other.sign();
@@ -164,13 +167,13 @@ impl Ord for NonPositiveInteger {
 	}
 }
 
-impl PartialOrd for NonPositiveInteger {
+impl PartialOrd for XsdNonPositiveIntegerStr {
 	fn partial_cmp(&self, other: &Self) -> Option<Ordering> {
 		Some(self.cmp(other))
 	}
 }
 
-impl NonPositiveIntegerBuf {
+impl XsdNonPositiveIntegerString {
 	pub fn zero() -> Self {
 		unsafe { Self::new_unchecked("0".to_string()) }
 	}
@@ -180,19 +183,19 @@ impl NonPositiveIntegerBuf {
 	}
 }
 
-impl Default for NonPositiveIntegerBuf {
+impl Default for XsdNonPositiveIntegerString {
 	fn default() -> Self {
 		Self::zero()
 	}
 }
 
-impl PartialOrd for NonPositiveIntegerBuf {
+impl PartialOrd for XsdNonPositiveIntegerString {
 	fn partial_cmp(&self, other: &Self) -> Option<Ordering> {
 		Some(self.cmp(other))
 	}
 }
 
-impl Ord for NonPositiveIntegerBuf {
+impl Ord for XsdNonPositiveIntegerString {
 	fn cmp(&self, other: &Self) -> Ordering {
 		self.as_integer().cmp(other.as_integer())
 	}
@@ -201,24 +204,24 @@ impl Ord for NonPositiveIntegerBuf {
 macro_rules! number_conversion {
 	{ $($ty:ty),* } => {
 		$(
-			impl From<$ty> for NonPositiveIntegerBuf {
+			impl From<$ty> for XsdNonPositiveIntegerString {
 				fn from(i: $ty) -> Self {
-					unsafe { NonPositiveIntegerBuf::new_unchecked(i.to_string()) }
+					unsafe { XsdNonPositiveIntegerString::new_unchecked(i.to_string()) }
 				}
 			}
 
-			impl<'a> TryFrom<&'a NonPositiveInteger> for $ty {
+			impl<'a> TryFrom<&'a XsdNonPositiveIntegerStr> for $ty {
 				type Error = Overflow;
 
-				fn try_from(i: &'a NonPositiveInteger) -> Result<Self, Overflow> {
+				fn try_from(i: &'a XsdNonPositiveIntegerStr) -> Result<Self, Overflow> {
 					i.as_str().parse().map_err(|_| Overflow)
 				}
 			}
 
-			impl TryFrom<NonPositiveIntegerBuf> for $ty {
+			impl TryFrom<XsdNonPositiveIntegerString> for $ty {
 				type Error = Overflow;
 
-				fn try_from(i: NonPositiveIntegerBuf) -> Result<Self, Overflow> {
+				fn try_from(i: XsdNonPositiveIntegerString) -> Result<Self, Overflow> {
 					i.as_str().parse().map_err(|_| Overflow)
 				}
 			}
@@ -249,19 +252,19 @@ mod tests {
 	fn parse_zero_variants() {
 		// `0` and `+0` are valid (if unusual, for the latter) lexical
 		// representations of `0`, which is itself non-positive.
-		NonPositiveInteger::new("0").unwrap();
-		NonPositiveInteger::new("+0").unwrap();
-		NonPositiveInteger::new("+000").unwrap();
+		XsdNonPositiveIntegerStr::new("0").unwrap();
+		XsdNonPositiveIntegerStr::new("+0").unwrap();
+		XsdNonPositiveIntegerStr::new("+000").unwrap();
 	}
 
 	#[test]
 	fn parse_positive_nonzero_rejected() {
-		NonPositiveInteger::new("+1").unwrap_err();
+		XsdNonPositiveIntegerStr::new("+1").unwrap_err();
 	}
 
 	#[test]
 	fn positive_zero_is_zero() {
-		let n = NonPositiveInteger::new("+0").unwrap();
+		let n = XsdNonPositiveIntegerStr::new("+0").unwrap();
 		assert!(n.is_zero());
 		assert!(!n.is_negative());
 		assert_eq!(n.sign(), Sign::Zero);
@@ -270,8 +273,8 @@ mod tests {
 	#[test]
 	fn positive_zero_equals_zero() {
 		assert_eq!(
-			NonPositiveInteger::new("+0").unwrap(),
-			NonPositiveInteger::new("0").unwrap()
+			XsdNonPositiveIntegerStr::new("+0").unwrap(),
+			XsdNonPositiveIntegerStr::new("0").unwrap()
 		);
 	}
 }

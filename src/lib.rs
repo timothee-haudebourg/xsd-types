@@ -12,28 +12,29 @@
 //!
 //! For instance, assume we wish to store the lexical representation of an
 //! [XSD decimal][xsd-decimal] datatype value. We can use the
-//! [`lexical::Decimal`] type (or its owned variant, [`lexical::DecimalBuf`])
+//! [`lexical::XsdDecimalStr`] type (or its owned variant,
+//! [`lexical::XsdDecimalString`])
 //!
 //! [`lexical`]: crate::lexical
 //! [`value`]: crate::value
 //! [xsd-decimal]: <https://www.w3.org/TR/xmlschema11-2/#decimal>
-//! [`lexical::Decimal`]: crate::lexical::Decimal
-//! [`lexical::DecimalBuf`]: crate::lexical::DecimalBuf
+//! [`lexical::XsdDecimalStr`]: crate::lexical::XsdDecimalStr
+//! [`lexical::XsdDecimalString`]: crate::lexical::XsdDecimalString
 //!
 //! ```
 //! let string = "3.141592653589793";
 //!
 //! // Parse the lexical representation (lexical domain).
-//! let lexical_repr = xsd_types::lexical::Decimal::new(string).unwrap();
+//! let lexical_repr = xsd_types::lexical::XsdDecimalStr::new(string).unwrap();
 //!
 //! // Interprets the lexical representation (value domain).
-//! let value_repr: xsd_types::Decimal = lexical_repr.into();
+//! let value_repr: xsd_types::XsdDecimal = lexical_repr.into();
 //! ```
 //!
 //! Of course it is possible to parse the value directly into the value domain
 //! using [`FromStr`](::core::str::FromStr):
 //! ```
-//! let value_repr: xsd_types::Decimal = "3.141592653589793".parse().unwrap();
+//! let value_repr: xsd_types::XsdDecimal = "3.141592653589793".parse().unwrap();
 //! ```
 //!
 //! ## Any value

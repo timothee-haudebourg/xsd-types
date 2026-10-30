@@ -14,7 +14,16 @@ def a_or_an(word, capitalize = false)
 	"#{article} `#{word}`"
 end
 
+# Name of the Rust type used for a value domain type: `Xsd` followed by the
+# datatype name. `str` and `String` follow the same convention (`XsdStr`,
+# `XsdString`).
+def xsd_type_name(name)
+	name == "str" ? "XsdStr" : "Xsd#{name}"
+end
+
 class Datatype
+	# `name` is the enum variant name; `owned_name` and `ref_name` are the Rust
+	# value types, which carry the `Xsd` prefix.
 	attr_reader :name, :owned_name, :ref_name
 	attr_reader :iri
 	attr_reader :subclasses
@@ -29,12 +38,12 @@ class Datatype
 	def initialize(name, iri, copy, cmp, subclasses)
 		if name.class == String then
 			@name = name
-			@owned_name = name
-			@ref_name = name
+			@owned_name = xsd_type_name(name)
+			@ref_name = xsd_type_name(name)
 		else
 			@name = name[:variant]
-			@owned_name = name[:owned]
-			@ref_name = name[:ref] || name[:variant]
+			@owned_name = xsd_type_name(name[:owned])
+			@ref_name = xsd_type_name(name[:ref] || name[:variant])
 		end
 
 		@iri = iri
@@ -685,10 +694,8 @@ puts "};"
 puts "use super::{"
 datatypes.each do |t|
 	t.each_subtype do |t|
-		if t.owned_name != "String" then
-			puts "#{t.owned_name},"
-			puts "#{t.ref_name}," if t.ref_name != t.owned_name
-		end
+		puts "#{t.owned_name},"
+		puts "#{t.ref_name}," if t.ref_name != t.owned_name
 	end
 end
 puts "};"

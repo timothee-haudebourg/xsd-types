@@ -15,9 +15,9 @@ pub struct InvalidToken<T = String>(pub T);
 /// See: <https://www.w3.org/TR/xmlschema11-2/#token>.
 #[derive(Debug, PartialEq, Eq, PartialOrd, Ord, Hash)]
 #[repr(transparent)]
-pub struct Token(str);
+pub struct XsdToken(str);
 
-impl Token {
+impl XsdToken {
 	/// Parses and validates the given string as a token.
 	pub fn new(value: &str) -> Result<&Self, InvalidToken<&str>> {
 		if Self::validate(value) {
@@ -67,31 +67,31 @@ impl Token {
 	}
 }
 
-impl fmt::Display for Token {
+impl fmt::Display for XsdToken {
 	fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
 		self.0.fmt(f)
 	}
 }
 
-impl ToOwned for Token {
-	type Owned = TokenBuf;
+impl ToOwned for XsdToken {
+	type Owned = XsdTokenBuf;
 
 	fn to_owned(&self) -> Self::Owned {
-		TokenBuf(self.0.to_owned())
+		XsdTokenBuf(self.0.to_owned())
 	}
 }
 
 /// Owned token value.
 ///
-/// Owned variant of [`Token`].
+/// Owned variant of [`XsdToken`].
 /// See: <https://www.w3.org/TR/xmlschema11-2/#token>.
 #[derive(Debug, Clone, PartialEq, Eq, PartialOrd, Ord, Hash)]
-pub struct TokenBuf(String);
+pub struct XsdTokenBuf(String);
 
-impl TokenBuf {
+impl XsdTokenBuf {
 	/// Parses and validates the given string as a token.
 	pub fn new(value: String) -> Result<Self, InvalidToken> {
-		if Token::validate(&value) {
+		if XsdToken::validate(&value) {
 			Ok(Self(value))
 		} else {
 			Err(InvalidToken(value))
@@ -107,9 +107,9 @@ impl TokenBuf {
 		Self(value)
 	}
 
-	/// Borrows this owned token as a [`Token`].
-	pub fn as_token(&self) -> &Token {
-		unsafe { Token::new_unchecked(self.0.as_str()) }
+	/// Borrows this owned token as a [`XsdToken`].
+	pub fn as_token(&self) -> &XsdToken {
+		unsafe { XsdToken::new_unchecked(self.0.as_str()) }
 	}
 
 	/// Converts this token into a plain [`String`].
@@ -118,36 +118,36 @@ impl TokenBuf {
 	}
 }
 
-impl fmt::Display for TokenBuf {
+impl fmt::Display for XsdTokenBuf {
 	fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
 		self.0.fmt(f)
 	}
 }
 
-impl Borrow<Token> for TokenBuf {
-	fn borrow(&self) -> &Token {
+impl Borrow<XsdToken> for XsdTokenBuf {
+	fn borrow(&self) -> &XsdToken {
 		self.as_token()
 	}
 }
 
-impl Deref for TokenBuf {
-	type Target = Token;
+impl Deref for XsdTokenBuf {
+	type Target = XsdToken;
 
 	fn deref(&self) -> &Self::Target {
 		self.as_token()
 	}
 }
 
-impl FromStr for TokenBuf {
+impl FromStr for XsdTokenBuf {
 	type Err = InvalidToken;
 
 	fn from_str(s: &str) -> Result<Self, Self::Err> {
-		let lexical_value = Token::new(s).map_err(|_| InvalidToken(s.to_owned()))?;
+		let lexical_value = XsdToken::new(s).map_err(|_| InvalidToken(s.to_owned()))?;
 		Ok(lexical_value.to_owned())
 	}
 }
 
-impl TryFrom<String> for TokenBuf {
+impl TryFrom<String> for XsdTokenBuf {
 	type Error = InvalidToken<String>;
 
 	fn try_from(value: String) -> Result<Self, Self::Error> {
@@ -156,7 +156,7 @@ impl TryFrom<String> for TokenBuf {
 }
 
 #[cfg(feature = "serde")]
-impl serde::Serialize for TokenBuf {
+impl serde::Serialize for XsdTokenBuf {
 	fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
 	where
 		S: serde::Serializer,
@@ -166,7 +166,7 @@ impl serde::Serialize for TokenBuf {
 }
 
 #[cfg(feature = "serde")]
-impl<'de> serde::Deserialize<'de> for TokenBuf {
+impl<'de> serde::Deserialize<'de> for XsdTokenBuf {
 	fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
 	where
 		D: serde::Deserializer<'de>,
@@ -174,7 +174,7 @@ impl<'de> serde::Deserialize<'de> for TokenBuf {
 		struct Visitor;
 
 		impl<'de> serde::de::Visitor<'de> for Visitor {
-			type Value = TokenBuf;
+			type Value = XsdTokenBuf;
 
 			fn expecting(&self, formatter: &mut fmt::Formatter) -> fmt::Result {
 				formatter.write_str("a http://www.w3.org/2001/XMLSchema#token")
@@ -192,22 +192,22 @@ impl<'de> serde::Deserialize<'de> for TokenBuf {
 	}
 }
 
-impl<'a> crate::XsdFromStr<'a> for TokenBuf {
+impl<'a> crate::XsdFromStr<'a> for XsdTokenBuf {
 	fn xsd_from_str(lexical_value: &'a str) -> Result<Self, crate::XsdError> {
-		crate::xsd_parse_via::<Token, Self>(lexical_value)
+		crate::xsd_parse_via::<XsdToken, Self>(lexical_value)
 	}
 }
 
-impl crate::XsdTyped for TokenBuf {
+impl crate::XsdTyped for XsdTokenBuf {
 	fn datatype(&self) -> crate::Datatype {
 		crate::TokenDatatype::Token.into()
 	}
 }
 
-impl crate::XsdValue for TokenBuf {
-	type LexicalForm = Token;
+impl crate::XsdValue for XsdTokenBuf {
+	type LexicalForm = XsdToken;
 
-	fn to_lexical_form(&self) -> TokenBuf {
+	fn to_lexical_form(&self) -> XsdTokenBuf {
 		self.clone()
 	}
 }
@@ -216,14 +216,14 @@ impl crate::XsdValue for TokenBuf {
 mod tests {
 	use crate::{XsdFromStr, XsdValue};
 
-	use super::TokenBuf;
+	use super::XsdTokenBuf;
 
 	#[test]
 	fn lexical_form_round_trip() {
 		let input = "a token string";
-		let value = TokenBuf::xsd_from_str(input).unwrap();
+		let value = XsdTokenBuf::xsd_from_str(input).unwrap();
 		let lexical = value.to_lexical_form();
 		assert_eq!(lexical.as_str(), input);
-		assert_eq!(TokenBuf::xsd_from_str(lexical.as_str()).unwrap(), value);
+		assert_eq!(XsdTokenBuf::xsd_from_str(lexical.as_str()).unwrap(), value);
 	}
 }

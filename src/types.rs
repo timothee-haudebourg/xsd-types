@@ -2,13 +2,15 @@
 // edit the generator instead, then run:
 //     ruby utils/generate.rb > src/types.rs && cargo fmt
 use super::{
-	AnyUri, AnyUriBuf, Base64Binary, Base64BinaryBuf, Boolean, Byte, Date, DateTime, DateTimeStamp,
-	DayTimeDuration, Decimal, Double, Duration, Float, GDay, GMonth, GMonthDay, GYear, GYearMonth,
-	HexBinary, HexBinaryBuf, Id, IdBuf, IdRef, IdRefBuf, Int, Integer, Language, LanguageBuf, Long,
-	NCName, NCNameBuf, NMToken, NMTokenBuf, Name, NameBuf, NegativeInteger, NonNegativeInteger,
-	NonPositiveInteger, NormalizedStr, NormalizedString, PositiveInteger, QName, QNameBuf, Short,
-	Time, Token, TokenBuf, UnsignedByte, UnsignedInt, UnsignedLong, UnsignedShort,
-	YearMonthDuration,
+	XsdAnyUri, XsdAnyUriBuf, XsdBase64Binary, XsdBase64BinaryBuf, XsdBoolean, XsdByte, XsdDate,
+	XsdDateTime, XsdDateTimeStamp, XsdDayTimeDuration, XsdDecimal, XsdDouble, XsdDuration,
+	XsdFloat, XsdGDay, XsdGMonth, XsdGMonthDay, XsdGYear, XsdGYearMonth, XsdHexBinary,
+	XsdHexBinaryBuf, XsdId, XsdIdBuf, XsdIdRef, XsdIdRefBuf, XsdInt, XsdInteger, XsdLanguage,
+	XsdLanguageBuf, XsdLong, XsdNCName, XsdNCNameBuf, XsdNMToken, XsdNMTokenBuf, XsdName,
+	XsdNameBuf, XsdNegativeInteger, XsdNonNegativeInteger, XsdNonPositiveInteger, XsdNormalizedStr,
+	XsdNormalizedString, XsdPositiveInteger, XsdQName, XsdQNameBuf, XsdShort, XsdStr, XsdString,
+	XsdTime, XsdToken, XsdTokenBuf, XsdUnsignedByte, XsdUnsignedInt, XsdUnsignedLong,
+	XsdUnsignedShort, XsdYearMonthDuration,
 };
 use crate::{
 	XsdError, XsdFromStr, XsdTyped, XSD_ANY_URI, XSD_BASE64_BINARY, XSD_BOOLEAN, XSD_BYTE,
@@ -168,7 +170,7 @@ impl Datatype {
 		}
 	}
 }
-/// [`Decimal`] datatype variants.
+/// [`XsdDecimal`] datatype variants.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash)]
 pub enum DecimalDatatype {
 	/// The plain `Decimal` datatype, not any of the specializations below.
@@ -348,7 +350,7 @@ impl TryFrom<DecimalDatatype> for ShortDatatype {
 		}
 	}
 }
-/// [`str`] datatype variants.
+/// [`XsdStr`] datatype variants.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash)]
 pub enum StringDatatype {
 	/// The plain `String` datatype, not any of the specializations below.
@@ -444,7 +446,7 @@ impl TryFrom<StringDatatype> for NCNameDatatype {
 		}
 	}
 }
-/// [`Duration`] datatype variants.
+/// [`XsdDuration`] datatype variants.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash)]
 pub enum DurationDatatype {
 	/// The plain `Duration` datatype, not any of the specializations below.
@@ -489,7 +491,7 @@ impl DurationDatatype {
 		}
 	}
 }
-/// [`DateTime`] datatype variants.
+/// [`XsdDateTime`] datatype variants.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash)]
 pub enum DateTimeDatatype {
 	/// The plain `DateTime` datatype, not any of the specializations below.
@@ -529,89 +531,89 @@ impl DateTimeDatatype {
 #[derive(Debug, Clone, PartialEq, PartialOrd)]
 pub enum Value {
 	/// A `Boolean` value.
-	Boolean(Boolean),
+	Boolean(XsdBoolean),
 	/// A `Float` value.
-	Float(Float),
+	Float(XsdFloat),
 	/// A `Double` value.
-	Double(Double),
+	Double(XsdDouble),
 	/// A `Decimal` value.
-	Decimal(Decimal),
+	Decimal(XsdDecimal),
 	/// An `Integer` value.
-	Integer(Integer),
+	Integer(XsdInteger),
 	/// A `NonPositiveInteger` value.
-	NonPositiveInteger(NonPositiveInteger),
+	NonPositiveInteger(XsdNonPositiveInteger),
 	/// A `NegativeInteger` value.
-	NegativeInteger(NegativeInteger),
+	NegativeInteger(XsdNegativeInteger),
 	/// A `NonNegativeInteger` value.
-	NonNegativeInteger(NonNegativeInteger),
+	NonNegativeInteger(XsdNonNegativeInteger),
 	/// A `PositiveInteger` value.
-	PositiveInteger(PositiveInteger),
+	PositiveInteger(XsdPositiveInteger),
 	/// An `UnsignedLong` value.
-	UnsignedLong(UnsignedLong),
+	UnsignedLong(XsdUnsignedLong),
 	/// An `UnsignedInt` value.
-	UnsignedInt(UnsignedInt),
+	UnsignedInt(XsdUnsignedInt),
 	/// An `UnsignedShort` value.
-	UnsignedShort(UnsignedShort),
+	UnsignedShort(XsdUnsignedShort),
 	/// An `UnsignedByte` value.
-	UnsignedByte(UnsignedByte),
+	UnsignedByte(XsdUnsignedByte),
 	/// A `Long` value.
-	Long(Long),
+	Long(XsdLong),
 	/// An `Int` value.
-	Int(Int),
+	Int(XsdInt),
 	/// A `Short` value.
-	Short(Short),
+	Short(XsdShort),
 	/// A `Byte` value.
-	Byte(Byte),
+	Byte(XsdByte),
 	/// A `String` value.
-	String(String),
+	String(XsdString),
 	/// A `NormalizedString` value.
-	NormalizedString(NormalizedString),
+	NormalizedString(XsdNormalizedString),
 	/// A `Token` value.
-	Token(TokenBuf),
+	Token(XsdTokenBuf),
 	/// A `Language` value.
-	Language(LanguageBuf),
+	Language(XsdLanguageBuf),
 	/// A `Name` value.
-	Name(NameBuf),
+	Name(XsdNameBuf),
 	/// A `NCName` value.
-	NCName(NCNameBuf),
+	NCName(XsdNCNameBuf),
 	/// An `Id` value.
-	Id(IdBuf),
+	Id(XsdIdBuf),
 	/// An `IdRef` value.
-	IdRef(IdRefBuf),
+	IdRef(XsdIdRefBuf),
 	/// A `NMToken` value.
-	NMToken(NMTokenBuf),
+	NMToken(XsdNMTokenBuf),
 	/// A `Duration` value.
-	Duration(Duration),
+	Duration(XsdDuration),
 	/// A `DayTimeDuration` value.
-	DayTimeDuration(DayTimeDuration),
+	DayTimeDuration(XsdDayTimeDuration),
 	/// A `YearMonthDuration` value.
-	YearMonthDuration(YearMonthDuration),
+	YearMonthDuration(XsdYearMonthDuration),
 	/// A `DateTime` value.
-	DateTime(DateTime),
+	DateTime(XsdDateTime),
 	/// A `DateTimeStamp` value.
-	DateTimeStamp(DateTimeStamp),
+	DateTimeStamp(XsdDateTimeStamp),
 	/// A `Time` value.
-	Time(Time),
+	Time(XsdTime),
 	/// A `Date` value.
-	Date(Date),
+	Date(XsdDate),
 	/// A `GYearMonth` value.
-	GYearMonth(GYearMonth),
+	GYearMonth(XsdGYearMonth),
 	/// A `GYear` value.
-	GYear(GYear),
+	GYear(XsdGYear),
 	/// A `GMonthDay` value.
-	GMonthDay(GMonthDay),
+	GMonthDay(XsdGMonthDay),
 	/// A `GDay` value.
-	GDay(GDay),
+	GDay(XsdGDay),
 	/// A `GMonth` value.
-	GMonth(GMonth),
+	GMonth(XsdGMonth),
 	/// A `Base64Binary` value.
-	Base64Binary(Base64BinaryBuf),
+	Base64Binary(XsdBase64BinaryBuf),
 	/// A `HexBinary` value.
-	HexBinary(HexBinaryBuf),
+	HexBinary(XsdHexBinaryBuf),
 	/// An `AnyUri` value.
-	AnyUri(AnyUriBuf),
+	AnyUri(XsdAnyUriBuf),
 	/// A `QName` value.
-	QName(QNameBuf),
+	QName(XsdQNameBuf),
 }
 impl Value {
 	/// Returns the datatype of this value.
@@ -779,89 +781,89 @@ impl fmt::Display for Value {
 #[derive(Debug, Clone, Copy, PartialEq, PartialOrd)]
 pub enum ValueRef<'a> {
 	/// A reference to a `Boolean` value.
-	Boolean(Boolean),
+	Boolean(XsdBoolean),
 	/// A reference to a `Float` value.
-	Float(Float),
+	Float(XsdFloat),
 	/// A reference to a `Double` value.
-	Double(Double),
+	Double(XsdDouble),
 	/// A reference to a `Decimal` value.
-	Decimal(&'a Decimal),
+	Decimal(&'a XsdDecimal),
 	/// A reference to an `Integer` value.
-	Integer(&'a Integer),
+	Integer(&'a XsdInteger),
 	/// A reference to a `NonPositiveInteger` value.
-	NonPositiveInteger(&'a NonPositiveInteger),
+	NonPositiveInteger(&'a XsdNonPositiveInteger),
 	/// A reference to a `NegativeInteger` value.
-	NegativeInteger(&'a NegativeInteger),
+	NegativeInteger(&'a XsdNegativeInteger),
 	/// A reference to a `NonNegativeInteger` value.
-	NonNegativeInteger(&'a NonNegativeInteger),
+	NonNegativeInteger(&'a XsdNonNegativeInteger),
 	/// A reference to a `PositiveInteger` value.
-	PositiveInteger(&'a PositiveInteger),
+	PositiveInteger(&'a XsdPositiveInteger),
 	/// A reference to an `UnsignedLong` value.
-	UnsignedLong(UnsignedLong),
+	UnsignedLong(XsdUnsignedLong),
 	/// A reference to an `UnsignedInt` value.
-	UnsignedInt(UnsignedInt),
+	UnsignedInt(XsdUnsignedInt),
 	/// A reference to an `UnsignedShort` value.
-	UnsignedShort(UnsignedShort),
+	UnsignedShort(XsdUnsignedShort),
 	/// A reference to an `UnsignedByte` value.
-	UnsignedByte(UnsignedByte),
+	UnsignedByte(XsdUnsignedByte),
 	/// A reference to a `Long` value.
-	Long(Long),
+	Long(XsdLong),
 	/// A reference to an `Int` value.
-	Int(Int),
+	Int(XsdInt),
 	/// A reference to a `Short` value.
-	Short(Short),
+	Short(XsdShort),
 	/// A reference to a `Byte` value.
-	Byte(Byte),
+	Byte(XsdByte),
 	/// A reference to a `String` value.
-	String(&'a str),
+	String(&'a XsdStr),
 	/// A reference to a `NormalizedString` value.
-	NormalizedString(&'a NormalizedStr),
+	NormalizedString(&'a XsdNormalizedStr),
 	/// A reference to a `Token` value.
-	Token(&'a Token),
+	Token(&'a XsdToken),
 	/// A reference to a `Language` value.
-	Language(&'a Language),
+	Language(&'a XsdLanguage),
 	/// A reference to a `Name` value.
-	Name(&'a Name),
+	Name(&'a XsdName),
 	/// A reference to a `NCName` value.
-	NCName(&'a NCName),
+	NCName(&'a XsdNCName),
 	/// A reference to an `Id` value.
-	Id(&'a Id),
+	Id(&'a XsdId),
 	/// A reference to an `IdRef` value.
-	IdRef(&'a IdRef),
+	IdRef(&'a XsdIdRef),
 	/// A reference to a `NMToken` value.
-	NMToken(&'a NMToken),
+	NMToken(&'a XsdNMToken),
 	/// A reference to a `Duration` value.
-	Duration(Duration),
+	Duration(XsdDuration),
 	/// A reference to a `DayTimeDuration` value.
-	DayTimeDuration(DayTimeDuration),
+	DayTimeDuration(XsdDayTimeDuration),
 	/// A reference to a `YearMonthDuration` value.
-	YearMonthDuration(YearMonthDuration),
+	YearMonthDuration(XsdYearMonthDuration),
 	/// A reference to a `DateTime` value.
-	DateTime(DateTime),
+	DateTime(XsdDateTime),
 	/// A reference to a `DateTimeStamp` value.
-	DateTimeStamp(DateTimeStamp),
+	DateTimeStamp(XsdDateTimeStamp),
 	/// A reference to a `Time` value.
-	Time(Time),
+	Time(XsdTime),
 	/// A reference to a `Date` value.
-	Date(Date),
+	Date(XsdDate),
 	/// A reference to a `GYearMonth` value.
-	GYearMonth(GYearMonth),
+	GYearMonth(XsdGYearMonth),
 	/// A reference to a `GYear` value.
-	GYear(GYear),
+	GYear(XsdGYear),
 	/// A reference to a `GMonthDay` value.
-	GMonthDay(GMonthDay),
+	GMonthDay(XsdGMonthDay),
 	/// A reference to a `GDay` value.
-	GDay(GDay),
+	GDay(XsdGDay),
 	/// A reference to a `GMonth` value.
-	GMonth(GMonth),
+	GMonth(XsdGMonth),
 	/// A reference to a `Base64Binary` value.
-	Base64Binary(&'a Base64Binary),
+	Base64Binary(&'a XsdBase64Binary),
 	/// A reference to a `HexBinary` value.
-	HexBinary(&'a HexBinary),
+	HexBinary(&'a XsdHexBinary),
 	/// A reference to an `AnyUri` value.
-	AnyUri(&'a AnyUri),
+	AnyUri(&'a XsdAnyUri),
 	/// A reference to a `QName` value.
-	QName(&'a QName),
+	QName(&'a XsdQName),
 }
 impl<'a> fmt::Display for ValueRef<'a> {
 	fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
@@ -1671,37 +1673,37 @@ impl<'a> TryFrom<ValueRef<'a>> for NonNegativeIntegerValueRef<'a> {
 		}
 	}
 }
-/// Any specialized [`Decimal`] value.
+/// Any specialized [`XsdDecimal`] value.
 #[derive(Debug, Clone, PartialEq, Eq, PartialOrd, Ord, Hash)]
 pub enum DecimalValue {
 	/// A `Decimal` value.
-	Decimal(Decimal),
+	Decimal(XsdDecimal),
 	/// An `Integer` value.
-	Integer(Integer),
+	Integer(XsdInteger),
 	/// A `NonPositiveInteger` value.
-	NonPositiveInteger(NonPositiveInteger),
+	NonPositiveInteger(XsdNonPositiveInteger),
 	/// A `NegativeInteger` value.
-	NegativeInteger(NegativeInteger),
+	NegativeInteger(XsdNegativeInteger),
 	/// A `NonNegativeInteger` value.
-	NonNegativeInteger(NonNegativeInteger),
+	NonNegativeInteger(XsdNonNegativeInteger),
 	/// A `PositiveInteger` value.
-	PositiveInteger(PositiveInteger),
+	PositiveInteger(XsdPositiveInteger),
 	/// An `UnsignedLong` value.
-	UnsignedLong(UnsignedLong),
+	UnsignedLong(XsdUnsignedLong),
 	/// An `UnsignedInt` value.
-	UnsignedInt(UnsignedInt),
+	UnsignedInt(XsdUnsignedInt),
 	/// An `UnsignedShort` value.
-	UnsignedShort(UnsignedShort),
+	UnsignedShort(XsdUnsignedShort),
 	/// An `UnsignedByte` value.
-	UnsignedByte(UnsignedByte),
+	UnsignedByte(XsdUnsignedByte),
 	/// A `Long` value.
-	Long(Long),
+	Long(XsdLong),
 	/// An `Int` value.
-	Int(Int),
+	Int(XsdInt),
 	/// A `Short` value.
-	Short(Short),
+	Short(XsdShort),
 	/// A `Byte` value.
-	Byte(Byte),
+	Byte(XsdByte),
 }
 impl DecimalValue {
 	/// Returns the specific datatype of this value.
@@ -1983,7 +1985,7 @@ impl TryFrom<DecimalValue> for ShortValue {
 		}
 	}
 }
-/// [`Integer`] datatype variants.
+/// [`XsdInteger`] datatype variants.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash)]
 pub enum IntegerDatatype {
 	/// The plain `Integer` datatype, not any of the specializations below.
@@ -2153,37 +2155,37 @@ impl TryFrom<IntegerDatatype> for ShortDatatype {
 		}
 	}
 }
-/// Any specialized [`Decimal`] value reference.
+/// Any specialized [`XsdDecimal`] value reference.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash)]
 pub enum DecimalValueRef<'a> {
 	/// A reference to a `Decimal` value.
-	Decimal(&'a Decimal),
+	Decimal(&'a XsdDecimal),
 	/// A reference to an `Integer` value.
-	Integer(&'a Integer),
+	Integer(&'a XsdInteger),
 	/// A reference to a `NonPositiveInteger` value.
-	NonPositiveInteger(&'a NonPositiveInteger),
+	NonPositiveInteger(&'a XsdNonPositiveInteger),
 	/// A reference to a `NegativeInteger` value.
-	NegativeInteger(&'a NegativeInteger),
+	NegativeInteger(&'a XsdNegativeInteger),
 	/// A reference to a `NonNegativeInteger` value.
-	NonNegativeInteger(&'a NonNegativeInteger),
+	NonNegativeInteger(&'a XsdNonNegativeInteger),
 	/// A reference to a `PositiveInteger` value.
-	PositiveInteger(&'a PositiveInteger),
+	PositiveInteger(&'a XsdPositiveInteger),
 	/// A reference to an `UnsignedLong` value.
-	UnsignedLong(UnsignedLong),
+	UnsignedLong(XsdUnsignedLong),
 	/// A reference to an `UnsignedInt` value.
-	UnsignedInt(UnsignedInt),
+	UnsignedInt(XsdUnsignedInt),
 	/// A reference to an `UnsignedShort` value.
-	UnsignedShort(UnsignedShort),
+	UnsignedShort(XsdUnsignedShort),
 	/// A reference to an `UnsignedByte` value.
-	UnsignedByte(UnsignedByte),
+	UnsignedByte(XsdUnsignedByte),
 	/// A reference to a `Long` value.
-	Long(Long),
+	Long(XsdLong),
 	/// A reference to an `Int` value.
-	Int(Int),
+	Int(XsdInt),
 	/// A reference to a `Short` value.
-	Short(Short),
+	Short(XsdShort),
 	/// A reference to a `Byte` value.
-	Byte(Byte),
+	Byte(XsdByte),
 }
 impl DecimalValue {
 	/// Borrows this value.
@@ -2389,35 +2391,35 @@ impl<'a> TryFrom<DecimalValueRef<'a>> for NonNegativeIntegerValueRef<'a> {
 		}
 	}
 }
-/// Any specialized [`Integer`] value.
+/// Any specialized [`XsdInteger`] value.
 #[derive(Debug, Clone, PartialEq, Eq, PartialOrd, Ord, Hash)]
 pub enum IntegerValue {
 	/// An `Integer` value.
-	Integer(Integer),
+	Integer(XsdInteger),
 	/// A `NonPositiveInteger` value.
-	NonPositiveInteger(NonPositiveInteger),
+	NonPositiveInteger(XsdNonPositiveInteger),
 	/// A `NegativeInteger` value.
-	NegativeInteger(NegativeInteger),
+	NegativeInteger(XsdNegativeInteger),
 	/// A `NonNegativeInteger` value.
-	NonNegativeInteger(NonNegativeInteger),
+	NonNegativeInteger(XsdNonNegativeInteger),
 	/// A `PositiveInteger` value.
-	PositiveInteger(PositiveInteger),
+	PositiveInteger(XsdPositiveInteger),
 	/// An `UnsignedLong` value.
-	UnsignedLong(UnsignedLong),
+	UnsignedLong(XsdUnsignedLong),
 	/// An `UnsignedInt` value.
-	UnsignedInt(UnsignedInt),
+	UnsignedInt(XsdUnsignedInt),
 	/// An `UnsignedShort` value.
-	UnsignedShort(UnsignedShort),
+	UnsignedShort(XsdUnsignedShort),
 	/// An `UnsignedByte` value.
-	UnsignedByte(UnsignedByte),
+	UnsignedByte(XsdUnsignedByte),
 	/// A `Long` value.
-	Long(Long),
+	Long(XsdLong),
 	/// An `Int` value.
-	Int(Int),
+	Int(XsdInt),
 	/// A `Short` value.
-	Short(Short),
+	Short(XsdShort),
 	/// A `Byte` value.
-	Byte(Byte),
+	Byte(XsdByte),
 }
 impl IntegerValue {
 	/// Returns the specific datatype of this value.
@@ -2507,7 +2509,7 @@ impl TryFrom<IntegerValue> for NonPositiveIntegerValue {
 		}
 	}
 }
-/// [`NonPositiveInteger`] datatype variants.
+/// [`XsdNonPositiveInteger`] datatype variants.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash)]
 pub enum NonPositiveIntegerDatatype {
 	/// The plain `NonPositiveInteger` datatype, not any of the specializations below.
@@ -2631,7 +2633,7 @@ impl TryFrom<IntegerValue> for UnsignedShortValue {
 		}
 	}
 }
-/// [`NonNegativeInteger`] datatype variants.
+/// [`XsdNonNegativeInteger`] datatype variants.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash)]
 pub enum NonNegativeIntegerDatatype {
 	/// The plain `NonNegativeInteger` datatype, not any of the specializations below.
@@ -2784,7 +2786,7 @@ impl TryFrom<IntegerValue> for ShortValue {
 		}
 	}
 }
-/// [`Long`] datatype variants.
+/// [`XsdLong`] datatype variants.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash)]
 pub enum LongDatatype {
 	/// The plain `Long` datatype, not any of the specializations below.
@@ -2846,35 +2848,35 @@ impl TryFrom<LongDatatype> for ShortDatatype {
 		}
 	}
 }
-/// Any specialized [`Integer`] value reference.
+/// Any specialized [`XsdInteger`] value reference.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash)]
 pub enum IntegerValueRef<'a> {
 	/// A reference to an `Integer` value.
-	Integer(&'a Integer),
+	Integer(&'a XsdInteger),
 	/// A reference to a `NonPositiveInteger` value.
-	NonPositiveInteger(&'a NonPositiveInteger),
+	NonPositiveInteger(&'a XsdNonPositiveInteger),
 	/// A reference to a `NegativeInteger` value.
-	NegativeInteger(&'a NegativeInteger),
+	NegativeInteger(&'a XsdNegativeInteger),
 	/// A reference to a `NonNegativeInteger` value.
-	NonNegativeInteger(&'a NonNegativeInteger),
+	NonNegativeInteger(&'a XsdNonNegativeInteger),
 	/// A reference to a `PositiveInteger` value.
-	PositiveInteger(&'a PositiveInteger),
+	PositiveInteger(&'a XsdPositiveInteger),
 	/// A reference to an `UnsignedLong` value.
-	UnsignedLong(UnsignedLong),
+	UnsignedLong(XsdUnsignedLong),
 	/// A reference to an `UnsignedInt` value.
-	UnsignedInt(UnsignedInt),
+	UnsignedInt(XsdUnsignedInt),
 	/// A reference to an `UnsignedShort` value.
-	UnsignedShort(UnsignedShort),
+	UnsignedShort(XsdUnsignedShort),
 	/// A reference to an `UnsignedByte` value.
-	UnsignedByte(UnsignedByte),
+	UnsignedByte(XsdUnsignedByte),
 	/// A reference to a `Long` value.
-	Long(Long),
+	Long(XsdLong),
 	/// A reference to an `Int` value.
-	Int(Int),
+	Int(XsdInt),
 	/// A reference to a `Short` value.
-	Short(Short),
+	Short(XsdShort),
 	/// A reference to a `Byte` value.
-	Byte(Byte),
+	Byte(XsdByte),
 }
 impl IntegerValue {
 	/// Borrows this value.
@@ -3032,13 +3034,13 @@ impl<'a> TryFrom<IntegerValueRef<'a>> for NonNegativeIntegerValueRef<'a> {
 		}
 	}
 }
-/// Any specialized [`NonPositiveInteger`] value.
+/// Any specialized [`XsdNonPositiveInteger`] value.
 #[derive(Debug, Clone, PartialEq, Eq, PartialOrd, Ord, Hash)]
 pub enum NonPositiveIntegerValue {
 	/// A `NonPositiveInteger` value.
-	NonPositiveInteger(NonPositiveInteger),
+	NonPositiveInteger(XsdNonPositiveInteger),
 	/// A `NegativeInteger` value.
-	NegativeInteger(NegativeInteger),
+	NegativeInteger(XsdNegativeInteger),
 }
 impl NonPositiveIntegerValue {
 	/// Returns the specific datatype of this value.
@@ -3062,13 +3064,13 @@ impl fmt::Display for NonPositiveIntegerValue {
 		}
 	}
 }
-/// Any specialized [`NonPositiveInteger`] value reference.
+/// Any specialized [`XsdNonPositiveInteger`] value reference.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash)]
 pub enum NonPositiveIntegerValueRef<'a> {
 	/// A reference to a `NonPositiveInteger` value.
-	NonPositiveInteger(&'a NonPositiveInteger),
+	NonPositiveInteger(&'a XsdNonPositiveInteger),
 	/// A reference to a `NegativeInteger` value.
-	NegativeInteger(&'a NegativeInteger),
+	NegativeInteger(&'a XsdNegativeInteger),
 }
 impl NonPositiveIntegerValue {
 	/// Borrows this value.
@@ -3114,21 +3116,21 @@ impl<'a> fmt::Display for NonPositiveIntegerValueRef<'a> {
 		}
 	}
 }
-/// Any specialized [`NonNegativeInteger`] value.
+/// Any specialized [`XsdNonNegativeInteger`] value.
 #[derive(Debug, Clone, PartialEq, Eq, PartialOrd, Ord, Hash)]
 pub enum NonNegativeIntegerValue {
 	/// A `NonNegativeInteger` value.
-	NonNegativeInteger(NonNegativeInteger),
+	NonNegativeInteger(XsdNonNegativeInteger),
 	/// A `PositiveInteger` value.
-	PositiveInteger(PositiveInteger),
+	PositiveInteger(XsdPositiveInteger),
 	/// An `UnsignedLong` value.
-	UnsignedLong(UnsignedLong),
+	UnsignedLong(XsdUnsignedLong),
 	/// An `UnsignedInt` value.
-	UnsignedInt(UnsignedInt),
+	UnsignedInt(XsdUnsignedInt),
 	/// An `UnsignedShort` value.
-	UnsignedShort(UnsignedShort),
+	UnsignedShort(XsdUnsignedShort),
 	/// An `UnsignedByte` value.
-	UnsignedByte(UnsignedByte),
+	UnsignedByte(XsdUnsignedByte),
 }
 impl NonNegativeIntegerValue {
 	/// Returns the specific datatype of this value.
@@ -3232,7 +3234,7 @@ impl TryFrom<NonNegativeIntegerValue> for UnsignedShortValue {
 		}
 	}
 }
-/// [`UnsignedLong`] datatype variants.
+/// [`XsdUnsignedLong`] datatype variants.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash)]
 pub enum UnsignedLongDatatype {
 	/// The plain `UnsignedLong` datatype, not any of the specializations below.
@@ -3298,21 +3300,21 @@ impl TryFrom<UnsignedLongDatatype> for UnsignedShortDatatype {
 		}
 	}
 }
-/// Any specialized [`NonNegativeInteger`] value reference.
+/// Any specialized [`XsdNonNegativeInteger`] value reference.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash)]
 pub enum NonNegativeIntegerValueRef<'a> {
 	/// A reference to a `NonNegativeInteger` value.
-	NonNegativeInteger(&'a NonNegativeInteger),
+	NonNegativeInteger(&'a XsdNonNegativeInteger),
 	/// A reference to a `PositiveInteger` value.
-	PositiveInteger(&'a PositiveInteger),
+	PositiveInteger(&'a XsdPositiveInteger),
 	/// A reference to an `UnsignedLong` value.
-	UnsignedLong(UnsignedLong),
+	UnsignedLong(XsdUnsignedLong),
 	/// A reference to an `UnsignedInt` value.
-	UnsignedInt(UnsignedInt),
+	UnsignedInt(XsdUnsignedInt),
 	/// A reference to an `UnsignedShort` value.
-	UnsignedShort(UnsignedShort),
+	UnsignedShort(XsdUnsignedShort),
 	/// A reference to an `UnsignedByte` value.
-	UnsignedByte(UnsignedByte),
+	UnsignedByte(XsdUnsignedByte),
 }
 impl NonNegativeIntegerValue {
 	/// Borrows this value.
@@ -3386,17 +3388,17 @@ impl<'a> fmt::Display for NonNegativeIntegerValueRef<'a> {
 		}
 	}
 }
-/// Any specialized [`UnsignedLong`] value.
+/// Any specialized [`XsdUnsignedLong`] value.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash)]
 pub enum UnsignedLongValue {
 	/// An `UnsignedLong` value.
-	UnsignedLong(UnsignedLong),
+	UnsignedLong(XsdUnsignedLong),
 	/// An `UnsignedInt` value.
-	UnsignedInt(UnsignedInt),
+	UnsignedInt(XsdUnsignedInt),
 	/// An `UnsignedShort` value.
-	UnsignedShort(UnsignedShort),
+	UnsignedShort(XsdUnsignedShort),
 	/// An `UnsignedByte` value.
-	UnsignedByte(UnsignedByte),
+	UnsignedByte(XsdUnsignedByte),
 }
 impl UnsignedLongValue {
 	/// Returns the specific datatype of this value.
@@ -3468,7 +3470,7 @@ impl TryFrom<UnsignedLongValue> for UnsignedShortValue {
 		}
 	}
 }
-/// [`UnsignedInt`] datatype variants.
+/// [`XsdUnsignedInt`] datatype variants.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash)]
 pub enum UnsignedIntDatatype {
 	/// The plain `UnsignedInt` datatype, not any of the specializations below.
@@ -3516,15 +3518,15 @@ impl TryFrom<UnsignedIntDatatype> for UnsignedShortDatatype {
 		}
 	}
 }
-/// Any specialized [`UnsignedInt`] value.
+/// Any specialized [`XsdUnsignedInt`] value.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash)]
 pub enum UnsignedIntValue {
 	/// An `UnsignedInt` value.
-	UnsignedInt(UnsignedInt),
+	UnsignedInt(XsdUnsignedInt),
 	/// An `UnsignedShort` value.
-	UnsignedShort(UnsignedShort),
+	UnsignedShort(XsdUnsignedShort),
 	/// An `UnsignedByte` value.
-	UnsignedByte(UnsignedByte),
+	UnsignedByte(XsdUnsignedByte),
 }
 impl UnsignedIntValue {
 	/// Returns the specific datatype of this value.
@@ -3572,7 +3574,7 @@ impl TryFrom<UnsignedIntValue> for UnsignedShortValue {
 		}
 	}
 }
-/// [`UnsignedShort`] datatype variants.
+/// [`XsdUnsignedShort`] datatype variants.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash)]
 pub enum UnsignedShortDatatype {
 	/// The plain `UnsignedShort` datatype, not any of the specializations below.
@@ -3610,13 +3612,13 @@ impl UnsignedShortDatatype {
 		}
 	}
 }
-/// Any specialized [`UnsignedShort`] value.
+/// Any specialized [`XsdUnsignedShort`] value.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash)]
 pub enum UnsignedShortValue {
 	/// An `UnsignedShort` value.
-	UnsignedShort(UnsignedShort),
+	UnsignedShort(XsdUnsignedShort),
 	/// An `UnsignedByte` value.
-	UnsignedByte(UnsignedByte),
+	UnsignedByte(XsdUnsignedByte),
 }
 impl UnsignedShortValue {
 	/// Returns the specific datatype of this value.
@@ -3640,17 +3642,17 @@ impl fmt::Display for UnsignedShortValue {
 		}
 	}
 }
-/// Any specialized [`Long`] value.
+/// Any specialized [`XsdLong`] value.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash)]
 pub enum LongValue {
 	/// A `Long` value.
-	Long(Long),
+	Long(XsdLong),
 	/// An `Int` value.
-	Int(Int),
+	Int(XsdInt),
 	/// A `Short` value.
-	Short(Short),
+	Short(XsdShort),
 	/// A `Byte` value.
-	Byte(Byte),
+	Byte(XsdByte),
 }
 impl LongValue {
 	/// Returns the specific datatype of this value.
@@ -3716,7 +3718,7 @@ impl TryFrom<LongValue> for ShortValue {
 		}
 	}
 }
-/// [`Int`] datatype variants.
+/// [`XsdInt`] datatype variants.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash)]
 pub enum IntDatatype {
 	/// The plain `Int` datatype, not any of the specializations below.
@@ -3764,15 +3766,15 @@ impl TryFrom<IntDatatype> for ShortDatatype {
 		}
 	}
 }
-/// Any specialized [`Int`] value.
+/// Any specialized [`XsdInt`] value.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash)]
 pub enum IntValue {
 	/// An `Int` value.
-	Int(Int),
+	Int(XsdInt),
 	/// A `Short` value.
-	Short(Short),
+	Short(XsdShort),
 	/// A `Byte` value.
-	Byte(Byte),
+	Byte(XsdByte),
 }
 impl IntValue {
 	/// Returns the specific datatype of this value.
@@ -3816,7 +3818,7 @@ impl TryFrom<IntValue> for ShortValue {
 		}
 	}
 }
-/// [`Short`] datatype variants.
+/// [`XsdShort`] datatype variants.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash)]
 pub enum ShortDatatype {
 	/// The plain `Short` datatype, not any of the specializations below.
@@ -3850,13 +3852,13 @@ impl ShortDatatype {
 		}
 	}
 }
-/// Any specialized [`Short`] value.
+/// Any specialized [`XsdShort`] value.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash)]
 pub enum ShortValue {
 	/// A `Short` value.
-	Short(Short),
+	Short(XsdShort),
 	/// A `Byte` value.
-	Byte(Byte),
+	Byte(XsdByte),
 }
 impl ShortValue {
 	/// Returns the specific datatype of this value.
@@ -4226,27 +4228,27 @@ impl<'a> TryFrom<ValueRef<'a>> for NCNameValueRef<'a> {
 		}
 	}
 }
-/// Any specialized [`str`] value.
+/// Any specialized [`XsdStr`] value.
 #[derive(Debug, Clone, PartialEq, Eq, PartialOrd, Ord, Hash)]
 pub enum StringValue {
 	/// A `String` value.
-	String(String),
+	String(XsdString),
 	/// A `NormalizedString` value.
-	NormalizedString(NormalizedString),
+	NormalizedString(XsdNormalizedString),
 	/// A `Token` value.
-	Token(TokenBuf),
+	Token(XsdTokenBuf),
 	/// A `Language` value.
-	Language(LanguageBuf),
+	Language(XsdLanguageBuf),
 	/// A `Name` value.
-	Name(NameBuf),
+	Name(XsdNameBuf),
 	/// A `NCName` value.
-	NCName(NCNameBuf),
+	NCName(XsdNCNameBuf),
 	/// An `Id` value.
-	Id(IdBuf),
+	Id(XsdIdBuf),
 	/// An `IdRef` value.
-	IdRef(IdRefBuf),
+	IdRef(XsdIdRefBuf),
 	/// A `NMToken` value.
-	NMToken(NMTokenBuf),
+	NMToken(XsdNMTokenBuf),
 }
 impl StringValue {
 	/// Returns the specific datatype of this value.
@@ -4400,7 +4402,7 @@ impl TryFrom<StringValue> for NCNameValue {
 		}
 	}
 }
-/// [`NormalizedStr`] datatype variants.
+/// [`XsdNormalizedStr`] datatype variants.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash)]
 pub enum NormalizedStringDatatype {
 	/// The plain `NormalizedString` datatype, not any of the specializations below.
@@ -4480,27 +4482,27 @@ impl TryFrom<NormalizedStringDatatype> for NCNameDatatype {
 		}
 	}
 }
-/// Any specialized [`str`] value reference.
+/// Any specialized [`XsdStr`] value reference.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash)]
 pub enum StringValueRef<'a> {
 	/// A reference to a `String` value.
-	String(&'a str),
+	String(&'a XsdStr),
 	/// A reference to a `NormalizedString` value.
-	NormalizedString(&'a NormalizedStr),
+	NormalizedString(&'a XsdNormalizedStr),
 	/// A reference to a `Token` value.
-	Token(&'a Token),
+	Token(&'a XsdToken),
 	/// A reference to a `Language` value.
-	Language(&'a Language),
+	Language(&'a XsdLanguage),
 	/// A reference to a `Name` value.
-	Name(&'a Name),
+	Name(&'a XsdName),
 	/// A reference to a `NCName` value.
-	NCName(&'a NCName),
+	NCName(&'a XsdNCName),
 	/// A reference to an `Id` value.
-	Id(&'a Id),
+	Id(&'a XsdId),
 	/// A reference to an `IdRef` value.
-	IdRef(&'a IdRef),
+	IdRef(&'a XsdIdRef),
 	/// A reference to a `NMToken` value.
-	NMToken(&'a NMToken),
+	NMToken(&'a XsdNMToken),
 }
 impl StringValue {
 	/// Borrows this value.
@@ -4684,25 +4686,25 @@ impl<'a> TryFrom<StringValueRef<'a>> for NCNameValueRef<'a> {
 		}
 	}
 }
-/// Any specialized [`NormalizedStr`] value.
+/// Any specialized [`XsdNormalizedStr`] value.
 #[derive(Debug, Clone, PartialEq, Eq, PartialOrd, Ord, Hash)]
 pub enum NormalizedStringValue {
 	/// A `NormalizedString` value.
-	NormalizedString(NormalizedString),
+	NormalizedString(XsdNormalizedString),
 	/// A `Token` value.
-	Token(TokenBuf),
+	Token(XsdTokenBuf),
 	/// A `Language` value.
-	Language(LanguageBuf),
+	Language(XsdLanguageBuf),
 	/// A `Name` value.
-	Name(NameBuf),
+	Name(XsdNameBuf),
 	/// A `NCName` value.
-	NCName(NCNameBuf),
+	NCName(XsdNCNameBuf),
 	/// An `Id` value.
-	Id(IdBuf),
+	Id(XsdIdBuf),
 	/// An `IdRef` value.
-	IdRef(IdRefBuf),
+	IdRef(XsdIdRefBuf),
 	/// A `NMToken` value.
-	NMToken(NMTokenBuf),
+	NMToken(XsdNMTokenBuf),
 }
 impl NormalizedStringValue {
 	/// Returns the specific datatype of this value.
@@ -4816,7 +4818,7 @@ impl TryFrom<NormalizedStringValue> for NCNameValue {
 		}
 	}
 }
-/// [`Token`] datatype variants.
+/// [`XsdToken`] datatype variants.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash)]
 pub enum TokenDatatype {
 	/// The plain `Token` datatype, not any of the specializations below.
@@ -4892,25 +4894,25 @@ impl TryFrom<TokenDatatype> for NCNameDatatype {
 		}
 	}
 }
-/// Any specialized [`NormalizedStr`] value reference.
+/// Any specialized [`XsdNormalizedStr`] value reference.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash)]
 pub enum NormalizedStringValueRef<'a> {
 	/// A reference to a `NormalizedString` value.
-	NormalizedString(&'a NormalizedStr),
+	NormalizedString(&'a XsdNormalizedStr),
 	/// A reference to a `Token` value.
-	Token(&'a Token),
+	Token(&'a XsdToken),
 	/// A reference to a `Language` value.
-	Language(&'a Language),
+	Language(&'a XsdLanguage),
 	/// A reference to a `Name` value.
-	Name(&'a Name),
+	Name(&'a XsdName),
 	/// A reference to a `NCName` value.
-	NCName(&'a NCName),
+	NCName(&'a XsdNCName),
 	/// A reference to an `Id` value.
-	Id(&'a Id),
+	Id(&'a XsdId),
 	/// A reference to an `IdRef` value.
-	IdRef(&'a IdRef),
+	IdRef(&'a XsdIdRef),
 	/// A reference to a `NMToken` value.
-	NMToken(&'a NMToken),
+	NMToken(&'a XsdNMToken),
 }
 impl NormalizedStringValue {
 	/// Borrows this value.
@@ -5054,23 +5056,23 @@ impl<'a> TryFrom<NormalizedStringValueRef<'a>> for NCNameValueRef<'a> {
 		}
 	}
 }
-/// Any specialized [`Token`] value.
+/// Any specialized [`XsdToken`] value.
 #[derive(Debug, Clone, PartialEq, Eq, PartialOrd, Ord, Hash)]
 pub enum TokenValue {
 	/// A `Token` value.
-	Token(TokenBuf),
+	Token(XsdTokenBuf),
 	/// A `Language` value.
-	Language(LanguageBuf),
+	Language(XsdLanguageBuf),
 	/// A `Name` value.
-	Name(NameBuf),
+	Name(XsdNameBuf),
 	/// A `NCName` value.
-	NCName(NCNameBuf),
+	NCName(XsdNCNameBuf),
 	/// An `Id` value.
-	Id(IdBuf),
+	Id(XsdIdBuf),
 	/// An `IdRef` value.
-	IdRef(IdRefBuf),
+	IdRef(XsdIdRefBuf),
 	/// A `NMToken` value.
-	NMToken(NMTokenBuf),
+	NMToken(XsdNMTokenBuf),
 }
 impl TokenValue {
 	/// Returns the specific datatype of this value.
@@ -5146,7 +5148,7 @@ impl TryFrom<TokenValue> for NCNameValue {
 		}
 	}
 }
-/// [`Name`] datatype variants.
+/// [`XsdName`] datatype variants.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash)]
 pub enum NameDatatype {
 	/// The plain `Name` datatype, not any of the specializations below.
@@ -5194,23 +5196,23 @@ impl TryFrom<NameDatatype> for NCNameDatatype {
 		}
 	}
 }
-/// Any specialized [`Token`] value reference.
+/// Any specialized [`XsdToken`] value reference.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash)]
 pub enum TokenValueRef<'a> {
 	/// A reference to a `Token` value.
-	Token(&'a Token),
+	Token(&'a XsdToken),
 	/// A reference to a `Language` value.
-	Language(&'a Language),
+	Language(&'a XsdLanguage),
 	/// A reference to a `Name` value.
-	Name(&'a Name),
+	Name(&'a XsdName),
 	/// A reference to a `NCName` value.
-	NCName(&'a NCName),
+	NCName(&'a XsdNCName),
 	/// A reference to an `Id` value.
-	Id(&'a Id),
+	Id(&'a XsdId),
 	/// A reference to an `IdRef` value.
-	IdRef(&'a IdRef),
+	IdRef(&'a XsdIdRef),
 	/// A reference to a `NMToken` value.
-	NMToken(&'a NMToken),
+	NMToken(&'a XsdNMToken),
 }
 impl TokenValue {
 	/// Borrows this value.
@@ -5312,17 +5314,17 @@ impl<'a> TryFrom<TokenValueRef<'a>> for NCNameValueRef<'a> {
 		}
 	}
 }
-/// Any specialized [`Name`] value.
+/// Any specialized [`XsdName`] value.
 #[derive(Debug, Clone, PartialEq, Eq, PartialOrd, Ord, Hash)]
 pub enum NameValue {
 	/// A `Name` value.
-	Name(NameBuf),
+	Name(XsdNameBuf),
 	/// A `NCName` value.
-	NCName(NCNameBuf),
+	NCName(XsdNCNameBuf),
 	/// An `Id` value.
-	Id(IdBuf),
+	Id(XsdIdBuf),
 	/// An `IdRef` value.
-	IdRef(IdRefBuf),
+	IdRef(XsdIdRefBuf),
 }
 impl NameValue {
 	/// Returns the specific datatype of this value.
@@ -5370,7 +5372,7 @@ impl TryFrom<NameValue> for NCNameValue {
 		}
 	}
 }
-/// [`NCName`] datatype variants.
+/// [`XsdNCName`] datatype variants.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash)]
 pub enum NCNameDatatype {
 	/// The plain `NCName` datatype, not any of the specializations below.
@@ -5411,17 +5413,17 @@ impl NCNameDatatype {
 		}
 	}
 }
-/// Any specialized [`Name`] value reference.
+/// Any specialized [`XsdName`] value reference.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash)]
 pub enum NameValueRef<'a> {
 	/// A reference to a `Name` value.
-	Name(&'a Name),
+	Name(&'a XsdName),
 	/// A reference to a `NCName` value.
-	NCName(&'a NCName),
+	NCName(&'a XsdNCName),
 	/// A reference to an `Id` value.
-	Id(&'a Id),
+	Id(&'a XsdId),
 	/// A reference to an `IdRef` value.
-	IdRef(&'a IdRef),
+	IdRef(&'a XsdIdRef),
 }
 impl NameValue {
 	/// Borrows this value.
@@ -5489,15 +5491,15 @@ impl<'a> TryFrom<NameValueRef<'a>> for NCNameValueRef<'a> {
 		}
 	}
 }
-/// Any specialized [`NCName`] value.
+/// Any specialized [`XsdNCName`] value.
 #[derive(Debug, Clone, PartialEq, Eq, PartialOrd, Ord, Hash)]
 pub enum NCNameValue {
 	/// A `NCName` value.
-	NCName(NCNameBuf),
+	NCName(XsdNCNameBuf),
 	/// An `Id` value.
-	Id(IdBuf),
+	Id(XsdIdBuf),
 	/// An `IdRef` value.
-	IdRef(IdRefBuf),
+	IdRef(XsdIdRefBuf),
 }
 impl NCNameValue {
 	/// Returns the specific datatype of this value.
@@ -5523,15 +5525,15 @@ impl fmt::Display for NCNameValue {
 		}
 	}
 }
-/// Any specialized [`NCName`] value reference.
+/// Any specialized [`XsdNCName`] value reference.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash)]
 pub enum NCNameValueRef<'a> {
 	/// A reference to a `NCName` value.
-	NCName(&'a NCName),
+	NCName(&'a XsdNCName),
 	/// A reference to an `Id` value.
-	Id(&'a Id),
+	Id(&'a XsdId),
 	/// A reference to an `IdRef` value.
-	IdRef(&'a IdRef),
+	IdRef(&'a XsdIdRef),
 }
 impl NCNameValue {
 	/// Borrows this value.
@@ -5609,15 +5611,15 @@ impl TryFrom<Value> for DurationValue {
 		}
 	}
 }
-/// Any specialized [`Duration`] value.
+/// Any specialized [`XsdDuration`] value.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Hash)]
 pub enum DurationValue {
 	/// A `Duration` value.
-	Duration(Duration),
+	Duration(XsdDuration),
 	/// A `DayTimeDuration` value.
-	DayTimeDuration(DayTimeDuration),
+	DayTimeDuration(XsdDayTimeDuration),
 	/// A `YearMonthDuration` value.
-	YearMonthDuration(YearMonthDuration),
+	YearMonthDuration(XsdYearMonthDuration),
 }
 impl DurationValue {
 	/// Returns the specific datatype of this value.
@@ -5675,13 +5677,13 @@ impl TryFrom<Value> for DateTimeValue {
 		}
 	}
 }
-/// Any specialized [`DateTime`] value.
+/// Any specialized [`XsdDateTime`] value.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Hash)]
 pub enum DateTimeValue {
 	/// A `DateTime` value.
-	DateTime(DateTime),
+	DateTime(XsdDateTime),
 	/// A `DateTimeStamp` value.
-	DateTimeStamp(DateTimeStamp),
+	DateTimeStamp(XsdDateTimeStamp),
 }
 impl DateTimeValue {
 	/// Returns the specific datatype of this value.

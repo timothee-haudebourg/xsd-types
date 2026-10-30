@@ -3,7 +3,7 @@ use crate::XsdError;
 use static_automata::Validate;
 use str_newtype::StrNewType;
 
-/// Year Month Duration.
+/// Year Month XsdDurationStr.
 ///
 /// This is the `yearMonthDurationLexicalRep` production of the XSD 1.1
 /// Datatypes specification:
@@ -20,10 +20,13 @@ use str_newtype::StrNewType;
 /// ```
 #[derive(Validate, StrNewType, PartialEq, Eq, PartialOrd, Ord, Hash)]
 #[automaton(super::super::grammar::YearMonthDuration)]
-#[newtype(owned(YearMonthDurationBuf, derive(PartialEq, Eq, PartialOrd, Ord, Hash)))]
-pub struct YearMonthDuration(str);
+#[newtype(owned(
+	XsdYearMonthDurationString,
+	derive(PartialEq, Eq, PartialOrd, Ord, Hash)
+))]
+pub struct XsdYearMonthDurationStr(str);
 
-impl YearMonthDuration {
+impl XsdYearMonthDurationStr {
 	pub fn parts(&self) -> Parts<'_> {
 		enum State {
 			Sign,
@@ -72,19 +75,19 @@ impl YearMonthDuration {
 	}
 }
 
-impl XsdLexicalForm for YearMonthDuration {
-	type Value = crate::YearMonthDuration;
+impl XsdLexicalForm for XsdYearMonthDurationStr {
+	type Value = crate::XsdYearMonthDuration;
 }
 
-impl<'a> crate::XsdFromStr<'a> for &'a YearMonthDuration {
+impl<'a> crate::XsdFromStr<'a> for &'a XsdYearMonthDurationStr {
 	fn xsd_from_str(value: &'a str) -> Result<Self, XsdError> {
-		YearMonthDuration::new(value)
-			.map_err(|_| XsdError::lexical_form(InvalidYearMonthDuration(value)))
+		XsdYearMonthDurationStr::new(value)
+			.map_err(|_| XsdError::lexical_form(InvalidXsdYearMonthDurationStr(value)))
 	}
 }
 
-impl<'a> From<&'a YearMonthDuration> for crate::YearMonthDuration {
-	fn from(value: &'a YearMonthDuration) -> crate::YearMonthDuration {
+impl<'a> From<&'a XsdYearMonthDurationStr> for crate::XsdYearMonthDuration {
+	fn from(value: &'a XsdYearMonthDurationStr) -> crate::XsdYearMonthDuration {
 		value.parts().to_duration()
 	}
 }
@@ -104,7 +107,7 @@ impl<'a> Parts<'a> {
 			month,
 		}
 	}
-	fn to_duration(&self) -> crate::YearMonthDuration {
+	fn to_duration(&self) -> crate::XsdYearMonthDuration {
 		let mut months = 0u32;
 
 		if let Some(y) = self.year {
@@ -117,7 +120,7 @@ impl<'a> Parts<'a> {
 			months += m;
 		}
 
-		crate::YearMonthDuration::new(self.is_negative, months)
+		crate::XsdYearMonthDuration::new(self.is_negative, months)
 	}
 }
 
@@ -134,10 +137,10 @@ mod tests {
 		];
 
 		for (input, parts, normalized) in vectors {
-			let lexical_repr = YearMonthDuration::new(input).unwrap();
+			let lexical_repr = XsdYearMonthDurationStr::new(input).unwrap();
 			assert_eq!(lexical_repr.parts(), parts);
 
-			let value: crate::YearMonthDuration = lexical_repr.into();
+			let value: crate::XsdYearMonthDuration = lexical_repr.into();
 			assert_eq!(value.to_string().as_str(), normalized)
 		}
 	}

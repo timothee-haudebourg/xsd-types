@@ -1,5 +1,5 @@
 use crate::{
-	format_timezone, is_valid_offset, lexical::InvalidGYear, seven_property_model_date_time,
+	format_timezone, is_valid_offset, lexical::InvalidXsdGYearStr, seven_property_model_date_time,
 	seven_property_model_eq, seven_property_model_partial_cmp, Datatype, DisplayYear, XsdFromStr,
 	XsdTyped, XsdValue,
 };
@@ -10,18 +10,18 @@ use std::{cmp::Ordering, hash::Hash, str::FromStr};
 ///
 /// This is the value space of the XSD `gYear` datatype: a decoded year number
 /// paired with an optional XSD timezone offset, as opposed to its lexical
-/// (string) representation, [`lexical::GYear`](crate::lexical::GYear).
+/// (string) representation, [`lexical::XsdGYearStr`](crate::lexical::XsdGYearStr).
 /// Two distinct years are always far enough apart that they remain totally
 /// ordered even accounting for the `±14:00` offset uncertainty window.
 /// See: <https://www.w3.org/TR/xmlschema11-2/#gYear>.
 #[derive(Debug, Clone, Copy)]
-pub struct GYear {
+pub struct XsdGYear {
 	year: i32,
 	offset: Option<time::UtcOffset>,
 }
 
-impl GYear {
-	/// Creates a new `GYear`, or returns `None` if `offset` is outside the
+impl XsdGYear {
+	/// Creates a new `XsdGYear`, or returns `None` if `offset` is outside the
 	/// `-14:00..=+14:00` range permitted by XSD.
 	pub fn new(year: i32, offset: Option<time::UtcOffset>) -> Option<Self> {
 		if offset.is_none_or(is_valid_offset) {
@@ -41,7 +41,7 @@ impl GYear {
 		self.offset
 	}
 
-	/// Deconstructs this `GYear` into its year and timezone offset.
+	/// Deconstructs this `XsdGYear` into its year and timezone offset.
 	pub fn into_parts(self) -> (i32, Option<time::UtcOffset>) {
 		(self.year, self.offset)
 	}
@@ -51,17 +51,17 @@ impl GYear {
 	}
 }
 
-impl FromStr for GYear {
-	type Err = InvalidGYear<String>;
+impl FromStr for XsdGYear {
+	type Err = InvalidXsdGYearStr<String>;
 
 	fn from_str(s: &str) -> Result<Self, Self::Err> {
 		let lexical_value =
-			crate::lexical::GYear::new(s).map_err(|_| InvalidGYear(s.to_owned()))?;
+			crate::lexical::XsdGYearStr::new(s).map_err(|_| InvalidXsdGYearStr(s.to_owned()))?;
 		Ok(lexical_value.into())
 	}
 }
 
-impl PartialEq for GYear {
+impl PartialEq for XsdGYear {
 	fn eq(&self, other: &Self) -> bool {
 		seven_property_model_eq(
 			self.effective_date_time(),
@@ -72,25 +72,25 @@ impl PartialEq for GYear {
 	}
 }
 
-impl Eq for GYear {}
+impl Eq for XsdGYear {}
 
-impl Hash for GYear {
+impl Hash for XsdGYear {
 	fn hash<H: std::hash::Hasher>(&self, state: &mut H) {
 		self.year.hash(state);
 		self.offset.hash(state)
 	}
 }
 
-impl PartialOrd for GYear {
+impl PartialOrd for XsdGYear {
 	fn partial_cmp(&self, other: &Self) -> Option<Ordering> {
 		Some(self.cmp(other))
 	}
 }
 
-impl Ord for GYear {
+impl Ord for XsdGYear {
 	fn cmp(&self, other: &Self) -> Ordering {
 		// Two distinct years are always roughly a year apart, far more than
-		// the `±14:00` offset uncertainty window (28 hours), so `GYear`
+		// the `±14:00` offset uncertainty window (28 hours), so `XsdGYear`
 		// values are always comparable.
 		seven_property_model_partial_cmp(
 			self.effective_date_time(),
@@ -102,30 +102,30 @@ impl Ord for GYear {
 	}
 }
 
-impl XsdTyped for GYear {
+impl XsdTyped for XsdGYear {
 	fn datatype(&self) -> Datatype {
 		Datatype::GYear
 	}
 }
 
-impl XsdValue for GYear {
-	type LexicalForm = crate::lexical::GYear;
+impl XsdValue for XsdGYear {
+	type LexicalForm = crate::lexical::XsdGYearStr;
 
-	fn to_lexical_form(&self) -> crate::lexical::GYearBuf {
+	fn to_lexical_form(&self) -> crate::lexical::XsdGYearString {
 		// `Display` emits the canonical lexical form by contract, so it is
 		// always valid and this cannot panic.
-		crate::lexical::GYearBuf::new(self.to_string())
+		crate::lexical::XsdGYearString::new(self.to_string())
 			.expect("Display emits a valid gYear lexical form")
 	}
 }
 
-impl<'a> XsdFromStr<'a> for GYear {
+impl<'a> XsdFromStr<'a> for XsdGYear {
 	fn xsd_from_str(lexical_value: &'a str) -> Result<Self, crate::XsdError> {
-		crate::xsd_parse_via::<crate::lexical::GYear, Self>(lexical_value)
+		crate::xsd_parse_via::<crate::lexical::XsdGYearStr, Self>(lexical_value)
 	}
 }
 
-impl fmt::Display for GYear {
+impl fmt::Display for XsdGYear {
 	fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
 		DisplayYear(self.year).fmt(f)?;
 		format_timezone(self.offset, f)
@@ -133,7 +133,7 @@ impl fmt::Display for GYear {
 }
 
 #[cfg(feature = "serde")]
-impl serde::Serialize for GYear {
+impl serde::Serialize for XsdGYear {
 	fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
 	where
 		S: serde::Serializer,
@@ -143,7 +143,7 @@ impl serde::Serialize for GYear {
 }
 
 #[cfg(feature = "serde")]
-impl<'de> serde::Deserialize<'de> for GYear {
+impl<'de> serde::Deserialize<'de> for XsdGYear {
 	fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
 	where
 		D: serde::Deserializer<'de>,
@@ -151,7 +151,7 @@ impl<'de> serde::Deserialize<'de> for GYear {
 		struct Visitor;
 
 		impl<'de> serde::de::Visitor<'de> for Visitor {
-			type Value = GYear;
+			type Value = XsdGYear;
 
 			fn expecting(&self, formatter: &mut fmt::Formatter) -> fmt::Result {
 				formatter.write_str("a http://www.w3.org/2001/XMLSchema#gYear")
@@ -171,34 +171,34 @@ impl<'de> serde::Deserialize<'de> for GYear {
 
 #[cfg(test)]
 mod tests {
-	use super::GYear;
+	use super::XsdGYear;
 	use crate::XsdValue;
 
 	#[test]
 	fn to_lexical_form_roundtrip() {
 		for s in ["2024", "-0044Z", "0001+14:00", "1999-05:30"] {
-			let value: GYear = s.parse().unwrap();
+			let value: XsdGYear = s.parse().unwrap();
 			let lexical = value.to_lexical_form();
 			assert_eq!(lexical.as_str(), s);
-			assert_eq!(lexical.as_str().parse::<GYear>().unwrap(), value);
+			assert_eq!(lexical.as_str().parse::<XsdGYear>().unwrap(), value);
 		}
 	}
 
 	#[test]
 	fn ord_without_offset_is_direct() {
-		let a = GYear::new(2023, None).unwrap();
-		let b = GYear::new(2024, None).unwrap();
+		let a = XsdGYear::new(2023, None).unwrap();
+		let b = XsdGYear::new(2024, None).unwrap();
 
 		assert!(a < b);
 	}
 
-	// Two distinct `GYear` values are always roughly a year apart, far more
+	// Two distinct `XsdGYear` values are always roughly a year apart, far more
 	// than the `±14:00` offset uncertainty window (28 hours), so they are
 	// always totally ordered, even with extreme offsets.
 	#[test]
 	fn ord_is_always_definite() {
-		let a = GYear::new(2023, None).unwrap();
-		let b = GYear::new(2024, Some(time::UtcOffset::from_hms(14, 0, 0).unwrap())).unwrap();
+		let a = XsdGYear::new(2023, None).unwrap();
+		let b = XsdGYear::new(2024, Some(time::UtcOffset::from_hms(14, 0, 0).unwrap())).unwrap();
 
 		assert_eq!(a.cmp(&b), std::cmp::Ordering::Less);
 		assert_eq!(a.partial_cmp(&b), Some(std::cmp::Ordering::Less));
@@ -206,8 +206,8 @@ mod tests {
 
 	#[test]
 	fn eq_ignores_representation() {
-		let a = GYear::new(2023, None).unwrap();
-		let b = GYear::new(2023, None).unwrap();
+		let a = XsdGYear::new(2023, None).unwrap();
+		let b = XsdGYear::new(2023, None).unwrap();
 
 		assert_eq!(a, b);
 	}
@@ -215,12 +215,12 @@ mod tests {
 	#[test]
 	fn new_rejects_out_of_range_offset() {
 		let offset = time::UtcOffset::from_hms(15, 0, 0).unwrap();
-		assert!(GYear::new(2023, Some(offset)).is_none());
+		assert!(XsdGYear::new(2023, Some(offset)).is_none());
 	}
 
 	#[test]
 	fn from_str_roundtrip() {
-		let y: GYear = "2023+05:00".parse().unwrap();
+		let y: XsdGYear = "2023+05:00".parse().unwrap();
 		assert_eq!(y.year(), 2023);
 		assert_eq!(
 			y.offset(),

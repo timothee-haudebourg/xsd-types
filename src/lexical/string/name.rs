@@ -3,12 +3,12 @@ use str_newtype::StrNewType;
 
 use crate::{lexical::XsdLexicalForm, XsdError};
 
-/// Name.
+/// XsdName.
 ///
 /// See: <https://www.w3.org/TR/xmlschema11-2/#Name>.
 ///
 /// ```abnf
-/// Name          = (Letter / "_" / ":") *NameChar
+/// XsdName          = (Letter / "_" / ":") *NameChar
 /// NameChar      = Letter / Digit / "." / "-" / "_" / ":" / CombiningChar / Extender
 ///
 /// Letter        = BaseChar / Ideographic
@@ -20,24 +20,24 @@ use crate::{lexical::XsdLexicalForm, XsdError};
 /// ```
 #[derive(Validate, StrNewType, PartialEq, Eq, PartialOrd, Ord, Hash)]
 #[automaton(super::grammar::Name)]
-#[newtype(owned(NameBuf, derive(PartialEq, Eq, PartialOrd, Ord, Hash)))]
+#[newtype(owned(XsdNameBuf, derive(PartialEq, Eq, PartialOrd, Ord, Hash)))]
 #[cfg_attr(feature = "serde", newtype(serde))]
-pub struct Name(str);
+pub struct XsdName(str);
 
-impl XsdLexicalForm for Name {
-	type Value = NameBuf;
+impl XsdLexicalForm for XsdName {
+	type Value = XsdNameBuf;
 }
 
-impl<'a> crate::XsdFromStr<'a> for &'a Name {
+impl<'a> crate::XsdFromStr<'a> for &'a XsdName {
 	fn xsd_from_str(value: &'a str) -> Result<Self, XsdError> {
-		Name::new(value).map_err(|_| XsdError::lexical_form(InvalidName(value)))
+		XsdName::new(value).map_err(|_| XsdError::lexical_form(InvalidXsdName(value)))
 	}
 }
 
-impl<'a> TryFrom<&'a Name> for NameBuf {
-	type Error = InvalidName<String>;
+impl<'a> TryFrom<&'a XsdName> for XsdNameBuf {
+	type Error = InvalidXsdName<String>;
 
-	fn try_from(value: &'a Name) -> Result<NameBuf, Self::Error> {
+	fn try_from(value: &'a XsdName) -> Result<XsdNameBuf, Self::Error> {
 		value.as_str().parse()
 	}
 }

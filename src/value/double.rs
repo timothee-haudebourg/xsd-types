@@ -9,15 +9,15 @@ use crate::{lexical, Datatype, XsdFromStr, XsdTyped, XsdValue};
 
 /// Value space of the XSD `double` datatype.
 ///
-/// This is the decoded counterpart of [`lexical::Double`]: it stores the
+/// This is the decoded counterpart of [`lexical::XsdDoubleStr`]: it stores the
 /// parsed IEEE 754 double-precision floating point value rather than its
 /// lexical (string) representation.
 /// See: <https://www.w3.org/TR/xmlschema11-2/#double>.
 #[derive(Debug, Clone, Copy, PartialEq, PartialOrd)]
 #[repr(transparent)]
-pub struct Double(pub f64);
+pub struct XsdDouble(pub f64);
 
-impl Double {
+impl XsdDouble {
 	/// Negative infinity.
 	pub const NEG_INFINITY: Self = Self(f64::NEG_INFINITY);
 
@@ -99,65 +99,66 @@ const XSD_CANONICAL_DOUBLE: pretty_dtoa::FmtFloatConfig = pretty_dtoa::FmtFloatC
 	.force_e_notation()
 	.capitalize_e(true);
 
-impl fmt::Display for Double {
+impl fmt::Display for XsdDouble {
 	fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
 		pretty_dtoa::dtoa(self.0, XSD_CANONICAL_DOUBLE).fmt(f)
 	}
 }
 
-impl XsdTyped for Double {
+impl XsdTyped for XsdDouble {
 	fn datatype(&self) -> Datatype {
 		Datatype::Double
 	}
 }
 
-impl XsdValue for Double {
-	type LexicalForm = lexical::Double;
+impl XsdValue for XsdDouble {
+	type LexicalForm = lexical::XsdDoubleStr;
 
-	fn to_lexical_form(&self) -> lexical::DoubleBuf {
+	fn to_lexical_form(&self) -> lexical::XsdDoubleString {
 		if self.0.is_finite() {
 			// `Display` emits the canonical lexical form of finite values by
 			// contract, so it is always valid and this cannot panic.
-			lexical::DoubleBuf::new(self.to_string())
+			lexical::XsdDoubleString::new(self.to_string())
 				.expect("Display emits a valid double lexical form for finite values")
 		} else {
 			// `Display` emits `inf`/`-inf`, which are not valid lexical forms,
 			// so special values go through the infallible conversion instead
 			// (`NaN`, `INF`, `-INF`).
-			lexical::DoubleBuf::from(self.0)
+			lexical::XsdDoubleString::from(self.0)
 		}
 	}
 }
 
-impl<'a> XsdFromStr<'a> for Double {
+impl<'a> XsdFromStr<'a> for XsdDouble {
 	fn xsd_from_str(lexical_value: &'a str) -> Result<Self, crate::XsdError> {
-		crate::xsd_parse_via::<lexical::Double, Self>(lexical_value)
+		crate::xsd_parse_via::<lexical::XsdDoubleStr, Self>(lexical_value)
 	}
 }
 
-impl<'a> From<&'a lexical::Double> for Double {
-	fn from(value: &'a lexical::Double) -> Self {
+impl<'a> From<&'a lexical::XsdDoubleStr> for XsdDouble {
+	fn from(value: &'a lexical::XsdDoubleStr) -> Self {
 		Self::new(value.into())
 	}
 }
 
-impl From<lexical::DoubleBuf> for Double {
-	fn from(value: lexical::DoubleBuf) -> Self {
+impl From<lexical::XsdDoubleString> for XsdDouble {
+	fn from(value: lexical::XsdDoubleString) -> Self {
 		Self::new(value.into())
 	}
 }
 
-impl FromStr for Double {
-	type Err = lexical::InvalidDouble<String>;
+impl FromStr for XsdDouble {
+	type Err = lexical::InvalidXsdDoubleStr<String>;
 
 	fn from_str(s: &str) -> Result<Self, Self::Err> {
-		let l = lexical::Double::new(s).map_err(|_| lexical::InvalidDouble(s.to_owned()))?;
+		let l = lexical::XsdDoubleStr::new(s)
+			.map_err(|_| lexical::InvalidXsdDoubleStr(s.to_owned()))?;
 		Ok(l.into())
 	}
 }
 
 #[cfg(feature = "serde")]
-impl serde::Serialize for Double {
+impl serde::Serialize for XsdDouble {
 	fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
 	where
 		S: serde::Serializer,
@@ -167,7 +168,7 @@ impl serde::Serialize for Double {
 }
 
 #[cfg(feature = "serde")]
-impl<'de> serde::Deserialize<'de> for Double {
+impl<'de> serde::Deserialize<'de> for XsdDouble {
 	fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
 	where
 		D: serde::Deserializer<'de>,
@@ -175,7 +176,7 @@ impl<'de> serde::Deserialize<'de> for Double {
 		struct Visitor;
 
 		impl<'de> serde::de::Visitor<'de> for Visitor {
-			type Value = Double;
+			type Value = XsdDouble;
 
 			fn expecting(&self, formatter: &mut fmt::Formatter) -> fmt::Result {
 				formatter.write_str("a http://www.w3.org/2001/XMLSchema#double")
@@ -193,37 +194,37 @@ impl<'de> serde::Deserialize<'de> for Double {
 	}
 }
 
-impl From<f32> for Double {
+impl From<f32> for XsdDouble {
 	fn from(value: f32) -> Self {
 		Self(value as f64)
 	}
 }
 
-impl From<f64> for Double {
+impl From<f64> for XsdDouble {
 	fn from(value: f64) -> Self {
 		Self(value)
 	}
 }
 
-impl From<Double> for f64 {
-	fn from(value: Double) -> Self {
+impl From<XsdDouble> for f64 {
+	fn from(value: XsdDouble) -> Self {
 		value.0
 	}
 }
 
-impl AsRef<f64> for Double {
+impl AsRef<f64> for XsdDouble {
 	fn as_ref(&self) -> &f64 {
 		&self.0
 	}
 }
 
-impl Borrow<f64> for Double {
+impl Borrow<f64> for XsdDouble {
 	fn borrow(&self) -> &f64 {
 		&self.0
 	}
 }
 
-impl Deref for Double {
+impl Deref for XsdDouble {
 	type Target = f64;
 
 	fn deref(&self) -> &f64 {
@@ -231,13 +232,13 @@ impl Deref for Double {
 	}
 }
 
-impl DerefMut for Double {
+impl DerefMut for XsdDouble {
 	fn deref_mut(&mut self) -> &mut f64 {
 		&mut self.0
 	}
 }
 
-impl Add for Double {
+impl Add for XsdDouble {
 	type Output = Self;
 
 	fn add(self, rhs: Self) -> Self::Output {
@@ -245,7 +246,7 @@ impl Add for Double {
 	}
 }
 
-impl Sub for Double {
+impl Sub for XsdDouble {
 	type Output = Self;
 
 	fn sub(self, rhs: Self) -> Self::Output {
@@ -253,7 +254,7 @@ impl Sub for Double {
 	}
 }
 
-impl Mul for Double {
+impl Mul for XsdDouble {
 	type Output = Self;
 
 	fn mul(self, rhs: Self) -> Self::Output {
@@ -261,7 +262,7 @@ impl Mul for Double {
 	}
 }
 
-impl Div for Double {
+impl Div for XsdDouble {
 	type Output = Self;
 
 	fn div(self, rhs: Self) -> Self::Output {
@@ -277,28 +278,28 @@ mod tests {
 	// incomparable with any value in the value space including itself".
 	#[test]
 	fn nan_is_not_equal_to_itself() {
-		assert_ne!(Double::NAN, Double::NAN);
+		assert_ne!(XsdDouble::NAN, XsdDouble::NAN);
 	}
 
 	#[test]
 	fn nan_is_incomparable() {
-		assert_eq!(Double::NAN.partial_cmp(&Double::NAN), None);
-		assert_eq!(Double::NAN.partial_cmp(&Double::new(0.0)), None);
+		assert_eq!(XsdDouble::NAN.partial_cmp(&XsdDouble::NAN), None);
+		assert_eq!(XsdDouble::NAN.partial_cmp(&XsdDouble::new(0.0)), None);
 	}
 
 	// <https://www.w3.org/TR/xmlschema11-2/#double>: "0 = −0 (although they are
 	// not identical)".
 	#[test]
 	fn positive_and_negative_zero_are_equal() {
-		assert_eq!(Double::new(0.0), Double::new(-0.0));
+		assert_eq!(XsdDouble::new(0.0), XsdDouble::new(-0.0));
 	}
 
 	fn assert_lexical_form_round_trip(input: &str) {
-		let value: Double = input.parse().unwrap();
+		let value: XsdDouble = input.parse().unwrap();
 		let lexical = value.to_lexical_form();
 		assert_eq!(lexical.as_str(), input);
 
-		let reparsed = Double::xsd_from_str(lexical.as_str()).unwrap();
+		let reparsed = XsdDouble::xsd_from_str(lexical.as_str()).unwrap();
 		if value.is_nan() {
 			assert!(reparsed.is_nan());
 		} else {

@@ -1,21 +1,21 @@
 use std::{cmp::Ordering, fmt, hash::Hash, str::FromStr};
 
 use crate::{
-	lexical::InvalidDateTime, utils::div_rem, Datatype, DateTimeDatatype, XsdFromStr, XsdTyped,
-	XsdValue,
+	lexical::InvalidXsdDateTimeStr, utils::div_rem, Datatype, DateTimeDatatype, XsdFromStr,
+	XsdTyped, XsdValue,
 };
 
 mod date_time_stamp;
 pub use date_time_stamp::*;
 
-/// Error raised when trying to convert a [`DateTime`] without a timezone
+/// Error raised when trying to convert a [`XsdDateTime`] without a timezone
 /// offset into a representation that requires one (e.g. `time::OffsetDateTime`
 /// or a `chrono::DateTime`).
 #[derive(Debug, thiserror::Error)]
 #[error("missing timezone")]
 pub struct MissingTimezone;
 
-/// Error raised when the components of a [`DateTime`] do not form a valid
+/// Error raised when the components of a [`XsdDateTime`] do not form a valid
 /// date and time (e.g. an out-of-range day for the given month, or a
 /// timezone offset outside the range permitted by XSD).
 #[derive(Debug, thiserror::Error)]
@@ -39,20 +39,20 @@ pub(crate) fn is_valid_offset(offset: time::UtcOffset) -> bool {
 /// This is the value space of the XSD `dateTime` datatype: a decoded
 /// `time::PrimitiveDateTime` paired with an optional XSD timezone offset, as
 /// opposed to its lexical (string) representation,
-/// [`lexical::DateTime`](crate::lexical::DateTime). For a variant that
-/// requires the timezone offset to always be present, see [`DateTimeStamp`].
+/// [`lexical::XsdDateTimeStr`](crate::lexical::XsdDateTimeStr). For a variant that
+/// requires the timezone offset to always be present, see [`XsdDateTimeStamp`].
 /// Equality and ordering follow XSD's partial order over timezone offsets: an
 /// absent offset stands for the full `-14:00..=+14:00` range, so two values
 /// can compare as neither equal nor ordered.
 /// See: <https://www.w3.org/TR/xmlschema11-2/#dateTime>.
 #[derive(Debug, Clone, Copy)]
-pub struct DateTime {
+pub struct XsdDateTime {
 	date_time: time::PrimitiveDateTime,
 	offset: Option<time::UtcOffset>,
 }
 
-impl DateTime {
-	/// Creates a new `DateTime`, or returns `None` if `offset` is outside
+impl XsdDateTime {
+	/// Creates a new `XsdDateTime`, or returns `None` if `offset` is outside
 	/// the `-14:00..=+14:00` range permitted by XSD.
 	pub fn new(
 		date_time: time::PrimitiveDateTime,
@@ -85,19 +85,19 @@ impl DateTime {
 		self.offset
 	}
 
-	/// Deconstructs this `DateTime` into its date/time and timezone offset.
+	/// Deconstructs this `XsdDateTime` into its date/time and timezone offset.
 	pub fn into_parts(self) -> (time::PrimitiveDateTime, Option<time::UtcOffset>) {
 		(self.date_time, self.offset)
 	}
 
-	/// Returns a `DateTime` which corresponds to the current time and date.
+	/// Returns a `XsdDateTime` which corresponds to the current time and date.
 	pub fn now() -> Self {
 		// `OffsetDateTime::now_utc` always has a zero offset, which is always
 		// within the valid range.
 		time::OffsetDateTime::now_utc().try_into().unwrap()
 	}
 
-	/// Returns a `DateTime` which corresponds to the current time and date,
+	/// Returns a `XsdDateTime` which corresponds to the current time and date,
 	/// with millisecond precision (at most).
 	pub fn now_ms() -> Self {
 		let now = time::OffsetDateTime::now_utc();
@@ -110,28 +110,28 @@ impl DateTime {
 			.unwrap()
 	}
 
-	/// Converts this `DateTime` into its lexical (string) representation.
+	/// Converts this `XsdDateTime` into its lexical (string) representation.
 	pub fn into_string(self) -> String {
 		self.to_string()
 	}
 
-	/// Returns this `DateTime` as a `DateTimeStamp`, using the given offset
-	/// if this `DateTime` has none of its own.
-	fn with_offset(&self, default_offset: time::UtcOffset) -> DateTimeStamp {
+	/// Returns this `XsdDateTime` as a `XsdDateTimeStamp`, using the given offset
+	/// if this `XsdDateTime` has none of its own.
+	fn with_offset(&self, default_offset: time::UtcOffset) -> XsdDateTimeStamp {
 		// `self.offset`, if present, was already validated when `self` was
 		// constructed, and `default_offset` is always exactly `±14:00`, the
 		// boundary of the valid range, so this is always in range.
-		DateTimeStamp::new(self.date_time, self.offset.unwrap_or(default_offset)).unwrap()
+		XsdDateTimeStamp::new(self.date_time, self.offset.unwrap_or(default_offset)).unwrap()
 	}
 
 	/// Returns the earliest date/time with offset represented by this
 	/// date/time.
 	///
-	/// The instant represented by an offset-less `DateTime` is
+	/// The instant represented by an offset-less `XsdDateTime` is
 	/// `self.date_time - offset` for some unknown `offset` in
 	/// `-14:00..=+14:00`. The earliest (smallest) possible instant is
 	/// therefore obtained with the largest offset, `+14:00`.
-	pub fn earliest(&self) -> DateTimeStamp {
+	pub fn earliest(&self) -> XsdDateTimeStamp {
 		self.with_offset(time::UtcOffset::from_whole_seconds(14 * 60 * 60).unwrap())
 	}
 
@@ -140,27 +140,27 @@ impl DateTime {
 	///
 	/// The latest (largest) possible instant is obtained with the smallest
 	/// offset, `-14:00`.
-	pub fn latest(&self) -> DateTimeStamp {
+	pub fn latest(&self) -> XsdDateTimeStamp {
 		self.with_offset(time::UtcOffset::from_whole_seconds(-14 * 60 * 60).unwrap())
 	}
 }
 
-impl PartialEq for DateTime {
+impl PartialEq for XsdDateTime {
 	fn eq(&self, other: &Self) -> bool {
 		seven_property_model_eq(self.date_time, self.offset, other.date_time, other.offset)
 	}
 }
 
-impl Eq for DateTime {}
+impl Eq for XsdDateTime {}
 
-impl Hash for DateTime {
+impl Hash for XsdDateTime {
 	fn hash<H: std::hash::Hasher>(&self, state: &mut H) {
 		self.date_time.hash(state);
 		self.offset.hash(state)
 	}
 }
 
-impl PartialOrd for DateTime {
+impl PartialOrd for XsdDateTime {
 	fn partial_cmp(&self, other: &Self) -> Option<Ordering> {
 		seven_property_model_partial_cmp(self.date_time, self.offset, other.date_time, other.offset)
 	}
@@ -244,30 +244,30 @@ pub(crate) fn seven_property_model_partial_cmp(
 	}
 }
 
-impl XsdTyped for DateTime {
+impl XsdTyped for XsdDateTime {
 	fn datatype(&self) -> Datatype {
 		Datatype::DateTime(DateTimeDatatype::DateTime)
 	}
 }
 
-impl XsdValue for DateTime {
-	type LexicalForm = crate::lexical::DateTime;
+impl XsdValue for XsdDateTime {
+	type LexicalForm = crate::lexical::XsdDateTimeStr;
 
-	fn to_lexical_form(&self) -> crate::lexical::DateTimeBuf {
+	fn to_lexical_form(&self) -> crate::lexical::XsdDateTimeString {
 		// `Display` emits the canonical lexical form by contract, so it is
 		// always valid and this cannot panic.
-		crate::lexical::DateTimeBuf::new(self.to_string())
+		crate::lexical::XsdDateTimeString::new(self.to_string())
 			.expect("Display emits a valid dateTime lexical form")
 	}
 }
 
-impl<'a> XsdFromStr<'a> for DateTime {
+impl<'a> XsdFromStr<'a> for XsdDateTime {
 	fn xsd_from_str(lexical_value: &'a str) -> Result<Self, crate::XsdError> {
-		crate::xsd_parse_via::<crate::lexical::DateTime, Self>(lexical_value)
+		crate::xsd_parse_via::<crate::lexical::XsdDateTimeStr, Self>(lexical_value)
 	}
 }
 
-impl fmt::Display for DateTime {
+impl fmt::Display for XsdDateTime {
 	fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
 		write!(
 			f,
@@ -355,29 +355,29 @@ impl fmt::Display for DisplayYear {
 	}
 }
 
-/// Error raised when parsing a [`DateTime`] from a string, either because
+/// Error raised when parsing a [`XsdDateTime`] from a string, either because
 /// the input is not a syntactically valid `dateTime` lexical representation,
 /// or because it does not denote a valid date/time value.
 #[derive(Debug, thiserror::Error)]
 pub enum DateTimeFromStrError {
 	#[error("invalid date syntax")]
-	Syntax(#[from] InvalidDateTime<String>),
+	Syntax(#[from] InvalidXsdDateTimeStr<String>),
 
 	#[error(transparent)]
 	Value(#[from] InvalidDateTimeValue),
 }
 
-impl FromStr for DateTime {
+impl FromStr for XsdDateTime {
 	type Err = DateTimeFromStrError;
 
 	fn from_str(s: &str) -> Result<Self, Self::Err> {
-		let lexical_value =
-			crate::lexical::DateTime::new(s).map_err(|_| InvalidDateTime(s.to_owned()))?;
+		let lexical_value = crate::lexical::XsdDateTimeStr::new(s)
+			.map_err(|_| InvalidXsdDateTimeStr(s.to_owned()))?;
 		Self::try_from(lexical_value).map_err(Into::into)
 	}
 }
 
-impl TryFrom<time::OffsetDateTime> for DateTime {
+impl TryFrom<time::OffsetDateTime> for XsdDateTime {
 	type Error = InvalidOffset;
 
 	fn try_from(value: time::OffsetDateTime) -> Result<Self, Self::Error> {
@@ -386,10 +386,10 @@ impl TryFrom<time::OffsetDateTime> for DateTime {
 	}
 }
 
-impl TryFrom<DateTime> for time::OffsetDateTime {
+impl TryFrom<XsdDateTime> for time::OffsetDateTime {
 	type Error = MissingTimezone;
 
-	fn try_from(value: DateTime) -> Result<Self, MissingTimezone> {
+	fn try_from(value: XsdDateTime) -> Result<Self, MissingTimezone> {
 		match value.offset {
 			Some(offset) => Ok(value.date_time.assume_offset(offset)),
 			None => Err(MissingTimezone),
@@ -398,7 +398,7 @@ impl TryFrom<DateTime> for time::OffsetDateTime {
 }
 
 #[cfg(feature = "chrono")]
-impl TryFrom<chrono::DateTime<chrono::FixedOffset>> for DateTime {
+impl TryFrom<chrono::DateTime<chrono::FixedOffset>> for XsdDateTime {
 	type Error = InvalidOffset;
 
 	fn try_from(value: chrono::DateTime<chrono::FixedOffset>) -> Result<Self, Self::Error> {
@@ -416,7 +416,7 @@ impl TryFrom<chrono::DateTime<chrono::FixedOffset>> for DateTime {
 }
 
 #[cfg(feature = "chrono")]
-impl From<chrono::DateTime<chrono::Utc>> for DateTime {
+impl From<chrono::DateTime<chrono::Utc>> for XsdDateTime {
 	fn from(value: chrono::DateTime<chrono::Utc>) -> Self {
 		// A `chrono::Utc` timestamp always has a zero offset, which is always
 		// within the valid range.
@@ -425,10 +425,10 @@ impl From<chrono::DateTime<chrono::Utc>> for DateTime {
 }
 
 #[cfg(feature = "chrono")]
-impl TryFrom<DateTime> for chrono::DateTime<chrono::FixedOffset> {
+impl TryFrom<XsdDateTime> for chrono::DateTime<chrono::FixedOffset> {
 	type Error = MissingTimezone;
 
-	fn try_from(value: DateTime) -> Result<Self, MissingTimezone> {
+	fn try_from(value: XsdDateTime) -> Result<Self, MissingTimezone> {
 		use chrono::TimeZone;
 
 		let odt: time::OffsetDateTime = value.try_into()?;
@@ -438,17 +438,17 @@ impl TryFrom<DateTime> for chrono::DateTime<chrono::FixedOffset> {
 }
 
 #[cfg(feature = "chrono")]
-impl TryFrom<DateTime> for chrono::DateTime<chrono::Utc> {
+impl TryFrom<XsdDateTime> for chrono::DateTime<chrono::Utc> {
 	type Error = MissingTimezone;
 
-	fn try_from(value: DateTime) -> Result<Self, MissingTimezone> {
+	fn try_from(value: XsdDateTime) -> Result<Self, MissingTimezone> {
 		let fixed: chrono::DateTime<chrono::FixedOffset> = value.try_into()?;
 		Ok(fixed.into())
 	}
 }
 
 #[cfg(feature = "serde")]
-impl serde::Serialize for DateTime {
+impl serde::Serialize for XsdDateTime {
 	fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
 	where
 		S: serde::Serializer,
@@ -458,7 +458,7 @@ impl serde::Serialize for DateTime {
 }
 
 #[cfg(feature = "serde")]
-impl<'de> serde::Deserialize<'de> for DateTime {
+impl<'de> serde::Deserialize<'de> for XsdDateTime {
 	fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
 	where
 		D: serde::Deserializer<'de>,
@@ -466,7 +466,7 @@ impl<'de> serde::Deserialize<'de> for DateTime {
 		struct Visitor;
 
 		impl<'de> serde::de::Visitor<'de> for Visitor {
-			type Value = DateTime;
+			type Value = XsdDateTime;
 
 			fn expecting(&self, formatter: &mut fmt::Formatter) -> fmt::Result {
 				formatter.write_str("a http://www.w3.org/2001/XMLSchema#dateTime")
@@ -486,7 +486,7 @@ impl<'de> serde::Deserialize<'de> for DateTime {
 
 #[cfg(test)]
 mod tests {
-	use super::{seven_property_model_date_time, DateTime, DateTimeStamp};
+	use super::{seven_property_model_date_time, XsdDateTime, XsdDateTimeStamp};
 	use crate::XsdValue;
 
 	#[test]
@@ -497,10 +497,10 @@ mod tests {
 			"2000-01-01T23:59:59.000000001-05:30",
 			"1999-12-31T13:07:12.5+14:00",
 		] {
-			let value: DateTime = s.parse().unwrap();
+			let value: XsdDateTime = s.parse().unwrap();
 			let lexical = value.to_lexical_form();
 			assert_eq!(lexical.as_str(), s);
-			assert_eq!(lexical.as_str().parse::<DateTime>().unwrap(), value);
+			assert_eq!(lexical.as_str().parse::<XsdDateTime>().unwrap(), value);
 		}
 	}
 
@@ -534,7 +534,7 @@ mod tests {
 		);
 		let offset = time::UtcOffset::from_hms(15, 0, 0).unwrap();
 
-		assert!(DateTime::new(date_time, Some(offset)).is_none());
+		assert!(XsdDateTime::new(date_time, Some(offset)).is_none());
 	}
 
 	#[test]
@@ -542,7 +542,7 @@ mod tests {
 		let offset = time::UtcOffset::from_hms(15, 0, 0).unwrap();
 		let odt = time::OffsetDateTime::now_utc().to_offset(offset);
 
-		assert!(DateTime::try_from(odt).is_err());
+		assert!(XsdDateTime::try_from(odt).is_err());
 	}
 
 	#[test]
@@ -551,7 +551,7 @@ mod tests {
 		let time = time::Time::from_hms(12, 30, 0).unwrap();
 		let date_time = time::PrimitiveDateTime::new(date, time);
 
-		let dt = DateTime::new(date_time, None).unwrap();
+		let dt = XsdDateTime::new(date_time, None).unwrap();
 
 		assert_eq!(dt.date(), date);
 		assert_eq!(dt.time(), time);
@@ -578,12 +578,12 @@ mod tests {
 	fn chrono_fixed_offset_roundtrip() {
 		// A non-zero, non-symmetric offset is essential here: with a `+00:00`
 		// offset, an inverted sign conversion would go unnoticed.
-		let xsd: DateTime = "2024-01-01T12:00:00+05:00".parse().unwrap();
+		let xsd: XsdDateTime = "2024-01-01T12:00:00+05:00".parse().unwrap();
 		let chrono: chrono::DateTime<chrono::FixedOffset> = xsd.try_into().unwrap();
 
 		assert_eq!(chrono.offset().local_minus_utc(), 5 * 3600);
 
-		let back: DateTime = chrono.try_into().unwrap();
+		let back: XsdDateTime = chrono.try_into().unwrap();
 		assert_eq!(xsd, back);
 	}
 
@@ -592,22 +592,22 @@ mod tests {
 	fn chrono_time_roundtrip() {
 		let expected_time =
 			time::OffsetDateTime::from_unix_timestamp_nanos(1726661641326000001).unwrap();
-		let xsd: DateTime = expected_time.try_into().unwrap();
+		let xsd: XsdDateTime = expected_time.try_into().unwrap();
 		let chrono: chrono::DateTime<chrono::Utc> = xsd.try_into().unwrap();
 		let expected_chrono = chrono::DateTime::from_timestamp_millis(1726661641326).unwrap()
 			+ std::time::Duration::from_nanos(1);
 		assert_eq!(chrono, expected_chrono);
 
-		let xsd: DateTime = chrono.into();
+		let xsd: XsdDateTime = chrono.into();
 		let time: time::OffsetDateTime = xsd.try_into().unwrap();
 		assert_eq!(time, expected_time);
 	}
 
 	#[test]
 	fn earliest_latest_with_offset() {
-		let dt: DateTime = "2024-01-01T12:00:00+02:00".parse().unwrap();
+		let dt: XsdDateTime = "2024-01-01T12:00:00+02:00".parse().unwrap();
 		let offset = time::UtcOffset::from_whole_seconds(2 * 60 * 60).unwrap();
-		let expected = DateTimeStamp::new(dt.date_time, offset).unwrap();
+		let expected = XsdDateTimeStamp::new(dt.date_time, offset).unwrap();
 
 		// When the offset is known, `earliest` and `latest` both resolve to
 		// that single, unambiguous instant.
@@ -617,7 +617,7 @@ mod tests {
 
 	#[test]
 	fn earliest_latest_without_offset() {
-		let dt: DateTime = "2024-01-01T12:00:00".parse().unwrap();
+		let dt: XsdDateTime = "2024-01-01T12:00:00".parse().unwrap();
 
 		let west = time::UtcOffset::from_whole_seconds(-14 * 60 * 60).unwrap();
 		let east = time::UtcOffset::from_whole_seconds(14 * 60 * 60).unwrap();
@@ -626,9 +626,12 @@ mod tests {
 		// the latest with the `-14:00` offset.
 		assert_eq!(
 			dt.earliest(),
-			DateTimeStamp::new(dt.date_time, east).unwrap()
+			XsdDateTimeStamp::new(dt.date_time, east).unwrap()
 		);
-		assert_eq!(dt.latest(), DateTimeStamp::new(dt.date_time, west).unwrap());
+		assert_eq!(
+			dt.latest(),
+			XsdDateTimeStamp::new(dt.date_time, west).unwrap()
+		);
 
 		// The two bounds must be 28 hours apart (the full `-14:00`..=`+14:00`
 		// timezone range), with `latest` after `earliest`.
@@ -643,8 +646,8 @@ mod tests {
 	/// See: <https://www.w3.org/TR/xmlschema11-2/#dt-dateTime>.
 	#[test]
 	fn ord_without_offset_is_direct() {
-		let a: DateTime = "2024-01-01T12:00:00".parse().unwrap();
-		let b: DateTime = "2024-01-01T13:00:00".parse().unwrap();
+		let a: XsdDateTime = "2024-01-01T12:00:00".parse().unwrap();
+		let b: XsdDateTime = "2024-01-01T13:00:00".parse().unwrap();
 
 		assert!(a < b);
 		assert!(b > a);
@@ -655,17 +658,17 @@ mod tests {
 	/// algorithm still applies, and can yield an incomparable result.
 	#[test]
 	fn ord_with_one_offset_can_be_incomparable() {
-		let a: DateTime = "2024-01-01T12:00:00".parse().unwrap();
-		let b: DateTime = "2024-01-01T13:00:00+00:00".parse().unwrap();
+		let a: XsdDateTime = "2024-01-01T12:00:00".parse().unwrap();
+		let b: XsdDateTime = "2024-01-01T13:00:00+00:00".parse().unwrap();
 
 		assert_eq!(a.partial_cmp(&b), None);
 	}
 
 	#[test]
 	fn eq_uses_earliest_and_latest() {
-		let a: DateTime = "2024-01-01T12:00:00+02:00".parse().unwrap();
-		let b: DateTime = "2024-01-01T12:00:00+02:00".parse().unwrap();
-		let c: DateTime = "2024-01-01T12:00:00+03:00".parse().unwrap();
+		let a: XsdDateTime = "2024-01-01T12:00:00+02:00".parse().unwrap();
+		let b: XsdDateTime = "2024-01-01T12:00:00+02:00".parse().unwrap();
+		let c: XsdDateTime = "2024-01-01T12:00:00+03:00".parse().unwrap();
 
 		assert_eq!(a, b);
 		assert_ne!(a, c);

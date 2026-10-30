@@ -35,7 +35,7 @@ mod integer;
 
 pub use integer::*;
 
-/// Decimal number.
+/// XsdDecimalStr number.
 ///
 /// This is the `decimalLexicalRep` production of the XSD 1.1 Datatypes
 /// specification: <https://www.w3.org/TR/xmlschema11-2/#nt-decimalRep>.
@@ -53,28 +53,28 @@ pub use integer::*;
 /// ```
 #[derive(Validate, StrNewType)]
 #[automaton(crate::lexical::grammar::Decimal)]
-#[newtype(owned(DecimalBuf, derive(PartialEq, Eq)))]
-pub struct Decimal(str);
+#[newtype(owned(XsdDecimalString, derive(PartialEq, Eq)))]
+pub struct XsdDecimalStr(str);
 
-impl XsdLexicalForm for Decimal {
-	type Value = crate::Decimal;
+impl XsdLexicalForm for XsdDecimalStr {
+	type Value = crate::XsdDecimal;
 }
 
-impl<'a> crate::XsdFromStr<'a> for &'a Decimal {
+impl<'a> crate::XsdFromStr<'a> for &'a XsdDecimalStr {
 	fn xsd_from_str(value: &'a str) -> Result<Self, XsdError> {
-		Decimal::new(value).map_err(|_| XsdError::lexical_form(InvalidDecimal(value)))
+		XsdDecimalStr::new(value).map_err(|_| XsdError::lexical_form(InvalidXsdDecimalStr(value)))
 	}
 }
 
 lexical_form! {
-	ty: Decimal,
-	buffer: DecimalBuf,
-	value: crate::Decimal,
-	error: InvalidDecimal,
+	ty: XsdDecimalStr,
+	buffer: XsdDecimalString,
+	value: crate::XsdDecimal,
+	error: InvalidXsdDecimalStr,
 	parent_forms: {}
 }
 
-impl Decimal {
+impl XsdDecimalStr {
 	/// Returns `true` if `self` is positive
 	/// and `false` is the number is zero or negative.
 	pub fn is_positive(&self) -> bool {
@@ -128,10 +128,10 @@ impl Decimal {
 	}
 
 	#[inline(always)]
-	pub fn integer_part(&self) -> &Integer {
+	pub fn integer_part(&self) -> &XsdIntegerStr {
 		match self.split_once('.') {
-			Some((integer_part, _)) => unsafe { Integer::new_unchecked(integer_part) },
-			None => unsafe { Integer::new_unchecked(self) },
+			Some((integer_part, _)) => unsafe { XsdIntegerStr::new_unchecked(integer_part) },
+			None => unsafe { XsdIntegerStr::new_unchecked(self) },
 		}
 	}
 
@@ -154,33 +154,33 @@ impl Decimal {
 	}
 
 	#[inline(always)]
-	pub fn parts(&self) -> (&Integer, Option<&FractionalPart>) {
+	pub fn parts(&self) -> (&XsdIntegerStr, Option<&FractionalPart>) {
 		match self.split_once('.') {
 			Some((i, f)) => unsafe {
 				(
-					Integer::new_unchecked(i),
+					XsdIntegerStr::new_unchecked(i),
 					Some(FractionalPart::new_unchecked(f)),
 				)
 			},
-			None => unsafe { (Integer::new_unchecked(self), None) },
+			None => unsafe { (XsdIntegerStr::new_unchecked(self), None) },
 		}
 	}
 
-	pub fn value(&self) -> crate::Decimal {
+	pub fn value(&self) -> crate::XsdDecimal {
 		self.to_owned().into()
 	}
 }
 
-impl PartialEq for Decimal {
+impl PartialEq for XsdDecimalStr {
 	fn eq(&self, other: &Self) -> bool {
 		self.integer_part() == other.integer_part()
 			&& self.fractional_part() == other.fractional_part()
 	}
 }
 
-impl Eq for Decimal {}
+impl Eq for XsdDecimalStr {}
 
-impl Hash for Decimal {
+impl Hash for XsdDecimalStr {
 	fn hash<H: Hasher>(&self, h: &mut H) {
 		self.integer_part().hash(h);
 		match self.fractional_part() {
@@ -190,7 +190,7 @@ impl Hash for Decimal {
 	}
 }
 
-impl Ord for Decimal {
+impl Ord for XsdDecimalStr {
 	fn cmp(&self, other: &Self) -> Ordering {
 		let sign = self.sign();
 		match sign.cmp(&other.sign()) {
@@ -222,7 +222,7 @@ impl Ord for Decimal {
 	}
 }
 
-impl PartialOrd for Decimal {
+impl PartialOrd for XsdDecimalStr {
 	fn partial_cmp(&self, other: &Self) -> Option<Ordering> {
 		Some(self.cmp(other))
 	}
@@ -231,24 +231,24 @@ impl PartialOrd for Decimal {
 macro_rules! integer_conversion {
 	{ $($ty:ty),* } => {
 		$(
-			impl From<$ty> for DecimalBuf {
+			impl From<$ty> for XsdDecimalString {
 				fn from(i: $ty) -> Self {
-					unsafe { DecimalBuf::new_unchecked(i.to_string()) }
+					unsafe { XsdDecimalString::new_unchecked(i.to_string()) }
 				}
 			}
 
-			impl<'a> TryFrom<&'a Decimal> for $ty {
+			impl<'a> TryFrom<&'a XsdDecimalStr> for $ty {
 				type Error = Overflow;
 
-				fn try_from(i: &'a Decimal) -> Result<Self, Overflow> {
+				fn try_from(i: &'a XsdDecimalStr) -> Result<Self, Overflow> {
 					i.as_str().parse().map_err(|_| Overflow)
 				}
 			}
 
-			impl TryFrom<DecimalBuf> for $ty {
+			impl TryFrom<XsdDecimalString> for $ty {
 				type Error = Overflow;
 
-				fn try_from(i: DecimalBuf) -> Result<Self, Overflow> {
+				fn try_from(i: XsdDecimalString) -> Result<Self, Overflow> {
 					i.as_str().parse().map_err(|_| Overflow)
 				}
 			}
@@ -272,46 +272,46 @@ integer_conversion! {
 const DTOA_CONFIG: pretty_dtoa::FmtFloatConfig =
 	pretty_dtoa::FmtFloatConfig::default().force_no_e_notation();
 
-impl From<f32> for DecimalBuf {
+impl From<f32> for XsdDecimalString {
 	fn from(i: f32) -> Self {
-		unsafe { DecimalBuf::new_unchecked(pretty_dtoa::ftoa(i, DTOA_CONFIG)) }
+		unsafe { XsdDecimalString::new_unchecked(pretty_dtoa::ftoa(i, DTOA_CONFIG)) }
 	}
 }
 
-impl<'a> TryFrom<&'a Decimal> for f32 {
+impl<'a> TryFrom<&'a XsdDecimalStr> for f32 {
 	type Error = <f32 as std::str::FromStr>::Err;
 
-	fn try_from(i: &'a Decimal) -> Result<Self, Self::Error> {
+	fn try_from(i: &'a XsdDecimalStr) -> Result<Self, Self::Error> {
 		i.as_str().parse()
 	}
 }
 
-impl TryFrom<DecimalBuf> for f32 {
+impl TryFrom<XsdDecimalString> for f32 {
 	type Error = <f32 as std::str::FromStr>::Err;
 
-	fn try_from(i: DecimalBuf) -> Result<Self, Self::Error> {
+	fn try_from(i: XsdDecimalString) -> Result<Self, Self::Error> {
 		i.as_str().parse()
 	}
 }
 
-impl From<f64> for DecimalBuf {
+impl From<f64> for XsdDecimalString {
 	fn from(i: f64) -> Self {
-		unsafe { DecimalBuf::new_unchecked(pretty_dtoa::dtoa(i, DTOA_CONFIG)) }
+		unsafe { XsdDecimalString::new_unchecked(pretty_dtoa::dtoa(i, DTOA_CONFIG)) }
 	}
 }
 
-impl<'a> TryFrom<&'a Decimal> for f64 {
+impl<'a> TryFrom<&'a XsdDecimalStr> for f64 {
 	type Error = <f64 as std::str::FromStr>::Err;
 
-	fn try_from(i: &'a Decimal) -> Result<Self, Self::Error> {
+	fn try_from(i: &'a XsdDecimalStr) -> Result<Self, Self::Error> {
 		i.as_str().parse()
 	}
 }
 
-impl TryFrom<DecimalBuf> for f64 {
+impl TryFrom<XsdDecimalString> for f64 {
 	type Error = <f64 as std::str::FromStr>::Err;
 
-	fn try_from(i: DecimalBuf) -> Result<Self, Self::Error> {
+	fn try_from(i: XsdDecimalString) -> Result<Self, Self::Error> {
 		i.as_str().parse()
 	}
 }
@@ -416,7 +416,7 @@ mod tests {
 			("0.0", false, false, true),
 			("-0.0", false, false, true),
 		] {
-			let d = Decimal::new(input).unwrap();
+			let d = XsdDecimalStr::new(input).unwrap();
 			assert_eq!(d.is_negative(), negative, "is_negative({input})");
 			assert_eq!(d.is_positive(), positive, "is_positive({input})");
 			assert_eq!(d.is_zero(), zero, "is_zero({input})");
@@ -425,88 +425,91 @@ mod tests {
 
 	#[test]
 	fn parse_01() {
-		Decimal::new("0").unwrap();
+		XsdDecimalStr::new("0").unwrap();
 	}
 
 	#[test]
 	#[should_panic]
 	fn parse_02() {
-		Decimal::new("+").unwrap();
+		XsdDecimalStr::new("+").unwrap();
 	}
 
 	#[test]
 	#[should_panic]
 	fn parse_03() {
-		Decimal::new("-").unwrap();
+		XsdDecimalStr::new("-").unwrap();
 	}
 
 	#[test]
 	#[should_panic]
 	fn parse_04() {
-		Decimal::new("012+").unwrap();
+		XsdDecimalStr::new("012+").unwrap();
 	}
 
 	#[test]
 	fn parse_05() {
-		Decimal::new("+42").unwrap();
+		XsdDecimalStr::new("+42").unwrap();
 	}
 
 	#[test]
 	fn parse_06() {
-		Decimal::new("-42").unwrap();
+		XsdDecimalStr::new("-42").unwrap();
 	}
 
 	#[test]
 	#[should_panic]
 	fn parse_07() {
-		Decimal::new(".").unwrap();
+		XsdDecimalStr::new(".").unwrap();
 	}
 
 	#[test]
 	fn parse_08() {
-		Decimal::new(".0").unwrap();
+		XsdDecimalStr::new(".0").unwrap();
 	}
 
 	#[test]
 	fn parse_09() {
-		Decimal::new("0.").unwrap();
+		XsdDecimalStr::new("0.").unwrap();
 	}
 
 	#[test]
 	fn parse_signed_empty_rejected() {
 		// A sign alone, or a sign followed only by a decimal point with no
 		// digits at all, is not a valid decimal.
-		Decimal::new("+.").unwrap_err();
-		Decimal::new("-.").unwrap_err();
+		XsdDecimalStr::new("+.").unwrap_err();
+		XsdDecimalStr::new("-.").unwrap_err();
 	}
 
 	#[test]
 	fn parse_10() {
-		Decimal::new("42.0").unwrap();
+		XsdDecimalStr::new("42.0").unwrap();
 	}
 
 	#[test]
 	fn format_01() {
-		assert_eq!(DecimalBuf::from(1.0e10f32).to_string(), "10000000000.0")
+		assert_eq!(
+			XsdDecimalString::from(1.0e10f32).to_string(),
+			"10000000000.0"
+		)
 	}
 
 	#[test]
 	fn cmp_01() {
-		assert!(Decimal::new("0.123").unwrap() < Decimal::new("1.123").unwrap())
+		assert!(XsdDecimalStr::new("0.123").unwrap() < XsdDecimalStr::new("1.123").unwrap())
 	}
 
 	#[test]
 	fn cmp_02() {
-		assert!(Decimal::new("0.123").unwrap() < Decimal::new("0.1234").unwrap())
+		assert!(XsdDecimalStr::new("0.123").unwrap() < XsdDecimalStr::new("0.1234").unwrap())
 	}
 
 	#[test]
 	fn cmp_03() {
-		assert!(Decimal::new("0.123").unwrap() > Decimal::new("-0.123").unwrap())
+		assert!(XsdDecimalStr::new("0.123").unwrap() > XsdDecimalStr::new("-0.123").unwrap())
 	}
 
 	#[test]
 	fn cmp_04() {
-		assert!(Decimal::new("-0.123").unwrap() > Decimal::new("-0.1234").unwrap())
+		assert!(XsdDecimalStr::new("-0.123").unwrap() > XsdDecimalStr::new("-0.1234").unwrap())
 	}
 }

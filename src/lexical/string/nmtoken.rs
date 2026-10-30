@@ -20,24 +20,24 @@ use crate::{lexical::XsdLexicalForm, XsdError};
 /// ```
 #[derive(Validate, StrNewType, PartialEq, Eq, PartialOrd, Ord, Hash)]
 #[automaton(super::grammar::NMToken)]
-#[newtype(owned(NMTokenBuf, derive(PartialEq, Eq, PartialOrd, Ord, Hash)))]
+#[newtype(owned(XsdNMTokenBuf, derive(PartialEq, Eq, PartialOrd, Ord, Hash)))]
 #[cfg_attr(feature = "serde", newtype(serde))]
-pub struct NMToken(str);
+pub struct XsdNMToken(str);
 
-impl XsdLexicalForm for NMToken {
-	type Value = NMTokenBuf;
+impl XsdLexicalForm for XsdNMToken {
+	type Value = XsdNMTokenBuf;
 }
 
-impl<'a> crate::XsdFromStr<'a> for &'a NMToken {
+impl<'a> crate::XsdFromStr<'a> for &'a XsdNMToken {
 	fn xsd_from_str(value: &'a str) -> Result<Self, XsdError> {
-		NMToken::new(value).map_err(|_| XsdError::lexical_form(InvalidNMToken(value)))
+		XsdNMToken::new(value).map_err(|_| XsdError::lexical_form(InvalidXsdNMToken(value)))
 	}
 }
 
-impl<'a> TryFrom<&'a NMToken> for NMTokenBuf {
-	type Error = InvalidNMToken<String>;
+impl<'a> TryFrom<&'a XsdNMToken> for XsdNMTokenBuf {
+	type Error = InvalidXsdNMToken<String>;
 
-	fn try_from(value: &'a NMToken) -> Result<NMTokenBuf, Self::Error> {
+	fn try_from(value: &'a XsdNMToken) -> Result<XsdNMTokenBuf, Self::Error> {
 		value.as_str().parse()
 	}
 }

@@ -3,7 +3,7 @@ use str_newtype::StrNewType;
 
 use crate::{lexical::XsdLexicalForm, XsdError};
 
-/// Language.
+/// XsdLanguage.
 ///
 /// See: <https://www.w3.org/TR/xmlschema11-2/#language>.
 ///
@@ -12,24 +12,24 @@ use crate::{lexical::XsdLexicalForm, XsdError};
 /// ```
 #[derive(Validate, StrNewType, PartialEq, Eq, PartialOrd, Ord, Hash)]
 #[automaton(super::grammar::Language)]
-#[newtype(owned(LanguageBuf, derive(PartialEq, Eq, PartialOrd, Ord, Hash)))]
+#[newtype(owned(XsdLanguageBuf, derive(PartialEq, Eq, PartialOrd, Ord, Hash)))]
 #[cfg_attr(feature = "serde", newtype(serde))]
-pub struct Language(str);
+pub struct XsdLanguage(str);
 
-impl XsdLexicalForm for Language {
-	type Value = LanguageBuf;
+impl XsdLexicalForm for XsdLanguage {
+	type Value = XsdLanguageBuf;
 }
 
-impl<'a> crate::XsdFromStr<'a> for &'a Language {
+impl<'a> crate::XsdFromStr<'a> for &'a XsdLanguage {
 	fn xsd_from_str(value: &'a str) -> Result<Self, XsdError> {
-		Language::new(value).map_err(|_| XsdError::lexical_form(InvalidLanguage(value)))
+		XsdLanguage::new(value).map_err(|_| XsdError::lexical_form(InvalidXsdLanguage(value)))
 	}
 }
 
-impl<'a> TryFrom<&'a Language> for LanguageBuf {
-	type Error = InvalidLanguage<String>;
+impl<'a> TryFrom<&'a XsdLanguage> for XsdLanguageBuf {
+	type Error = InvalidXsdLanguage<String>;
 
-	fn try_from(value: &'a Language) -> Result<LanguageBuf, Self::Error> {
+	fn try_from(value: &'a XsdLanguage) -> Result<XsdLanguageBuf, Self::Error> {
 		value.as_str().parse()
 	}
 }

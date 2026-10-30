@@ -1,9 +1,10 @@
 use crate::lexical::{
-	lexical_form, Decimal, DecimalBuf, Integer, IntegerBuf, NonNegativeInteger, XsdLexicalForm,
+	lexical_form, XsdDecimalStr, XsdDecimalString, XsdIntegerStr, XsdIntegerString, XsdLexicalForm,
+	XsdNonNegativeIntegerStr,
 };
 use crate::XsdError;
 
-use super::{NonNegativeIntegerBuf, Overflow};
+use super::{Overflow, XsdNonNegativeIntegerString};
 use static_automata::Validate;
 use std::cmp::Ordering;
 use std::hash::{Hash, Hasher};
@@ -14,7 +15,7 @@ use str_newtype::StrNewType;
 ///
 /// `positiveInteger` has no numbered grammar production of its own in
 /// the XSD 1.1 Datatypes specification: it is defined by restricting
-/// [`NonNegativeInteger`]'s lexical space with a `minInclusive` of 1.
+/// [`XsdNonNegativeIntegerStr`]'s lexical space with a `minInclusive` of 1.
 /// See: <https://www.w3.org/TR/xmlschema11-2/#positiveInteger>.
 ///
 /// ```abnf
@@ -22,33 +23,33 @@ use str_newtype::StrNewType;
 /// ```
 #[derive(Validate, StrNewType)]
 #[automaton(crate::lexical::grammar::PositiveInteger)]
-#[newtype(owned(PositiveIntegerBuf, derive(PartialEq, Eq)))]
-pub struct PositiveInteger(str);
+#[newtype(owned(XsdPositiveIntegerString, derive(PartialEq, Eq)))]
+pub struct XsdPositiveIntegerStr(str);
 
-impl XsdLexicalForm for PositiveInteger {
-	type Value = crate::PositiveInteger;
+impl XsdLexicalForm for XsdPositiveIntegerStr {
+	type Value = crate::XsdPositiveInteger;
 }
 
-impl<'a> crate::XsdFromStr<'a> for &'a PositiveInteger {
+impl<'a> crate::XsdFromStr<'a> for &'a XsdPositiveIntegerStr {
 	fn xsd_from_str(value: &'a str) -> Result<Self, XsdError> {
-		PositiveInteger::new(value)
-			.map_err(|_| XsdError::lexical_form(InvalidPositiveInteger(value)))
+		XsdPositiveIntegerStr::new(value)
+			.map_err(|_| XsdError::lexical_form(InvalidXsdPositiveIntegerStr(value)))
 	}
 }
 
 lexical_form! {
-	ty: PositiveInteger,
-	buffer: PositiveIntegerBuf,
-	value: crate::PositiveInteger,
-	error: InvalidPositiveInteger,
+	ty: XsdPositiveIntegerStr,
+	buffer: XsdPositiveIntegerString,
+	value: crate::XsdPositiveInteger,
+	error: InvalidXsdPositiveIntegerStr,
 	parent_forms: {
-		as_non_negative_integer: NonNegativeInteger, NonNegativeIntegerBuf,
-		as_integer: Integer, IntegerBuf,
-		as_decimal: Decimal, DecimalBuf
+		as_non_negative_integer: XsdNonNegativeIntegerStr, XsdNonNegativeIntegerString,
+		as_integer: XsdIntegerStr, XsdIntegerString,
+		as_decimal: XsdDecimalStr, XsdDecimalString
 	}
 }
 
-impl PositiveInteger {
+impl XsdPositiveIntegerStr {
 	/// Returns the canonical form of `self` (without leading zeros).
 	pub fn canonical(&self) -> &Self {
 		let mut last_zero = 0;
@@ -68,51 +69,53 @@ impl PositiveInteger {
 	}
 
 	#[inline(always)]
-	pub fn value(&self) -> crate::PositiveInteger {
+	pub fn value(&self) -> crate::XsdPositiveInteger {
 		use num_bigint::BigInt;
-		unsafe { crate::PositiveInteger::new_unchecked(BigInt::from_str(self.as_str()).unwrap()) }
+		unsafe {
+			crate::XsdPositiveInteger::new_unchecked(BigInt::from_str(self.as_str()).unwrap())
+		}
 	}
 }
 
-impl PartialEq for PositiveInteger {
+impl PartialEq for XsdPositiveIntegerStr {
 	fn eq(&self, other: &Self) -> bool {
 		self.as_canonical_str() == other.as_canonical_str()
 	}
 }
 
-impl Eq for PositiveInteger {}
+impl Eq for XsdPositiveIntegerStr {}
 
-impl Hash for PositiveInteger {
+impl Hash for XsdPositiveIntegerStr {
 	fn hash<H: Hasher>(&self, h: &mut H) {
 		self.as_canonical_str().hash(h)
 	}
 }
 
-impl Ord for PositiveInteger {
+impl Ord for XsdPositiveIntegerStr {
 	fn cmp(&self, other: &Self) -> Ordering {
 		self.as_canonical_str().cmp(other.as_canonical_str())
 	}
 }
 
-impl PartialOrd for PositiveInteger {
+impl PartialOrd for XsdPositiveIntegerStr {
 	fn partial_cmp(&self, other: &Self) -> Option<Ordering> {
 		Some(self.cmp(other))
 	}
 }
 
-impl PositiveIntegerBuf {
+impl XsdPositiveIntegerString {
 	pub fn one() -> Self {
 		unsafe { Self::new_unchecked("1".to_string()) }
 	}
 }
 
-impl PartialOrd for PositiveIntegerBuf {
+impl PartialOrd for XsdPositiveIntegerString {
 	fn partial_cmp(&self, other: &Self) -> Option<Ordering> {
 		Some(self.cmp(other))
 	}
 }
 
-impl Ord for PositiveIntegerBuf {
+impl Ord for XsdPositiveIntegerString {
 	fn cmp(&self, other: &Self) -> Ordering {
 		self.as_integer().cmp(other.as_integer())
 	}
@@ -121,24 +124,24 @@ impl Ord for PositiveIntegerBuf {
 macro_rules! number_conversion {
 	{ $($ty:ty),* } => {
 		$(
-			impl From<$ty> for PositiveIntegerBuf {
+			impl From<$ty> for XsdPositiveIntegerString {
 				fn from(i: $ty) -> Self {
-					unsafe { PositiveIntegerBuf::new_unchecked(i.to_string()) }
+					unsafe { XsdPositiveIntegerString::new_unchecked(i.to_string()) }
 				}
 			}
 
-			impl<'a> TryFrom<&'a PositiveInteger> for $ty {
+			impl<'a> TryFrom<&'a XsdPositiveIntegerStr> for $ty {
 				type Error = Overflow;
 
-				fn try_from(i: &'a PositiveInteger) -> Result<Self, Overflow> {
+				fn try_from(i: &'a XsdPositiveIntegerStr) -> Result<Self, Overflow> {
 					i.as_str().parse().map_err(|_| Overflow)
 				}
 			}
 
-			impl TryFrom<PositiveIntegerBuf> for $ty {
+			impl TryFrom<XsdPositiveIntegerString> for $ty {
 				type Error = Overflow;
 
-				fn try_from(i: PositiveIntegerBuf) -> Result<Self, Overflow> {
+				fn try_from(i: XsdPositiveIntegerString) -> Result<Self, Overflow> {
 					i.as_str().parse().map_err(|_| Overflow)
 				}
 			}

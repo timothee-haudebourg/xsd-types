@@ -5,7 +5,7 @@ use crate::{utils::byte_index_of, InvalidTimeValue, XsdError};
 
 use super::{date_time::parse_seconds_decimal, parse_timezone, XsdLexicalForm};
 
-/// Time.
+/// XsdTimeStr.
 ///
 /// This is the `timeLexicalRep` production of the XSD 1.1 Datatypes
 /// specification: <https://www.w3.org/TR/xmlschema11-2/#nt-timeRep>.
@@ -17,10 +17,10 @@ use super::{date_time::parse_seconds_decimal, parse_timezone, XsdLexicalForm};
 /// ```
 #[derive(Validate, StrNewType, PartialEq, Eq, PartialOrd, Ord, Hash)]
 #[automaton(super::grammar::Time)]
-#[newtype(owned(TimeBuf, derive(PartialEq, Eq, PartialOrd, Ord, Hash)))]
-pub struct Time(str);
+#[newtype(owned(XsdTimeString, derive(PartialEq, Eq, PartialOrd, Ord, Hash)))]
+pub struct XsdTimeStr(str);
 
-impl Time {
+impl XsdTimeStr {
 	fn parts(&self) -> Parts<'_> {
 		let seconds_end =
 			byte_index_of(self.0.as_bytes(), 8, [b'+', b'-', b'Z']).unwrap_or(self.0.len());
@@ -37,20 +37,20 @@ impl Time {
 	}
 }
 
-impl XsdLexicalForm for Time {
-	type Value = crate::Time;
+impl XsdLexicalForm for XsdTimeStr {
+	type Value = crate::XsdTime;
 }
 
-impl<'a> crate::XsdFromStr<'a> for &'a Time {
+impl<'a> crate::XsdFromStr<'a> for &'a XsdTimeStr {
 	fn xsd_from_str(value: &'a str) -> Result<Self, XsdError> {
-		Time::new(value).map_err(|_| XsdError::lexical_form(InvalidTime(value)))
+		XsdTimeStr::new(value).map_err(|_| XsdError::lexical_form(InvalidXsdTimeStr(value)))
 	}
 }
 
-impl<'a> TryFrom<&'a Time> for crate::Time {
+impl<'a> TryFrom<&'a XsdTimeStr> for crate::XsdTime {
 	type Error = InvalidTimeValue;
 
-	fn try_from(value: &'a Time) -> Result<crate::Time, Self::Error> {
+	fn try_from(value: &'a XsdTimeStr) -> Result<crate::XsdTime, Self::Error> {
 		value.parts().to_time()
 	}
 }
@@ -78,7 +78,7 @@ impl<'a> Parts<'a> {
 		}
 	}
 
-	fn to_time(&self) -> Result<crate::Time, crate::InvalidTimeValue> {
+	fn to_time(&self) -> Result<crate::XsdTime, crate::InvalidTimeValue> {
 		let (seconds, nanoseconds) = parse_seconds_decimal(self.seconds);
 
 		let time = time::Time::from_hms_nano(
@@ -89,7 +89,7 @@ impl<'a> Parts<'a> {
 		)
 		.map_err(|_| crate::InvalidTimeValue)?;
 
-		crate::Time::new(time, self.timezone.map(|tz| parse_timezone(tz).unwrap()))
+		crate::XsdTime::new(time, self.timezone.map(|tz| parse_timezone(tz).unwrap()))
 			.ok_or(crate::InvalidTimeValue)
 	}
 }
@@ -116,10 +116,10 @@ mod tests {
 		];
 
 		for (input, parts) in vectors {
-			let lexical_repr = Time::new(input).unwrap();
+			let lexical_repr = XsdTimeStr::new(input).unwrap();
 			assert_eq!(lexical_repr.parts(), parts);
 
-			let value = crate::Time::try_from(lexical_repr).unwrap();
+			let value = crate::XsdTime::try_from(lexical_repr).unwrap();
 			assert_eq!(value.to_string().as_str(), input)
 		}
 	}

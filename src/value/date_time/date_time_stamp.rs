@@ -1,11 +1,11 @@
 use std::{cmp::Ordering, fmt, hash::Hash, str::FromStr};
 
 use crate::{
-	format_nanoseconds, format_timezone, lexical::date_time::InvalidDateTimeStamp, Datatype,
+	format_nanoseconds, format_timezone, lexical::date_time::InvalidXsdDateTimeStampStr, Datatype,
 	DateTimeDatatype, DisplayYear, XsdFromStr, XsdTyped, XsdValue,
 };
 
-/// Error raised when the components of a [`DateTimeStamp`] do not form a
+/// Error raised when the components of a [`XsdDateTimeStamp`] do not form a
 /// valid date and time (e.g. an out-of-range day for the given month, or a
 /// timezone offset outside the range permitted by XSD).
 #[derive(Debug, thiserror::Error)]
@@ -17,19 +17,19 @@ pub struct InvalidDateTimeStampValue;
 /// This is the value space of the XSD `dateTimeStamp` datatype: a decoded
 /// `time::PrimitiveDateTime` paired with a mandatory XSD timezone offset, as
 /// opposed to its lexical (string) representation,
-/// [`lexical::DateTimeStamp`](crate::lexical::DateTimeStamp). Unlike
-/// [`DateTime`](crate::DateTime), the offset is never absent, so two
-/// `DateTimeStamp` values are always totally ordered by the instant they
+/// [`lexical::XsdDateTimeStampStr`](crate::lexical::XsdDateTimeStampStr). Unlike
+/// [`XsdDateTime`](crate::XsdDateTime), the offset is never absent, so two
+/// `XsdDateTimeStamp` values are always totally ordered by the instant they
 /// represent.
 /// See: <https://www.w3.org/TR/xmlschema11-2/#dateTimeStamp>.
 #[derive(Debug, Clone, Copy)]
-pub struct DateTimeStamp {
+pub struct XsdDateTimeStamp {
 	date_time: time::PrimitiveDateTime,
 	offset: time::UtcOffset,
 }
 
-impl DateTimeStamp {
-	/// Creates a new `DateTimeStamp`, or returns `None` if `offset` is
+impl XsdDateTimeStamp {
+	/// Creates a new `XsdDateTimeStamp`, or returns `None` if `offset` is
 	/// outside the `-14:00..=+14:00` range permitted by XSD.
 	pub fn new(date_time: time::PrimitiveDateTime, offset: time::UtcOffset) -> Option<Self> {
 		if crate::is_valid_offset(offset) {
@@ -59,13 +59,13 @@ impl DateTimeStamp {
 		self.offset
 	}
 
-	/// Deconstructs this `DateTimeStamp` into its date/time and timezone
+	/// Deconstructs this `XsdDateTimeStamp` into its date/time and timezone
 	/// offset.
 	pub fn into_parts(self) -> (time::PrimitiveDateTime, time::UtcOffset) {
 		(self.date_time, self.offset)
 	}
 
-	/// Returns a `DateTimeStamp` which corresponds to the current time and
+	/// Returns a `XsdDateTimeStamp` which corresponds to the current time and
 	/// date.
 	pub fn now() -> Self {
 		// `OffsetDateTime::now_utc` always has a zero offset, which is always
@@ -73,7 +73,7 @@ impl DateTimeStamp {
 		time::OffsetDateTime::now_utc().try_into().unwrap()
 	}
 
-	/// Returns a `DateTimeStamp` which corresponds to the current time and
+	/// Returns a `XsdDateTimeStamp` which corresponds to the current time and
 	/// date, with millisecond precision (at most).
 	pub fn now_ms() -> Self {
 		let now = time::OffsetDateTime::now_utc();
@@ -86,17 +86,17 @@ impl DateTimeStamp {
 			.unwrap()
 	}
 
-	/// Converts this `DateTimeStamp` into its lexical (string) representation.
+	/// Converts this `XsdDateTimeStamp` into its lexical (string) representation.
 	pub fn into_string(self) -> String {
 		self.to_string()
 	}
 
-	/// Converts this `DateTimeStamp` to a `time::OffsetDateTime`.
+	/// Converts this `XsdDateTimeStamp` to a `time::OffsetDateTime`.
 	pub fn to_offset_date_time(&self) -> time::OffsetDateTime {
 		self.date_time.assume_offset(self.offset)
 	}
 
-	/// Converts this `DateTimeStamp` to a `chrono::DateTime<chrono::FixedOffset>`.
+	/// Converts this `XsdDateTimeStamp` to a `chrono::DateTime<chrono::FixedOffset>`.
 	#[cfg(feature = "chrono")]
 	pub fn to_chrono_date_time(&self) -> chrono::DateTime<chrono::FixedOffset> {
 		use chrono::TimeZone;
@@ -107,85 +107,85 @@ impl DateTimeStamp {
 	}
 }
 
-impl PartialEq for DateTimeStamp {
+impl PartialEq for XsdDateTimeStamp {
 	fn eq(&self, other: &Self) -> bool {
 		self.to_offset_date_time() == other.to_offset_date_time()
 	}
 }
 
 #[cfg(feature = "chrono")]
-impl<Tz: chrono::TimeZone> PartialEq<chrono::DateTime<Tz>> for DateTimeStamp {
+impl<Tz: chrono::TimeZone> PartialEq<chrono::DateTime<Tz>> for XsdDateTimeStamp {
 	fn eq(&self, other: &chrono::DateTime<Tz>) -> bool {
 		self.to_chrono_date_time() == *other
 	}
 }
 
 #[cfg(feature = "chrono")]
-impl<Tz: chrono::TimeZone> PartialEq<DateTimeStamp> for chrono::DateTime<Tz> {
-	fn eq(&self, other: &DateTimeStamp) -> bool {
+impl<Tz: chrono::TimeZone> PartialEq<XsdDateTimeStamp> for chrono::DateTime<Tz> {
+	fn eq(&self, other: &XsdDateTimeStamp) -> bool {
 		*self == other.to_chrono_date_time()
 	}
 }
 
-impl Eq for DateTimeStamp {}
+impl Eq for XsdDateTimeStamp {}
 
-impl Hash for DateTimeStamp {
+impl Hash for XsdDateTimeStamp {
 	fn hash<H: std::hash::Hasher>(&self, state: &mut H) {
 		self.date_time.hash(state);
 		self.offset.hash(state)
 	}
 }
 
-impl PartialOrd for DateTimeStamp {
+impl PartialOrd for XsdDateTimeStamp {
 	fn partial_cmp(&self, other: &Self) -> Option<Ordering> {
 		Some(self.cmp(other))
 	}
 }
 
 #[cfg(feature = "chrono")]
-impl<Tz: chrono::TimeZone> PartialOrd<chrono::DateTime<Tz>> for DateTimeStamp {
+impl<Tz: chrono::TimeZone> PartialOrd<chrono::DateTime<Tz>> for XsdDateTimeStamp {
 	fn partial_cmp(&self, other: &chrono::DateTime<Tz>) -> Option<Ordering> {
 		self.to_chrono_date_time().partial_cmp(other)
 	}
 }
 
 #[cfg(feature = "chrono")]
-impl<Tz: chrono::TimeZone> PartialOrd<DateTimeStamp> for chrono::DateTime<Tz> {
-	fn partial_cmp(&self, other: &DateTimeStamp) -> Option<Ordering> {
+impl<Tz: chrono::TimeZone> PartialOrd<XsdDateTimeStamp> for chrono::DateTime<Tz> {
+	fn partial_cmp(&self, other: &XsdDateTimeStamp) -> Option<Ordering> {
 		self.partial_cmp(&other.to_chrono_date_time())
 	}
 }
 
-impl Ord for DateTimeStamp {
+impl Ord for XsdDateTimeStamp {
 	fn cmp(&self, other: &Self) -> Ordering {
 		self.to_offset_date_time().cmp(&other.to_offset_date_time())
 	}
 }
 
-impl XsdTyped for DateTimeStamp {
+impl XsdTyped for XsdDateTimeStamp {
 	fn datatype(&self) -> Datatype {
 		Datatype::DateTime(DateTimeDatatype::DateTimeStamp)
 	}
 }
 
-impl XsdValue for DateTimeStamp {
-	type LexicalForm = crate::lexical::DateTimeStamp;
+impl XsdValue for XsdDateTimeStamp {
+	type LexicalForm = crate::lexical::XsdDateTimeStampStr;
 
-	fn to_lexical_form(&self) -> crate::lexical::DateTimeStampBuf {
+	fn to_lexical_form(&self) -> crate::lexical::XsdDateTimeStampString {
 		// `Display` emits the canonical lexical form by contract, so it is
 		// always valid and this cannot panic.
-		crate::lexical::DateTimeStampBuf::new(self.to_string())
+		crate::lexical::XsdDateTimeStampString::new(self.to_string())
 			.expect("Display emits a valid dateTimeStamp lexical form")
 	}
 }
 
-impl<'a> XsdFromStr<'a> for DateTimeStamp {
+impl<'a> XsdFromStr<'a> for XsdDateTimeStamp {
 	fn xsd_from_str(lexical_value: &'a str) -> Result<Self, crate::XsdError> {
-		crate::xsd_parse_via::<crate::lexical::DateTimeStamp, Self>(lexical_value)
+		crate::xsd_parse_via::<crate::lexical::XsdDateTimeStampStr, Self>(lexical_value)
 	}
 }
 
-impl fmt::Display for DateTimeStamp {
+impl fmt::Display for XsdDateTimeStamp {
 	fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
 		write!(
 			f,
@@ -203,29 +203,29 @@ impl fmt::Display for DateTimeStamp {
 	}
 }
 
-/// Error raised when parsing a [`DateTimeStamp`] from a string, either
+/// Error raised when parsing a [`XsdDateTimeStamp`] from a string, either
 /// because the input is not a syntactically valid `dateTimeStamp` lexical
 /// representation, or because it does not denote a valid date/time value.
 #[derive(Debug, thiserror::Error)]
 pub enum DateTimeStampFromStrError {
 	#[error("invalid date syntax")]
-	Syntax(#[from] InvalidDateTimeStamp<String>),
+	Syntax(#[from] InvalidXsdDateTimeStampStr<String>),
 
 	#[error(transparent)]
 	Value(#[from] InvalidDateTimeStampValue),
 }
 
-impl FromStr for DateTimeStamp {
+impl FromStr for XsdDateTimeStamp {
 	type Err = DateTimeStampFromStrError;
 
 	fn from_str(s: &str) -> Result<Self, Self::Err> {
-		let lexical_value = crate::lexical::DateTimeStamp::new(s)
-			.map_err(|_| InvalidDateTimeStamp(s.to_owned()))?;
+		let lexical_value = crate::lexical::XsdDateTimeStampStr::new(s)
+			.map_err(|_| InvalidXsdDateTimeStampStr(s.to_owned()))?;
 		Self::try_from(lexical_value).map_err(Into::into)
 	}
 }
 
-impl TryFrom<time::OffsetDateTime> for DateTimeStamp {
+impl TryFrom<time::OffsetDateTime> for XsdDateTimeStamp {
 	type Error = crate::InvalidOffset;
 
 	fn try_from(value: time::OffsetDateTime) -> Result<Self, Self::Error> {
@@ -234,14 +234,14 @@ impl TryFrom<time::OffsetDateTime> for DateTimeStamp {
 	}
 }
 
-impl From<DateTimeStamp> for time::OffsetDateTime {
-	fn from(value: DateTimeStamp) -> Self {
+impl From<XsdDateTimeStamp> for time::OffsetDateTime {
+	fn from(value: XsdDateTimeStamp) -> Self {
 		value.to_offset_date_time()
 	}
 }
 
 #[cfg(feature = "chrono")]
-impl TryFrom<chrono::DateTime<chrono::FixedOffset>> for DateTimeStamp {
+impl TryFrom<chrono::DateTime<chrono::FixedOffset>> for XsdDateTimeStamp {
 	type Error = crate::InvalidOffset;
 
 	fn try_from(value: chrono::DateTime<chrono::FixedOffset>) -> Result<Self, Self::Error> {
@@ -259,7 +259,7 @@ impl TryFrom<chrono::DateTime<chrono::FixedOffset>> for DateTimeStamp {
 }
 
 #[cfg(feature = "chrono")]
-impl From<chrono::DateTime<chrono::Utc>> for DateTimeStamp {
+impl From<chrono::DateTime<chrono::Utc>> for XsdDateTimeStamp {
 	fn from(value: chrono::DateTime<chrono::Utc>) -> Self {
 		// A `chrono::Utc` timestamp always has a zero offset, which is always
 		// within the valid range.
@@ -268,21 +268,21 @@ impl From<chrono::DateTime<chrono::Utc>> for DateTimeStamp {
 }
 
 #[cfg(feature = "chrono")]
-impl From<DateTimeStamp> for chrono::DateTime<chrono::FixedOffset> {
-	fn from(value: DateTimeStamp) -> Self {
+impl From<XsdDateTimeStamp> for chrono::DateTime<chrono::FixedOffset> {
+	fn from(value: XsdDateTimeStamp) -> Self {
 		value.to_chrono_date_time()
 	}
 }
 
 #[cfg(feature = "chrono")]
-impl From<DateTimeStamp> for chrono::DateTime<chrono::Utc> {
-	fn from(value: DateTimeStamp) -> Self {
+impl From<XsdDateTimeStamp> for chrono::DateTime<chrono::Utc> {
+	fn from(value: XsdDateTimeStamp) -> Self {
 		value.to_chrono_date_time().into()
 	}
 }
 
 #[cfg(feature = "serde")]
-impl serde::Serialize for DateTimeStamp {
+impl serde::Serialize for XsdDateTimeStamp {
 	fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
 	where
 		S: serde::Serializer,
@@ -292,7 +292,7 @@ impl serde::Serialize for DateTimeStamp {
 }
 
 #[cfg(feature = "serde")]
-impl<'de> serde::Deserialize<'de> for DateTimeStamp {
+impl<'de> serde::Deserialize<'de> for XsdDateTimeStamp {
 	fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
 	where
 		D: serde::Deserializer<'de>,
@@ -300,7 +300,7 @@ impl<'de> serde::Deserialize<'de> for DateTimeStamp {
 		struct Visitor;
 
 		impl<'de> serde::de::Visitor<'de> for Visitor {
-			type Value = DateTimeStamp;
+			type Value = XsdDateTimeStamp;
 
 			fn expecting(&self, formatter: &mut fmt::Formatter) -> fmt::Result {
 				formatter.write_str("a http://www.w3.org/2001/XMLSchema#dateTime")
@@ -322,7 +322,7 @@ impl<'de> serde::Deserialize<'de> for DateTimeStamp {
 mod tests {
 	#[test]
 	fn to_lexical_form_roundtrip() {
-		use super::DateTimeStamp;
+		use super::XsdDateTimeStamp;
 		use crate::XsdValue;
 
 		for s in [
@@ -331,16 +331,16 @@ mod tests {
 			"2000-01-01T23:59:59.000000001-14:00",
 			"1999-12-31T13:07:12.5+14:00",
 		] {
-			let value: DateTimeStamp = s.parse().unwrap();
+			let value: XsdDateTimeStamp = s.parse().unwrap();
 			let lexical = value.to_lexical_form();
 			assert_eq!(lexical.as_str(), s);
-			assert_eq!(lexical.as_str().parse::<DateTimeStamp>().unwrap(), value);
+			assert_eq!(lexical.as_str().parse::<XsdDateTimeStamp>().unwrap(), value);
 		}
 	}
 
 	#[test]
 	fn new_rejects_out_of_range_offset() {
-		use super::DateTimeStamp;
+		use super::XsdDateTimeStamp;
 
 		let date_time = time::PrimitiveDateTime::new(
 			time::Date::from_calendar_date(2024, time::Month::January, 1).unwrap(),
@@ -348,19 +348,19 @@ mod tests {
 		);
 		let offset = time::UtcOffset::from_hms(15, 0, 0).unwrap();
 
-		assert!(DateTimeStamp::new(date_time, offset).is_none());
+		assert!(XsdDateTimeStamp::new(date_time, offset).is_none());
 	}
 
 	#[test]
 	fn date_and_time_accessors() {
-		use super::DateTimeStamp;
+		use super::XsdDateTimeStamp;
 
 		let date = time::Date::from_calendar_date(2024, time::Month::January, 1).unwrap();
 		let time = time::Time::from_hms(12, 30, 0).unwrap();
 		let date_time = time::PrimitiveDateTime::new(date, time);
 		let offset = time::UtcOffset::UTC;
 
-		let dts = DateTimeStamp::new(date_time, offset).unwrap();
+		let dts = XsdDateTimeStamp::new(date_time, offset).unwrap();
 
 		assert_eq!(dts.date(), date);
 		assert_eq!(dts.time(), time);
@@ -370,33 +370,33 @@ mod tests {
 	#[cfg(feature = "chrono")]
 	#[test]
 	fn chrono_fixed_offset_roundtrip() {
-		use super::DateTimeStamp;
+		use super::XsdDateTimeStamp;
 
 		// A non-zero, non-symmetric offset is essential here: with a `+00:00`
 		// offset, an inverted sign conversion would go unnoticed.
-		let xsd: DateTimeStamp = "2024-01-01T12:00:00+05:00".parse().unwrap();
+		let xsd: XsdDateTimeStamp = "2024-01-01T12:00:00+05:00".parse().unwrap();
 		let chrono: chrono::DateTime<chrono::FixedOffset> = xsd.into();
 
 		assert_eq!(chrono.offset().local_minus_utc(), 5 * 3600);
 
-		let back: DateTimeStamp = chrono.try_into().unwrap();
+		let back: XsdDateTimeStamp = chrono.try_into().unwrap();
 		assert_eq!(xsd, back);
 	}
 
 	#[cfg(feature = "chrono")]
 	#[test]
 	fn chrono_time_roundtrip() {
-		use super::DateTimeStamp;
+		use super::XsdDateTimeStamp;
 
 		let expected_time =
 			time::OffsetDateTime::from_unix_timestamp_nanos(1726661641326000001).unwrap();
-		let xsd: DateTimeStamp = expected_time.try_into().unwrap();
+		let xsd: XsdDateTimeStamp = expected_time.try_into().unwrap();
 		let chrono: chrono::DateTime<chrono::Utc> = xsd.into();
 		let expected_chrono = chrono::DateTime::from_timestamp_millis(1726661641326).unwrap()
 			+ std::time::Duration::from_nanos(1);
 		assert_eq!(chrono, expected_chrono);
 
-		let xsd: DateTimeStamp = chrono.into();
+		let xsd: XsdDateTimeStamp = chrono.into();
 		let time: time::OffsetDateTime = xsd.into();
 		assert_eq!(time, expected_time);
 	}

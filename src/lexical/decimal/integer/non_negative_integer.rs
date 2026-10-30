@@ -1,7 +1,7 @@
 use crate::lexical::{lexical_form, XsdLexicalForm};
 use crate::XsdError;
 
-use super::{Decimal, DecimalBuf, Integer, IntegerBuf, Overflow, Sign};
+use super::{Overflow, Sign, XsdDecimalStr, XsdDecimalString, XsdIntegerStr, XsdIntegerString};
 use static_automata::Validate;
 use std::cmp::Ordering;
 use std::hash::{Hash, Hasher};
@@ -16,7 +16,7 @@ pub use positive_integer::*;
 ///
 /// `nonNegativeInteger` has no numbered grammar production of its own
 /// in the XSD 1.1 Datatypes specification: it is defined by
-/// restricting [`Integer`]'s lexical space with a `minInclusive` of 0.
+/// restricting [`XsdIntegerStr`]'s lexical space with a `minInclusive` of 0.
 /// See: <https://www.w3.org/TR/xmlschema11-2/#nonNegativeInteger>.
 ///
 /// ```abnf
@@ -25,32 +25,32 @@ pub use positive_integer::*;
 /// ```
 #[derive(Validate, StrNewType)]
 #[automaton(crate::lexical::grammar::NonNegativeInteger)]
-#[newtype(owned(NonNegativeIntegerBuf, derive(PartialEq, Eq)))]
-pub struct NonNegativeInteger(str);
+#[newtype(owned(XsdNonNegativeIntegerString, derive(PartialEq, Eq)))]
+pub struct XsdNonNegativeIntegerStr(str);
 
-impl XsdLexicalForm for NonNegativeInteger {
-	type Value = crate::NonNegativeInteger;
+impl XsdLexicalForm for XsdNonNegativeIntegerStr {
+	type Value = crate::XsdNonNegativeInteger;
 }
 
-impl<'a> crate::XsdFromStr<'a> for &'a NonNegativeInteger {
+impl<'a> crate::XsdFromStr<'a> for &'a XsdNonNegativeIntegerStr {
 	fn xsd_from_str(value: &'a str) -> Result<Self, XsdError> {
-		NonNegativeInteger::new(value)
-			.map_err(|_| XsdError::lexical_form(InvalidNonNegativeInteger(value)))
+		XsdNonNegativeIntegerStr::new(value)
+			.map_err(|_| XsdError::lexical_form(InvalidXsdNonNegativeIntegerStr(value)))
 	}
 }
 
 lexical_form! {
-	ty: NonNegativeInteger,
-	buffer: NonNegativeIntegerBuf,
-	value: crate::NonNegativeInteger,
-	error: InvalidNonNegativeInteger,
+	ty: XsdNonNegativeIntegerStr,
+	buffer: XsdNonNegativeIntegerString,
+	value: crate::XsdNonNegativeInteger,
+	error: InvalidXsdNonNegativeIntegerStr,
 	parent_forms: {
-		as_integer: Integer, IntegerBuf,
-		as_decimal: Decimal, DecimalBuf
+		as_integer: XsdIntegerStr, XsdIntegerString,
+		as_decimal: XsdDecimalStr, XsdDecimalString
 	}
 }
 
-impl NonNegativeInteger {
+impl XsdNonNegativeIntegerStr {
 	/// Returns `true` if `self` is positive
 	/// and `false` is the number is zero.
 	pub fn is_positive(&self) -> bool {
@@ -112,29 +112,29 @@ impl NonNegativeInteger {
 	}
 
 	#[inline(always)]
-	pub fn value(&self) -> crate::NonNegativeInteger {
+	pub fn value(&self) -> crate::XsdNonNegativeInteger {
 		use num_bigint::BigInt;
 		unsafe {
-			crate::NonNegativeInteger::new_unchecked(BigInt::from_str(self.as_str()).unwrap())
+			crate::XsdNonNegativeInteger::new_unchecked(BigInt::from_str(self.as_str()).unwrap())
 		}
 	}
 }
 
-impl PartialEq for NonNegativeInteger {
+impl PartialEq for XsdNonNegativeIntegerStr {
 	fn eq(&self, other: &Self) -> bool {
 		self.as_canonical_str() == other.as_canonical_str()
 	}
 }
 
-impl Eq for NonNegativeInteger {}
+impl Eq for XsdNonNegativeIntegerStr {}
 
-impl Hash for NonNegativeInteger {
+impl Hash for XsdNonNegativeIntegerStr {
 	fn hash<H: Hasher>(&self, h: &mut H) {
 		self.as_canonical_str().hash(h)
 	}
 }
 
-impl Ord for NonNegativeInteger {
+impl Ord for XsdNonNegativeIntegerStr {
 	fn cmp(&self, other: &Self) -> Ordering {
 		let sign = self.sign();
 		let other_sign = other.sign();
@@ -165,13 +165,13 @@ impl Ord for NonNegativeInteger {
 	}
 }
 
-impl PartialOrd for NonNegativeInteger {
+impl PartialOrd for XsdNonNegativeIntegerStr {
 	fn partial_cmp(&self, other: &Self) -> Option<Ordering> {
 		Some(self.cmp(other))
 	}
 }
 
-impl NonNegativeIntegerBuf {
+impl XsdNonNegativeIntegerString {
 	pub fn zero() -> Self {
 		unsafe { Self::new_unchecked("0".to_string()) }
 	}
@@ -181,19 +181,19 @@ impl NonNegativeIntegerBuf {
 	}
 }
 
-impl Default for NonNegativeIntegerBuf {
+impl Default for XsdNonNegativeIntegerString {
 	fn default() -> Self {
 		Self::zero()
 	}
 }
 
-impl PartialOrd for NonNegativeIntegerBuf {
+impl PartialOrd for XsdNonNegativeIntegerString {
 	fn partial_cmp(&self, other: &Self) -> Option<Ordering> {
 		Some(self.cmp(other))
 	}
 }
 
-impl Ord for NonNegativeIntegerBuf {
+impl Ord for XsdNonNegativeIntegerString {
 	fn cmp(&self, other: &Self) -> Ordering {
 		self.as_integer().cmp(other.as_integer())
 	}
@@ -202,24 +202,24 @@ impl Ord for NonNegativeIntegerBuf {
 macro_rules! number_conversion {
 	{ $($ty:ty),* } => {
 		$(
-			impl From<$ty> for NonNegativeIntegerBuf {
+			impl From<$ty> for XsdNonNegativeIntegerString {
 				fn from(i: $ty) -> Self {
-					unsafe { NonNegativeIntegerBuf::new_unchecked(i.to_string()) }
+					unsafe { XsdNonNegativeIntegerString::new_unchecked(i.to_string()) }
 				}
 			}
 
-			impl<'a> TryFrom<&'a NonNegativeInteger> for $ty {
+			impl<'a> TryFrom<&'a XsdNonNegativeIntegerStr> for $ty {
 				type Error = Overflow;
 
-				fn try_from(i: &'a NonNegativeInteger) -> Result<Self, Overflow> {
+				fn try_from(i: &'a XsdNonNegativeIntegerStr) -> Result<Self, Overflow> {
 					i.as_str().parse().map_err(|_| Overflow)
 				}
 			}
 
-			impl TryFrom<NonNegativeIntegerBuf> for $ty {
+			impl TryFrom<XsdNonNegativeIntegerString> for $ty {
 				type Error = Overflow;
 
-				fn try_from(i: NonNegativeIntegerBuf) -> Result<Self, Overflow> {
+				fn try_from(i: XsdNonNegativeIntegerString) -> Result<Self, Overflow> {
 					i.as_str().parse().map_err(|_| Overflow)
 				}
 			}
@@ -250,18 +250,18 @@ mod tests {
 	fn parse_negative_zero() {
 		// `-0` is a valid (if unusual) lexical representation of `0`, which
 		// is itself non-negative.
-		NonNegativeInteger::new("-0").unwrap();
-		NonNegativeInteger::new("-000").unwrap();
+		XsdNonNegativeIntegerStr::new("-0").unwrap();
+		XsdNonNegativeIntegerStr::new("-000").unwrap();
 	}
 
 	#[test]
 	fn parse_negative_nonzero_rejected() {
-		NonNegativeInteger::new("-1").unwrap_err();
+		XsdNonNegativeIntegerStr::new("-1").unwrap_err();
 	}
 
 	#[test]
 	fn negative_zero_is_zero() {
-		let n = NonNegativeInteger::new("-0").unwrap();
+		let n = XsdNonNegativeIntegerStr::new("-0").unwrap();
 		assert!(n.is_zero());
 		assert!(!n.is_positive());
 		assert_eq!(n.sign(), Sign::Zero);
@@ -270,7 +270,10 @@ mod tests {
 	#[test]
 	fn negative_zero_canonical_form() {
 		assert_eq!(
-			NonNegativeInteger::new("-00").unwrap().canonical().as_str(),
+			XsdNonNegativeIntegerStr::new("-00")
+				.unwrap()
+				.canonical()
+				.as_str(),
 			"0"
 		);
 	}
@@ -278,8 +281,8 @@ mod tests {
 	#[test]
 	fn negative_zero_equals_zero() {
 		assert_eq!(
-			NonNegativeInteger::new("-0").unwrap(),
-			NonNegativeInteger::new("0").unwrap()
+			XsdNonNegativeIntegerStr::new("-0").unwrap(),
+			XsdNonNegativeIntegerStr::new("0").unwrap()
 		);
 	}
 }

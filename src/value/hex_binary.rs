@@ -21,9 +21,9 @@ pub struct InvalidHex;
 /// This is the value-space representation of the XSD 1.1 `hexBinary`
 /// datatype. See: <https://www.w3.org/TR/xmlschema11-2/#hexBinary>.
 #[derive(Debug, Default, Clone, PartialEq, Eq, PartialOrd, Ord, Hash)]
-pub struct HexBinaryBuf(Vec<u8>);
+pub struct XsdHexBinaryBuf(Vec<u8>);
 
-impl HexBinaryBuf {
+impl XsdHexBinaryBuf {
 	/// Creates a new, empty `hexBinary` value.
 	pub fn new() -> Self {
 		Self::default()
@@ -65,14 +65,14 @@ impl HexBinaryBuf {
 		&self.0
 	}
 
-	/// Borrows `self` as a [`HexBinary`] slice.
-	pub fn as_hex_binary(&self) -> &HexBinary {
-		HexBinary::new(&self.0)
+	/// Borrows `self` as a [`XsdHexBinary`] slice.
+	pub fn as_hex_binary(&self) -> &XsdHexBinary {
+		XsdHexBinary::new(&self.0)
 	}
 
-	/// Mutably borrows `self` as a [`HexBinary`] slice.
-	pub fn as_hex_binary_mut(&mut self) -> &mut HexBinary {
-		HexBinary::new_mut(&mut self.0)
+	/// Mutably borrows `self` as a [`XsdHexBinary`] slice.
+	pub fn as_hex_binary_mut(&mut self) -> &mut XsdHexBinary {
+		XsdHexBinary::new_mut(&mut self.0)
 	}
 }
 
@@ -85,90 +85,91 @@ fn decode_char(c: u8) -> Result<u8, InvalidHex> {
 	}
 }
 
-impl fmt::Display for HexBinaryBuf {
+impl fmt::Display for XsdHexBinaryBuf {
 	fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
 		self.as_hex_binary().fmt(f)
 	}
 }
 
-impl From<Vec<u8>> for HexBinaryBuf {
+impl From<Vec<u8>> for XsdHexBinaryBuf {
 	fn from(value: Vec<u8>) -> Self {
-		HexBinaryBuf::from_bytes(value)
+		XsdHexBinaryBuf::from_bytes(value)
 	}
 }
 
-impl FromStr for HexBinaryBuf {
-	type Err = lexical::InvalidHexBinary<String>;
+impl FromStr for XsdHexBinaryBuf {
+	type Err = lexical::InvalidXsdHexBinaryStr<String>;
 
 	fn from_str(s: &str) -> Result<Self, Self::Err> {
-		let l = lexical::HexBinary::new(s).map_err(|_| lexical::InvalidHexBinary(s.to_owned()))?;
+		let l = lexical::XsdHexBinaryStr::new(s)
+			.map_err(|_| lexical::InvalidXsdHexBinaryStr(s.to_owned()))?;
 		Ok(l.into())
 	}
 }
 
-impl AsRef<[u8]> for HexBinaryBuf {
+impl AsRef<[u8]> for XsdHexBinaryBuf {
 	fn as_ref(&self) -> &[u8] {
 		self.as_bytes()
 	}
 }
 
-impl AsRef<HexBinary> for HexBinaryBuf {
-	fn as_ref(&self) -> &HexBinary {
+impl AsRef<XsdHexBinary> for XsdHexBinaryBuf {
+	fn as_ref(&self) -> &XsdHexBinary {
 		self.as_hex_binary()
 	}
 }
 
-impl Borrow<HexBinary> for HexBinaryBuf {
-	fn borrow(&self) -> &HexBinary {
+impl Borrow<XsdHexBinary> for XsdHexBinaryBuf {
+	fn borrow(&self) -> &XsdHexBinary {
 		self.as_hex_binary()
 	}
 }
 
-impl Deref for HexBinaryBuf {
-	type Target = HexBinary;
+impl Deref for XsdHexBinaryBuf {
+	type Target = XsdHexBinary;
 
 	fn deref(&self) -> &Self::Target {
 		self.as_hex_binary()
 	}
 }
 
-impl DerefMut for HexBinaryBuf {
+impl DerefMut for XsdHexBinaryBuf {
 	fn deref_mut(&mut self) -> &mut Self::Target {
 		self.as_hex_binary_mut()
 	}
 }
 
-impl XsdTyped for HexBinaryBuf {
+impl XsdTyped for XsdHexBinaryBuf {
 	fn datatype(&self) -> Datatype {
 		Datatype::HexBinary
 	}
 }
 
-impl XsdValue for HexBinaryBuf {
-	type LexicalForm = lexical::HexBinary;
+impl XsdValue for XsdHexBinaryBuf {
+	type LexicalForm = lexical::XsdHexBinaryStr;
 
-	fn to_lexical_form(&self) -> lexical::HexBinaryBuf {
+	fn to_lexical_form(&self) -> lexical::XsdHexBinaryString {
 		// `Display` emits the canonical lexical form by contract (upper case
 		// hexadecimal digits), so it is always valid and this cannot panic.
-		lexical::HexBinaryBuf::new(self.to_string())
+		lexical::XsdHexBinaryString::new(self.to_string())
 			.expect("Display emits a valid hexBinary lexical form")
 	}
 }
 
-impl<'a> XsdFromStr<'a> for HexBinaryBuf {
+impl<'a> XsdFromStr<'a> for XsdHexBinaryBuf {
 	fn xsd_from_str(lexical_value: &'a str) -> Result<Self, crate::XsdError> {
-		crate::xsd_parse_via::<lexical::HexBinary, Self>(lexical_value)
+		crate::xsd_parse_via::<lexical::XsdHexBinaryStr, Self>(lexical_value)
 	}
 }
 
-impl<'a> From<&'a lexical::HexBinary> for HexBinaryBuf {
-	fn from(value: &'a lexical::HexBinary) -> HexBinaryBuf {
+impl<'a> From<&'a lexical::XsdHexBinaryStr> for XsdHexBinaryBuf {
+	fn from(value: &'a lexical::XsdHexBinaryStr) -> XsdHexBinaryBuf {
 		value.value()
 	}
 }
 
 #[cfg(feature = "serde")]
-impl serde::Serialize for HexBinaryBuf {
+impl serde::Serialize for XsdHexBinaryBuf {
 	fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
 	where
 		S: serde::Serializer,
@@ -178,7 +179,7 @@ impl serde::Serialize for HexBinaryBuf {
 }
 
 #[cfg(feature = "serde")]
-impl<'de> serde::Deserialize<'de> for HexBinaryBuf {
+impl<'de> serde::Deserialize<'de> for XsdHexBinaryBuf {
 	fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
 	where
 		D: serde::Deserializer<'de>,
@@ -186,7 +187,7 @@ impl<'de> serde::Deserialize<'de> for HexBinaryBuf {
 		struct Visitor;
 
 		impl<'de> serde::de::Visitor<'de> for Visitor {
-			type Value = HexBinaryBuf;
+			type Value = XsdHexBinaryBuf;
 
 			fn expecting(&self, formatter: &mut fmt::Formatter) -> fmt::Result {
 				formatter.write_str("a http://www.w3.org/2001/XMLSchema#hexBinary")
@@ -206,20 +207,20 @@ impl<'de> serde::Deserialize<'de> for HexBinaryBuf {
 
 /// Decoded `hexBinary` value, as a borrowed byte slice.
 ///
-/// This is the borrowed counterpart of [`HexBinaryBuf`], analogous to how
+/// This is the borrowed counterpart of [`XsdHexBinaryBuf`], analogous to how
 /// `str` relates to `String`.
 /// See: <https://www.w3.org/TR/xmlschema11-2/#hexBinary>.
 #[derive(Debug, PartialEq, Eq, PartialOrd, Ord, Hash)]
 #[repr(transparent)]
-pub struct HexBinary([u8]);
+pub struct XsdHexBinary([u8]);
 
-impl HexBinary {
-	/// Wraps a byte slice as a [`HexBinary`] value, without copying it.
+impl XsdHexBinary {
+	/// Wraps a byte slice as a [`XsdHexBinary`] value, without copying it.
 	pub fn new(bytes: &[u8]) -> &Self {
 		unsafe { std::mem::transmute(bytes) }
 	}
 
-	/// Wraps a mutable byte slice as a [`HexBinary`] value, without copying
+	/// Wraps a mutable byte slice as a [`XsdHexBinary`] value, without copying
 	/// it.
 	pub fn new_mut(bytes: &mut [u8]) -> &mut Self {
 		unsafe { std::mem::transmute(bytes) }
@@ -240,25 +241,25 @@ impl HexBinary {
 	}
 }
 
-impl<'a> From<&'a [u8]> for &'a HexBinary {
+impl<'a> From<&'a [u8]> for &'a XsdHexBinary {
 	fn from(value: &'a [u8]) -> Self {
-		HexBinary::new(value)
+		XsdHexBinary::new(value)
 	}
 }
 
-impl<'a> From<&'a mut [u8]> for &'a HexBinary {
+impl<'a> From<&'a mut [u8]> for &'a XsdHexBinary {
 	fn from(value: &'a mut [u8]) -> Self {
-		HexBinary::new(value)
+		XsdHexBinary::new(value)
 	}
 }
 
-impl<'a> From<&'a mut [u8]> for &'a mut HexBinary {
+impl<'a> From<&'a mut [u8]> for &'a mut XsdHexBinary {
 	fn from(value: &'a mut [u8]) -> Self {
-		HexBinary::new_mut(value)
+		XsdHexBinary::new_mut(value)
 	}
 }
 
-impl fmt::Display for HexBinary {
+impl fmt::Display for XsdHexBinary {
 	fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
 		for c in self.chars() {
 			c.fmt(f)?
@@ -268,22 +269,22 @@ impl fmt::Display for HexBinary {
 	}
 }
 
-impl ToOwned for HexBinary {
-	type Owned = HexBinaryBuf;
+impl ToOwned for XsdHexBinary {
+	type Owned = XsdHexBinaryBuf;
 
 	fn to_owned(&self) -> Self::Owned {
-		HexBinaryBuf::from_bytes(self.as_bytes().to_vec())
+		XsdHexBinaryBuf::from_bytes(self.as_bytes().to_vec())
 	}
 }
 
-impl XsdTyped for HexBinary {
+impl XsdTyped for XsdHexBinary {
 	fn datatype(&self) -> Datatype {
 		Datatype::HexBinary
 	}
 }
 
 /// Iterator over the hexadecimal-encoded characters representing a
-/// [`HexBinary`] value.
+/// [`XsdHexBinary`] value.
 pub struct Chars<'a> {
 	pending: Option<char>,
 	bytes: std::slice::Iter<'a, u8>,
@@ -327,7 +328,7 @@ mod tests {
 	#[test]
 	fn encoding() {
 		for (input, expected) in TESTS {
-			let output = HexBinary::new(input).to_string();
+			let output = XsdHexBinary::new(input).to_string();
 			assert_eq!(output, expected)
 		}
 	}
@@ -335,7 +336,7 @@ mod tests {
 	#[test]
 	fn decoding() {
 		for (expected, input) in TESTS {
-			let output = HexBinaryBuf::decode(input).unwrap();
+			let output = XsdHexBinaryBuf::decode(input).unwrap();
 			assert_eq!(output.as_bytes(), expected)
 		}
 	}
@@ -343,16 +344,16 @@ mod tests {
 	#[test]
 	fn to_lexical_form_round_trips() {
 		for input in ["", "00", "FF00", "4D616E", "DEADBEEF"] {
-			let value = <HexBinaryBuf as XsdFromStr>::xsd_from_str(input).unwrap();
+			let value = <XsdHexBinaryBuf as XsdFromStr>::xsd_from_str(input).unwrap();
 			let lexical = value.to_lexical_form();
 			assert_eq!(lexical.as_str(), input);
-			assert_eq!(HexBinaryBuf::from_str(lexical.as_str()).unwrap(), value);
+			assert_eq!(XsdHexBinaryBuf::from_str(lexical.as_str()).unwrap(), value);
 		}
 	}
 
 	#[test]
 	fn to_lexical_form_is_upper_case() {
-		let value = HexBinaryBuf::from_str("deadbeef").unwrap();
+		let value = XsdHexBinaryBuf::from_str("deadbeef").unwrap();
 		assert_eq!(value.to_lexical_form().as_str(), "DEADBEEF");
 	}
 }

@@ -14,9 +14,9 @@ pub struct InvalidNormalizedStr<T = String>(pub T);
 /// See: <https://www.w3.org/TR/xmlschema11-2/#normalizedString>.
 #[derive(Debug, PartialEq, Eq, PartialOrd, Ord, Hash)]
 #[repr(transparent)]
-pub struct NormalizedStr(str);
+pub struct XsdNormalizedStr(str);
 
-impl NormalizedStr {
+impl XsdNormalizedStr {
 	/// Parses and validates the given string as a normalized string.
 	pub fn new(value: &str) -> Result<&Self, InvalidNormalizedStr<&str>> {
 		if Self::validate(value) {
@@ -46,31 +46,31 @@ impl NormalizedStr {
 	}
 }
 
-impl fmt::Display for NormalizedStr {
+impl fmt::Display for XsdNormalizedStr {
 	fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
 		self.0.fmt(f)
 	}
 }
 
-impl ToOwned for NormalizedStr {
-	type Owned = NormalizedString;
+impl ToOwned for XsdNormalizedStr {
+	type Owned = XsdNormalizedString;
 
 	fn to_owned(&self) -> Self::Owned {
-		NormalizedString(self.0.to_owned())
+		XsdNormalizedString(self.0.to_owned())
 	}
 }
 
 /// Owned normalized string value.
 ///
-/// Owned variant of [`NormalizedStr`].
+/// Owned variant of [`XsdNormalizedStr`].
 /// See: <https://www.w3.org/TR/xmlschema11-2/#normalizedString>.
 #[derive(Debug, Clone, PartialEq, Eq, PartialOrd, Ord, Hash)]
-pub struct NormalizedString(String);
+pub struct XsdNormalizedString(String);
 
-impl NormalizedString {
+impl XsdNormalizedString {
 	/// Parses and validates the given string as a normalized string.
 	pub fn new(value: String) -> Result<Self, InvalidNormalizedStr> {
-		if NormalizedStr::validate(&value) {
+		if XsdNormalizedStr::validate(&value) {
 			Ok(Self(value))
 		} else {
 			Err(InvalidNormalizedStr(value))
@@ -87,9 +87,9 @@ impl NormalizedString {
 		Self(value)
 	}
 
-	/// Borrows this normalized string as a [`NormalizedStr`].
-	pub fn as_normalized_str(&self) -> &NormalizedStr {
-		unsafe { NormalizedStr::new_unchecked(self.0.as_str()) }
+	/// Borrows this normalized string as a [`XsdNormalizedStr`].
+	pub fn as_normalized_str(&self) -> &XsdNormalizedStr {
+		unsafe { XsdNormalizedStr::new_unchecked(self.0.as_str()) }
 	}
 
 	/// Converts this normalized string into a plain [`String`].
@@ -98,37 +98,37 @@ impl NormalizedString {
 	}
 }
 
-impl fmt::Display for NormalizedString {
+impl fmt::Display for XsdNormalizedString {
 	fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
 		self.0.fmt(f)
 	}
 }
 
-impl Borrow<NormalizedStr> for NormalizedString {
-	fn borrow(&self) -> &NormalizedStr {
+impl Borrow<XsdNormalizedStr> for XsdNormalizedString {
+	fn borrow(&self) -> &XsdNormalizedStr {
 		self.as_normalized_str()
 	}
 }
 
-impl Deref for NormalizedString {
-	type Target = NormalizedStr;
+impl Deref for XsdNormalizedString {
+	type Target = XsdNormalizedStr;
 
 	fn deref(&self) -> &Self::Target {
 		self.as_normalized_str()
 	}
 }
 
-impl FromStr for NormalizedString {
+impl FromStr for XsdNormalizedString {
 	type Err = InvalidNormalizedStr<String>;
 
 	fn from_str(s: &str) -> Result<Self, Self::Err> {
 		let lexical_value =
-			NormalizedStr::new(s).map_err(|_| InvalidNormalizedStr(s.to_owned()))?;
+			XsdNormalizedStr::new(s).map_err(|_| InvalidNormalizedStr(s.to_owned()))?;
 		Ok(lexical_value.to_owned())
 	}
 }
 
-impl TryFrom<String> for NormalizedString {
+impl TryFrom<String> for XsdNormalizedString {
 	type Error = InvalidNormalizedStr<String>;
 
 	fn try_from(value: String) -> Result<Self, Self::Error> {
@@ -137,7 +137,7 @@ impl TryFrom<String> for NormalizedString {
 }
 
 #[cfg(feature = "serde")]
-impl serde::Serialize for NormalizedString {
+impl serde::Serialize for XsdNormalizedString {
 	fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
 	where
 		S: serde::Serializer,
@@ -147,7 +147,7 @@ impl serde::Serialize for NormalizedString {
 }
 
 #[cfg(feature = "serde")]
-impl<'de> serde::Deserialize<'de> for NormalizedString {
+impl<'de> serde::Deserialize<'de> for XsdNormalizedString {
 	fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
 	where
 		D: serde::Deserializer<'de>,
@@ -155,7 +155,7 @@ impl<'de> serde::Deserialize<'de> for NormalizedString {
 		struct Visitor;
 
 		impl<'de> serde::de::Visitor<'de> for Visitor {
-			type Value = NormalizedString;
+			type Value = XsdNormalizedString;
 
 			fn expecting(&self, formatter: &mut fmt::Formatter) -> fmt::Result {
 				formatter.write_str("a http://www.w3.org/2001/XMLSchema#normalizedString")
@@ -173,22 +173,22 @@ impl<'de> serde::Deserialize<'de> for NormalizedString {
 	}
 }
 
-impl<'a> crate::XsdFromStr<'a> for NormalizedString {
+impl<'a> crate::XsdFromStr<'a> for XsdNormalizedString {
 	fn xsd_from_str(lexical_value: &'a str) -> Result<Self, crate::XsdError> {
-		crate::xsd_parse_via::<crate::lexical::NormalizedStr, Self>(lexical_value)
+		crate::xsd_parse_via::<crate::lexical::XsdNormalizedStr, Self>(lexical_value)
 	}
 }
 
-impl crate::XsdTyped for NormalizedString {
+impl crate::XsdTyped for XsdNormalizedString {
 	fn datatype(&self) -> crate::Datatype {
 		crate::NormalizedStringDatatype::NormalizedString.into()
 	}
 }
 
-impl crate::XsdValue for NormalizedString {
-	type LexicalForm = crate::lexical::NormalizedStr;
+impl crate::XsdValue for XsdNormalizedString {
+	type LexicalForm = crate::lexical::XsdNormalizedStr;
 
-	fn to_lexical_form(&self) -> NormalizedString {
+	fn to_lexical_form(&self) -> XsdNormalizedString {
 		self.clone()
 	}
 }
@@ -197,16 +197,16 @@ impl crate::XsdValue for NormalizedString {
 mod tests {
 	use crate::{XsdFromStr, XsdValue};
 
-	use super::NormalizedString;
+	use super::XsdNormalizedString;
 
 	#[test]
 	fn lexical_form_round_trip() {
 		let input = "a normalized  string";
-		let value = NormalizedString::xsd_from_str(input).unwrap();
+		let value = XsdNormalizedString::xsd_from_str(input).unwrap();
 		let lexical = value.to_lexical_form();
 		assert_eq!(lexical.as_str(), input);
 		assert_eq!(
-			NormalizedString::xsd_from_str(lexical.as_str()).unwrap(),
+			XsdNormalizedString::xsd_from_str(lexical.as_str()).unwrap(),
 			value
 		);
 	}

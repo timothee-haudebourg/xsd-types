@@ -4,7 +4,7 @@ use super::XsdLexicalForm;
 use static_automata::Validate;
 use str_newtype::StrNewType;
 
-/// Day Time Duration.
+/// Day XsdTimeStr XsdDurationStr.
 ///
 /// This is the `dayTimeDurationLexicalRep` production of the XSD 1.1
 /// Datatypes specification:
@@ -27,10 +27,10 @@ use str_newtype::StrNewType;
 /// ```
 #[derive(Validate, StrNewType, PartialEq, Eq, PartialOrd, Ord, Hash)]
 #[automaton(super::super::grammar::DayTimeDuration)]
-#[newtype(owned(DayTimeDurationBuf, derive(PartialEq, Eq, PartialOrd, Ord, Hash)))]
-pub struct DayTimeDuration(str);
+#[newtype(owned(XsdDayTimeDurationString, derive(PartialEq, Eq, PartialOrd, Ord, Hash)))]
+pub struct XsdDayTimeDurationStr(str);
 
-impl DayTimeDuration {
+impl XsdDayTimeDurationStr {
 	pub fn parts(&self) -> Parts<'_> {
 		enum State {
 			Sign,
@@ -99,19 +99,19 @@ impl DayTimeDuration {
 	}
 }
 
-impl XsdLexicalForm for DayTimeDuration {
-	type Value = crate::DayTimeDuration;
+impl XsdLexicalForm for XsdDayTimeDurationStr {
+	type Value = crate::XsdDayTimeDuration;
 }
 
-impl<'a> crate::XsdFromStr<'a> for &'a DayTimeDuration {
+impl<'a> crate::XsdFromStr<'a> for &'a XsdDayTimeDurationStr {
 	fn xsd_from_str(value: &'a str) -> Result<Self, XsdError> {
-		DayTimeDuration::new(value)
-			.map_err(|_| XsdError::lexical_form(InvalidDayTimeDuration(value)))
+		XsdDayTimeDurationStr::new(value)
+			.map_err(|_| XsdError::lexical_form(InvalidXsdDayTimeDurationStr(value)))
 	}
 }
 
-impl<'a> From<&'a DayTimeDuration> for crate::DayTimeDuration {
-	fn from(value: &'a DayTimeDuration) -> crate::DayTimeDuration {
+impl<'a> From<&'a XsdDayTimeDurationStr> for crate::XsdDayTimeDuration {
+	fn from(value: &'a XsdDayTimeDurationStr) -> crate::XsdDayTimeDuration {
 		value.parts().to_duration()
 	}
 }
@@ -141,7 +141,7 @@ impl<'a> Parts<'a> {
 			second,
 		}
 	}
-	fn to_duration(&self) -> crate::DayTimeDuration {
+	fn to_duration(&self) -> crate::XsdDayTimeDuration {
 		let mut seconds = 0u32;
 
 		if let Some(d) = self.day {
@@ -167,7 +167,7 @@ impl<'a> Parts<'a> {
 			nano_seconds = ns;
 		}
 
-		crate::DayTimeDuration::new(self.is_negative, seconds, nano_seconds)
+		crate::XsdDayTimeDuration::new(self.is_negative, seconds, nano_seconds)
 	}
 }
 
@@ -184,10 +184,10 @@ mod tests {
 		)];
 
 		for (input, parts, normalized) in vectors {
-			let lexical_repr = DayTimeDuration::new(input).unwrap();
+			let lexical_repr = XsdDayTimeDurationStr::new(input).unwrap();
 			assert_eq!(lexical_repr.parts(), parts);
 
-			let value: crate::DayTimeDuration = lexical_repr.into();
+			let value: crate::XsdDayTimeDuration = lexical_repr.into();
 			assert_eq!(value.to_string().as_str(), normalized)
 		}
 	}

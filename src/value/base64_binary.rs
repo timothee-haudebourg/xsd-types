@@ -26,9 +26,9 @@ pub struct InvalidBase64;
 /// This is the value-space representation of the XSD 1.1 `base64Binary`
 /// datatype. See: <https://www.w3.org/TR/xmlschema11-2/#base64Binary>.
 #[derive(Debug, Default, Clone, PartialEq, Eq, PartialOrd, Ord, Hash)]
-pub struct Base64BinaryBuf(Vec<u8>);
+pub struct XsdBase64BinaryBuf(Vec<u8>);
 
-impl Base64BinaryBuf {
+impl XsdBase64BinaryBuf {
 	/// Creates a new, empty `base64Binary` value.
 	pub fn new() -> Self {
 		Self::default()
@@ -83,14 +83,14 @@ impl Base64BinaryBuf {
 		&self.0
 	}
 
-	/// Borrows `self` as a [`Base64Binary`] slice.
-	pub fn as_base64_binary(&self) -> &Base64Binary {
-		Base64Binary::new(&self.0)
+	/// Borrows `self` as a [`XsdBase64Binary`] slice.
+	pub fn as_base64_binary(&self) -> &XsdBase64Binary {
+		XsdBase64Binary::new(&self.0)
 	}
 
-	/// Mutably borrows `self` as a [`Base64Binary`] slice.
-	pub fn as_base64_binary_mut(&mut self) -> &mut Base64Binary {
-		Base64Binary::new_mut(&mut self.0)
+	/// Mutably borrows `self` as a [`XsdBase64Binary`] slice.
+	pub fn as_base64_binary_mut(&mut self) -> &mut XsdBase64Binary {
+		XsdBase64Binary::new_mut(&mut self.0)
 	}
 }
 
@@ -105,92 +105,92 @@ fn decode_char(c: u8) -> Result<u8, InvalidBase64> {
 	}
 }
 
-impl fmt::Display for Base64BinaryBuf {
+impl fmt::Display for XsdBase64BinaryBuf {
 	fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
 		self.as_base64_binary().fmt(f)
 	}
 }
 
-impl From<Vec<u8>> for Base64BinaryBuf {
+impl From<Vec<u8>> for XsdBase64BinaryBuf {
 	fn from(value: Vec<u8>) -> Self {
-		Base64BinaryBuf::from_bytes(value)
+		XsdBase64BinaryBuf::from_bytes(value)
 	}
 }
 
-impl FromStr for Base64BinaryBuf {
-	type Err = lexical::InvalidBase64Binary<String>;
+impl FromStr for XsdBase64BinaryBuf {
+	type Err = lexical::InvalidXsdBase64BinaryStr<String>;
 
 	fn from_str(s: &str) -> Result<Self, Self::Err> {
-		let l = lexical::Base64Binary::new(s)
-			.map_err(|_| lexical::InvalidBase64Binary(s.to_owned()))?;
+		let l = lexical::XsdBase64BinaryStr::new(s)
+			.map_err(|_| lexical::InvalidXsdBase64BinaryStr(s.to_owned()))?;
 		Ok(l.into())
 	}
 }
 
-impl AsRef<[u8]> for Base64BinaryBuf {
+impl AsRef<[u8]> for XsdBase64BinaryBuf {
 	fn as_ref(&self) -> &[u8] {
 		self.as_bytes()
 	}
 }
 
-impl AsRef<Base64Binary> for Base64BinaryBuf {
-	fn as_ref(&self) -> &Base64Binary {
+impl AsRef<XsdBase64Binary> for XsdBase64BinaryBuf {
+	fn as_ref(&self) -> &XsdBase64Binary {
 		self.as_base64_binary()
 	}
 }
 
-impl Borrow<Base64Binary> for Base64BinaryBuf {
-	fn borrow(&self) -> &Base64Binary {
+impl Borrow<XsdBase64Binary> for XsdBase64BinaryBuf {
+	fn borrow(&self) -> &XsdBase64Binary {
 		self.as_base64_binary()
 	}
 }
 
-impl Deref for Base64BinaryBuf {
-	type Target = Base64Binary;
+impl Deref for XsdBase64BinaryBuf {
+	type Target = XsdBase64Binary;
 
 	fn deref(&self) -> &Self::Target {
 		self.as_base64_binary()
 	}
 }
 
-impl DerefMut for Base64BinaryBuf {
+impl DerefMut for XsdBase64BinaryBuf {
 	fn deref_mut(&mut self) -> &mut Self::Target {
 		self.as_base64_binary_mut()
 	}
 }
 
-impl XsdTyped for Base64BinaryBuf {
+impl XsdTyped for XsdBase64BinaryBuf {
 	fn datatype(&self) -> Datatype {
 		Datatype::Base64Binary
 	}
 }
 
-impl XsdValue for Base64BinaryBuf {
-	type LexicalForm = lexical::Base64Binary;
+impl XsdValue for XsdBase64BinaryBuf {
+	type LexicalForm = lexical::XsdBase64BinaryStr;
 
-	fn to_lexical_form(&self) -> lexical::Base64BinaryBuf {
+	fn to_lexical_form(&self) -> lexical::XsdBase64BinaryString {
 		// `Display` emits the canonical lexical form by contract (padded
 		// base64 without whitespace), so it is always valid and this cannot
 		// panic.
-		lexical::Base64BinaryBuf::new(self.to_string())
+		lexical::XsdBase64BinaryString::new(self.to_string())
 			.expect("Display emits a valid base64Binary lexical form")
 	}
 }
 
-impl<'a> XsdFromStr<'a> for Base64BinaryBuf {
+impl<'a> XsdFromStr<'a> for XsdBase64BinaryBuf {
 	fn xsd_from_str(lexical_value: &'a str) -> Result<Self, crate::XsdError> {
-		crate::xsd_parse_via::<lexical::Base64Binary, Self>(lexical_value)
+		crate::xsd_parse_via::<lexical::XsdBase64BinaryStr, Self>(lexical_value)
 	}
 }
 
-impl<'a> From<&'a lexical::Base64Binary> for Base64BinaryBuf {
-	fn from(value: &'a lexical::Base64Binary) -> Base64BinaryBuf {
+impl<'a> From<&'a lexical::XsdBase64BinaryStr> for XsdBase64BinaryBuf {
+	fn from(value: &'a lexical::XsdBase64BinaryStr) -> XsdBase64BinaryBuf {
 		value.value()
 	}
 }
 
 #[cfg(feature = "serde")]
-impl serde::Serialize for Base64BinaryBuf {
+impl serde::Serialize for XsdBase64BinaryBuf {
 	fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
 	where
 		S: serde::Serializer,
@@ -200,7 +200,7 @@ impl serde::Serialize for Base64BinaryBuf {
 }
 
 #[cfg(feature = "serde")]
-impl<'de> serde::Deserialize<'de> for Base64BinaryBuf {
+impl<'de> serde::Deserialize<'de> for XsdBase64BinaryBuf {
 	fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
 	where
 		D: serde::Deserializer<'de>,
@@ -208,7 +208,7 @@ impl<'de> serde::Deserialize<'de> for Base64BinaryBuf {
 		struct Visitor;
 
 		impl<'de> serde::de::Visitor<'de> for Visitor {
-			type Value = Base64BinaryBuf;
+			type Value = XsdBase64BinaryBuf;
 
 			fn expecting(&self, formatter: &mut fmt::Formatter) -> fmt::Result {
 				formatter.write_str("a http://www.w3.org/2001/XMLSchema#base64Binary")
@@ -228,20 +228,20 @@ impl<'de> serde::Deserialize<'de> for Base64BinaryBuf {
 
 /// Decoded `base64Binary` value, as a borrowed byte slice.
 ///
-/// This is the borrowed counterpart of [`Base64BinaryBuf`], analogous to how
+/// This is the borrowed counterpart of [`XsdBase64BinaryBuf`], analogous to how
 /// `str` relates to `String`.
 /// See: <https://www.w3.org/TR/xmlschema11-2/#base64Binary>.
 #[derive(Debug, PartialEq, Eq, PartialOrd, Ord, Hash)]
 #[repr(transparent)]
-pub struct Base64Binary([u8]);
+pub struct XsdBase64Binary([u8]);
 
-impl Base64Binary {
-	/// Wraps a byte slice as a [`Base64Binary`] value, without copying it.
+impl XsdBase64Binary {
+	/// Wraps a byte slice as a [`XsdBase64Binary`] value, without copying it.
 	pub fn new(bytes: &[u8]) -> &Self {
 		unsafe { std::mem::transmute(bytes) }
 	}
 
-	/// Wraps a mutable byte slice as a [`Base64Binary`] value, without
+	/// Wraps a mutable byte slice as a [`XsdBase64Binary`] value, without
 	/// copying it.
 	pub fn new_mut(bytes: &mut [u8]) -> &mut Self {
 		unsafe { std::mem::transmute(bytes) }
@@ -264,25 +264,25 @@ impl Base64Binary {
 	}
 }
 
-impl<'a> From<&'a [u8]> for &'a Base64Binary {
+impl<'a> From<&'a [u8]> for &'a XsdBase64Binary {
 	fn from(value: &'a [u8]) -> Self {
-		Base64Binary::new(value)
+		XsdBase64Binary::new(value)
 	}
 }
 
-impl<'a> From<&'a mut [u8]> for &'a Base64Binary {
+impl<'a> From<&'a mut [u8]> for &'a XsdBase64Binary {
 	fn from(value: &'a mut [u8]) -> Self {
-		Base64Binary::new(value)
+		XsdBase64Binary::new(value)
 	}
 }
 
-impl<'a> From<&'a mut [u8]> for &'a mut Base64Binary {
+impl<'a> From<&'a mut [u8]> for &'a mut XsdBase64Binary {
 	fn from(value: &'a mut [u8]) -> Self {
-		Base64Binary::new_mut(value)
+		XsdBase64Binary::new_mut(value)
 	}
 }
 
-impl fmt::Display for Base64Binary {
+impl fmt::Display for XsdBase64Binary {
 	fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
 		for c in self.chars() {
 			c.fmt(f)?;
@@ -292,16 +292,16 @@ impl fmt::Display for Base64Binary {
 	}
 }
 
-impl ToOwned for Base64Binary {
-	type Owned = Base64BinaryBuf;
+impl ToOwned for XsdBase64Binary {
+	type Owned = XsdBase64BinaryBuf;
 
 	fn to_owned(&self) -> Self::Owned {
-		Base64BinaryBuf::from_bytes(self.as_bytes().to_vec())
+		XsdBase64BinaryBuf::from_bytes(self.as_bytes().to_vec())
 	}
 }
 
 /// Iterator over the base64-encoded characters representing a
-/// [`Base64Binary`] value.
+/// [`XsdBase64Binary`] value.
 pub struct Chars<'a> {
 	offset: u8,
 	rest: u8,
@@ -348,7 +348,7 @@ impl<'a> Iterator for Chars<'a> {
 	}
 }
 
-impl XsdTyped for Base64Binary {
+impl XsdTyped for XsdBase64Binary {
 	fn datatype(&self) -> Datatype {
 		Datatype::Base64Binary
 	}
@@ -376,7 +376,7 @@ mod tests {
 	#[test]
 	fn encoding() {
 		for (input, expected) in TESTS {
-			let output = Base64Binary::new(input).to_string();
+			let output = XsdBase64Binary::new(input).to_string();
 			assert_eq!(output, expected)
 		}
 	}
@@ -384,7 +384,7 @@ mod tests {
 	#[test]
 	fn decoding() {
 		for (expected, input) in TESTS {
-			let output = Base64BinaryBuf::decode(input).unwrap();
+			let output = XsdBase64BinaryBuf::decode(input).unwrap();
 			assert_eq!(output.as_bytes(), expected)
 		}
 	}
@@ -400,17 +400,23 @@ mod tests {
 			"TWFu",
 			"TWFueSBoYW5kcyBtYWtlIGxpZ2h0IHdvcmsu",
 		] {
-			let value = <Base64BinaryBuf as XsdFromStr>::xsd_from_str(input).unwrap();
+			let value = <XsdBase64BinaryBuf as XsdFromStr>::xsd_from_str(input).unwrap();
 			let lexical = value.to_lexical_form();
 			assert_eq!(lexical.as_str(), input);
-			assert_eq!(Base64BinaryBuf::from_str(lexical.as_str()).unwrap(), value);
+			assert_eq!(
+				XsdBase64BinaryBuf::from_str(lexical.as_str()).unwrap(),
+				value
+			);
 		}
 	}
 
 	#[test]
 	fn to_lexical_form_of_all_byte_values() {
-		let value = Base64BinaryBuf::from_bytes((0..=255).collect());
+		let value = XsdBase64BinaryBuf::from_bytes((0..=255).collect());
 		let lexical = value.to_lexical_form();
-		assert_eq!(Base64BinaryBuf::from_str(lexical.as_str()).unwrap(), value);
+		assert_eq!(
+			XsdBase64BinaryBuf::from_str(lexical.as_str()).unwrap(),
+			value
+		);
 	}
 }

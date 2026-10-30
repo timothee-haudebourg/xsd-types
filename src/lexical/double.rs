@@ -1,15 +1,15 @@
-use super::{lexical_form, Decimal, Float, FloatBuf, Integer, Overflow};
+use super::{lexical_form, Overflow, XsdDecimalStr, XsdFloatStr, XsdFloatString, XsdIntegerStr};
 use crate::lexical::XsdLexicalForm;
 use crate::XsdError;
 use static_automata::Validate;
 use std::hash::Hash;
 use str_newtype::StrNewType;
 
-/// Double number.
+/// XsdDoubleStr number.
 ///
 /// This is the `doubleRep` production of the XSD 1.1 Datatypes
 /// specification: <https://www.w3.org/TR/xmlschema11-2/#nt-doubleRep>.
-/// It is identical to the `floatRep` production used by [`Float`]; only
+/// It is identical to the `floatRep` production used by [`XsdFloatStr`]; only
 /// the value spaces (precision) of `float` and `double` differ.
 ///
 /// ```abnf
@@ -21,32 +21,34 @@ use str_newtype::StrNewType;
 /// ```
 #[derive(Validate, StrNewType)]
 #[automaton(crate::lexical::grammar::Double)]
-#[newtype(owned(DoubleBuf, derive(PartialEq, Eq)))]
-pub struct Double(str);
+#[newtype(owned(XsdDoubleString, derive(PartialEq, Eq)))]
+pub struct XsdDoubleStr(str);
 
-impl XsdLexicalForm for Double {
-	type Value = crate::Double;
+impl XsdLexicalForm for XsdDoubleStr {
+	type Value = crate::XsdDouble;
 }
 
-impl<'a> crate::XsdFromStr<'a> for &'a Double {
+impl<'a> crate::XsdFromStr<'a> for &'a XsdDoubleStr {
 	fn xsd_from_str(value: &'a str) -> Result<Self, XsdError> {
-		Double::new(value).map_err(|_| XsdError::lexical_form(InvalidDouble(value)))
+		XsdDoubleStr::new(value).map_err(|_| XsdError::lexical_form(InvalidXsdDoubleStr(value)))
 	}
 }
 
 lexical_form! {
-	ty: Double,
-	buffer: DoubleBuf,
-	value: crate::Double,
-	error: InvalidDouble,
+	ty: XsdDoubleStr,
+	buffer: XsdDoubleString,
+	value: crate::XsdDouble,
+	error: InvalidXsdDoubleStr,
 	parent_forms: {}
 }
 
-pub const NAN: &Double = unsafe { Double::new_unchecked_from_bytes(b"NaN") };
-pub const POSITIVE_INFINITY: &Double = unsafe { Double::new_unchecked_from_bytes(b"INF") };
-pub const NEGATIVE_INFINITY: &Double = unsafe { Double::new_unchecked_from_bytes(b"-INF") };
+pub const NAN: &XsdDoubleStr = unsafe { XsdDoubleStr::new_unchecked_from_bytes(b"NaN") };
+pub const POSITIVE_INFINITY: &XsdDoubleStr =
+	unsafe { XsdDoubleStr::new_unchecked_from_bytes(b"INF") };
+pub const NEGATIVE_INFINITY: &XsdDoubleStr =
+	unsafe { XsdDoubleStr::new_unchecked_from_bytes(b"-INF") };
 
-impl Double {
+impl XsdDoubleStr {
 	pub fn is_infinite(&self) -> bool {
 		matches!(self.as_str(), "INF" | "+INF" | "-INF")
 	}
@@ -69,40 +71,40 @@ impl Double {
 		None
 	}
 
-	pub fn mantissa(&self) -> Option<&Decimal> {
+	pub fn mantissa(&self) -> Option<&XsdDecimalStr> {
 		if self.is_finite() {
 			Some(match self.exponent_separator_index() {
-				Some(e) => unsafe { Decimal::new_unchecked(&self.0[..e]) },
-				None => unsafe { Decimal::new_unchecked(&self.0) },
+				Some(e) => unsafe { XsdDecimalStr::new_unchecked(&self.0[..e]) },
+				None => unsafe { XsdDecimalStr::new_unchecked(&self.0) },
 			})
 		} else {
 			None
 		}
 	}
 
-	pub fn exponent(&self) -> Option<&Integer> {
+	pub fn exponent(&self) -> Option<&XsdIntegerStr> {
 		if self.is_finite() {
 			self.exponent_separator_index()
-				.map(|e| unsafe { Integer::new_unchecked(&self.0[(e + 1)..]) })
+				.map(|e| unsafe { XsdIntegerStr::new_unchecked(&self.0[(e + 1)..]) })
 		} else {
 			None
 		}
 	}
 
-	pub fn value(&self) -> crate::Double {
+	pub fn value(&self) -> crate::XsdDouble {
 		self.into()
 	}
 }
 
-impl PartialEq for Double {
+impl PartialEq for XsdDoubleStr {
 	fn eq(&self, other: &Self) -> bool {
 		self.as_bytes() == other.as_bytes()
 	}
 }
 
-impl Eq for Double {}
+impl Eq for XsdDoubleStr {}
 
-impl Hash for Double {
+impl Hash for XsdDoubleStr {
 	fn hash<H: std::hash::Hasher>(&self, state: &mut H) {
 		self.as_bytes().hash(state)
 	}
@@ -111,24 +113,24 @@ impl Hash for Double {
 macro_rules! integer_conversion {
 	{ $($ty:ty),* } => {
 		$(
-			impl From<$ty> for DoubleBuf {
+			impl From<$ty> for XsdDoubleString {
 				fn from(i: $ty) -> Self {
-					unsafe { DoubleBuf::new_unchecked(i.to_string()) }
+					unsafe { XsdDoubleString::new_unchecked(i.to_string()) }
 				}
 			}
 
-			impl<'a> TryFrom<&'a Double> for $ty {
+			impl<'a> TryFrom<&'a XsdDoubleStr> for $ty {
 				type Error = Overflow;
 
-				fn try_from(i: &'a Double) -> Result<Self, Overflow> {
+				fn try_from(i: &'a XsdDoubleStr) -> Result<Self, Overflow> {
 					i.as_str().parse().map_err(|_| Overflow)
 				}
 			}
 
-			impl TryFrom<DoubleBuf> for $ty {
+			impl TryFrom<XsdDoubleString> for $ty {
 				type Error = Overflow;
 
-				fn try_from(i: DoubleBuf) -> Result<Self, Overflow> {
+				fn try_from(i: XsdDoubleString) -> Result<Self, Overflow> {
 					i.as_str().parse().map_err(|_| Overflow)
 				}
 			}
@@ -151,66 +153,66 @@ integer_conversion! {
 
 const DTOA_CONFIG: pretty_dtoa::FmtFloatConfig = pretty_dtoa::FmtFloatConfig::default();
 
-impl From<f32> for DoubleBuf {
+impl From<f32> for XsdDoubleString {
 	fn from(i: f32) -> Self {
 		if i.is_finite() {
-			unsafe { DoubleBuf::new_unchecked(pretty_dtoa::ftoa(i, DTOA_CONFIG)) }
+			unsafe { XsdDoubleString::new_unchecked(pretty_dtoa::ftoa(i, DTOA_CONFIG)) }
 		} else if i.is_nan() {
-			DoubleBuf::nan()
+			XsdDoubleString::nan()
 		} else if i.is_sign_positive() {
-			DoubleBuf::positive_infinity()
+			XsdDoubleString::positive_infinity()
 		} else {
-			DoubleBuf::negative_infinity()
+			XsdDoubleString::negative_infinity()
 		}
 	}
 }
 
-impl<'a> From<&'a Double> for f64 {
-	fn from(i: &'a Double) -> Self {
+impl<'a> From<&'a XsdDoubleStr> for f64 {
+	fn from(i: &'a XsdDoubleStr) -> Self {
 		i.as_str().parse().unwrap()
 	}
 }
 
-impl From<DoubleBuf> for f64 {
-	fn from(i: DoubleBuf) -> Self {
+impl From<XsdDoubleString> for f64 {
+	fn from(i: XsdDoubleString) -> Self {
 		i.as_str().parse().unwrap()
 	}
 }
 
-impl<'a> From<&'a Float> for f64 {
-	fn from(i: &'a Float) -> Self {
+impl<'a> From<&'a XsdFloatStr> for f64 {
+	fn from(i: &'a XsdFloatStr) -> Self {
 		i.as_str().parse().unwrap()
 	}
 }
 
-impl From<FloatBuf> for f64 {
-	fn from(i: FloatBuf) -> Self {
+impl From<XsdFloatString> for f64 {
+	fn from(i: XsdFloatString) -> Self {
 		i.as_str().parse().unwrap()
 	}
 }
 
-impl From<f64> for DoubleBuf {
+impl From<f64> for XsdDoubleString {
 	fn from(i: f64) -> Self {
 		if i.is_finite() {
-			unsafe { DoubleBuf::new_unchecked(pretty_dtoa::dtoa(i, DTOA_CONFIG)) }
+			unsafe { XsdDoubleString::new_unchecked(pretty_dtoa::dtoa(i, DTOA_CONFIG)) }
 		} else if i.is_nan() {
-			DoubleBuf::nan()
+			XsdDoubleString::nan()
 		} else if i.is_sign_positive() {
-			DoubleBuf::positive_infinity()
+			XsdDoubleString::positive_infinity()
 		} else {
-			DoubleBuf::negative_infinity()
+			XsdDoubleString::negative_infinity()
 		}
 	}
 }
 
-impl<'a> From<&'a Decimal> for &'a Double {
+impl<'a> From<&'a XsdDecimalStr> for &'a XsdDoubleStr {
 	#[inline(always)]
-	fn from(d: &'a Decimal) -> Self {
-		unsafe { Double::new_unchecked(d.as_str()) }
+	fn from(d: &'a XsdDecimalStr) -> Self {
+		unsafe { XsdDoubleStr::new_unchecked(d.as_str()) }
 	}
 }
 
-impl DoubleBuf {
+impl XsdDoubleString {
 	#[inline(always)]
 	pub fn nan() -> Self {
 		NAN.to_owned()
@@ -233,131 +235,131 @@ mod tests {
 
 	#[test]
 	fn parse_01() {
-		Double::new("0").unwrap();
+		XsdDoubleStr::new("0").unwrap();
 	}
 
 	#[test]
 	#[should_panic]
 	fn parse_02() {
-		Double::new("+").unwrap();
+		XsdDoubleStr::new("+").unwrap();
 	}
 
 	#[test]
 	#[should_panic]
 	fn parse_03() {
-		Double::new("-").unwrap();
+		XsdDoubleStr::new("-").unwrap();
 	}
 
 	#[test]
 	#[should_panic]
 	fn parse_04() {
-		Double::new("012+").unwrap();
+		XsdDoubleStr::new("012+").unwrap();
 	}
 
 	#[test]
 	fn parse_05() {
-		Double::new("+42").unwrap();
+		XsdDoubleStr::new("+42").unwrap();
 	}
 
 	#[test]
 	fn parse_06() {
-		Double::new("-42").unwrap();
+		XsdDoubleStr::new("-42").unwrap();
 	}
 
 	#[test]
 	#[should_panic]
 	fn parse_07() {
-		Double::new(".").unwrap();
+		XsdDoubleStr::new(".").unwrap();
 	}
 
 	#[test]
 	fn parse_08() {
-		Double::new(".0").unwrap();
+		XsdDoubleStr::new(".0").unwrap();
 	}
 
 	#[test]
 	fn parse_09() {
-		Double::new("0.").unwrap();
+		XsdDoubleStr::new("0.").unwrap();
 	}
 
 	#[test]
 	fn parse_10() {
-		Double::new("42.0").unwrap();
+		XsdDoubleStr::new("42.0").unwrap();
 	}
 
 	#[test]
 	fn parse_11() {
-		Double::new("INF").unwrap();
+		XsdDoubleStr::new("INF").unwrap();
 	}
 
 	#[test]
 	fn parse_12() {
-		Double::new("-INF").unwrap();
+		XsdDoubleStr::new("-INF").unwrap();
 	}
 
 	#[test]
 	fn parse_13() {
-		Double::new("NaN").unwrap();
+		XsdDoubleStr::new("NaN").unwrap();
 	}
 
 	#[test]
 	fn parse_14() {
-		Double::new(".0e1").unwrap();
+		XsdDoubleStr::new(".0e1").unwrap();
 	}
 
 	#[test]
 	fn parse_15() {
-		Double::new("0.e1").unwrap();
+		XsdDoubleStr::new("0.e1").unwrap();
 	}
 
 	#[test]
 	fn parse_16() {
-		Double::new("42E10").unwrap();
+		XsdDoubleStr::new("42E10").unwrap();
 	}
 
 	#[test]
 	fn parse_17() {
-		Double::new("-42E+10").unwrap();
+		XsdDoubleStr::new("-42E+10").unwrap();
 	}
 
 	#[test]
 	fn parse_18() {
-		Double::new("-42E-10").unwrap();
+		XsdDoubleStr::new("-42E-10").unwrap();
 	}
 
 	#[test]
 	#[should_panic]
 	fn parse_19() {
-		Double::new("+42E-10e").unwrap();
+		XsdDoubleStr::new("+42E-10e").unwrap();
 	}
 
 	#[test]
 	fn parse_20() {
-		Double::new("+42E-10").unwrap();
+		XsdDoubleStr::new("+42E-10").unwrap();
 	}
 
 	#[test]
 	fn parse_21() {
-		let d = Double::new("+01234E-56789").unwrap();
-		assert_eq!(d.mantissa(), Some(Decimal::new("+01234").unwrap()));
-		assert_eq!(d.exponent(), Some(Integer::new("-56789").unwrap()));
+		let d = XsdDoubleStr::new("+01234E-56789").unwrap();
+		assert_eq!(d.mantissa(), Some(XsdDecimalStr::new("+01234").unwrap()));
+		assert_eq!(d.exponent(), Some(XsdIntegerStr::new("-56789").unwrap()));
 	}
 
 	#[test]
 	fn parse_22() {
-		let a = DoubleBuf::new("+01234E-56789".to_string()).unwrap();
-		let b = Double::new("+01234E-56789").unwrap();
+		let a = XsdDoubleString::new("+01234E-56789".to_string()).unwrap();
+		let b = XsdDoubleStr::new("+01234E-56789").unwrap();
 		assert_eq!(a, b)
 	}
 
 	#[test]
 	fn format_01() {
-		assert_eq!(DoubleBuf::from(1.0e10f64).to_string(), "1.0e10")
+		assert_eq!(XsdDoubleString::from(1.0e10f64).to_string(), "1.0e10")
 	}
 
 	#[test]
 	fn parse_signed_empty_rejected() {
-		Double::new("+.").unwrap_err();
-		Double::new("-.e5").unwrap_err();
+		XsdDoubleStr::new("+.").unwrap_err();
+		XsdDoubleStr::new("-.e5").unwrap_err();
 	}
 }

@@ -2,25 +2,25 @@
 ///
 /// Value space representation of the `language` datatype.
 /// See: <https://www.w3.org/TR/xmlschema11-2/#language>.
-pub use crate::lexical::Language;
-pub use crate::lexical::{InvalidLanguage, LanguageBuf};
+pub use crate::lexical::XsdLanguage;
+pub use crate::lexical::{InvalidXsdLanguage, XsdLanguageBuf};
 
-impl<'a> crate::XsdFromStr<'a> for LanguageBuf {
+impl<'a> crate::XsdFromStr<'a> for XsdLanguageBuf {
 	fn xsd_from_str(lexical_value: &'a str) -> Result<Self, crate::XsdError> {
-		crate::xsd_parse_via::<Language, Self>(lexical_value)
+		crate::xsd_parse_via::<XsdLanguage, Self>(lexical_value)
 	}
 }
 
-impl crate::XsdTyped for LanguageBuf {
+impl crate::XsdTyped for XsdLanguageBuf {
 	fn datatype(&self) -> crate::Datatype {
 		crate::TokenDatatype::Language.into()
 	}
 }
 
-impl crate::XsdValue for LanguageBuf {
-	type LexicalForm = Language;
+impl crate::XsdValue for XsdLanguageBuf {
+	type LexicalForm = XsdLanguage;
 
-	fn to_lexical_form(&self) -> LanguageBuf {
+	fn to_lexical_form(&self) -> XsdLanguageBuf {
 		self.clone()
 	}
 }
@@ -29,14 +29,14 @@ impl crate::XsdValue for LanguageBuf {
 mod tests {
 	use crate::{XsdFromStr, XsdValue};
 
-	use super::LanguageBuf;
+	use super::XsdLanguageBuf;
 
 	#[test]
 	fn lexical_form_round_trip() {
 		let input = "en-US";
-		let value = LanguageBuf::xsd_from_str(input).unwrap();
+		let value = XsdLanguageBuf::xsd_from_str(input).unwrap();
 		let lexical = value.to_lexical_form();
 		assert_eq!(lexical.as_str(), input);
-		assert!(LanguageBuf::xsd_from_str(lexical.as_str()).unwrap() == value);
+		assert!(XsdLanguageBuf::xsd_from_str(lexical.as_str()).unwrap() == value);
 	}
 }

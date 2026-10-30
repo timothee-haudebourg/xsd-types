@@ -1,28 +1,28 @@
 /// Qualified name value.
 ///
-/// `QName` has no distinct value-space encoding, so the lexical
-/// [`QName`](crate::lexical::QName)/[`QNameBuf`](crate::lexical::QNameBuf)
+/// `XsdQName` has no distinct value-space encoding, so the lexical
+/// [`XsdQName`](crate::lexical::XsdQName)/[`XsdQNameBuf`](crate::lexical::XsdQNameBuf)
 /// representation is reused directly as the value type.
 /// See: <https://www.w3.org/TR/xmlschema11-2/#QName>.
-pub use crate::lexical::{QName, QNameBuf};
+pub use crate::lexical::{XsdQName, XsdQNameBuf};
 
-impl<'a> crate::XsdFromStr<'a> for QNameBuf {
+impl<'a> crate::XsdFromStr<'a> for XsdQNameBuf {
 	fn xsd_from_str(lexical_value: &'a str) -> Result<Self, crate::XsdError> {
-		crate::xsd_parse_via::<QName, Self>(lexical_value)
+		crate::xsd_parse_via::<XsdQName, Self>(lexical_value)
 	}
 }
 
-impl crate::XsdTyped for QNameBuf {
+impl crate::XsdTyped for XsdQNameBuf {
 	fn datatype(&self) -> crate::Datatype {
 		crate::Datatype::QName
 	}
 }
 
-impl crate::XsdValue for QNameBuf {
-	type LexicalForm = QName;
+impl crate::XsdValue for XsdQNameBuf {
+	type LexicalForm = XsdQName;
 
-	fn to_lexical_form(&self) -> QNameBuf {
-		// `QName` has no distinct value space, so the lexical form is the
+	fn to_lexical_form(&self) -> XsdQNameBuf {
+		// `XsdQName` has no distinct value space, so the lexical form is the
 		// value itself.
 		self.clone()
 	}
@@ -36,10 +36,10 @@ mod tests {
 	#[test]
 	fn to_lexical_form_round_trips() {
 		for input in ["a", "xs:string", "_p-1.x:Local_Name"] {
-			let value = QNameBuf::xsd_from_str(input).unwrap();
+			let value = XsdQNameBuf::xsd_from_str(input).unwrap();
 			let lexical = value.to_lexical_form();
 			assert_eq!(lexical.as_str(), input);
-			assert_eq!(QNameBuf::xsd_from_str(lexical.as_str()).unwrap(), value);
+			assert_eq!(XsdQNameBuf::xsd_from_str(lexical.as_str()).unwrap(), value);
 		}
 	}
 }

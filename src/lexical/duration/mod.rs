@@ -4,12 +4,16 @@ use static_automata::Validate;
 use str_newtype::StrNewType;
 
 pub mod day_time_duration;
-pub use day_time_duration::{DayTimeDuration, DayTimeDurationBuf, InvalidDayTimeDuration};
+pub use day_time_duration::{
+	InvalidXsdDayTimeDurationStr, XsdDayTimeDurationStr, XsdDayTimeDurationString,
+};
 
 pub mod year_month_duration;
-pub use year_month_duration::{InvalidYearMonthDuration, YearMonthDuration, YearMonthDurationBuf};
+pub use year_month_duration::{
+	InvalidXsdYearMonthDurationStr, XsdYearMonthDurationStr, XsdYearMonthDurationString,
+};
 
-/// Duration.
+/// XsdDurationStr.
 ///
 /// This is the `durationLexicalRep` production of the XSD 1.1
 /// Datatypes specification:
@@ -38,10 +42,10 @@ pub use year_month_duration::{InvalidYearMonthDuration, YearMonthDuration, YearM
 /// ```
 #[derive(Validate, StrNewType, PartialEq, Eq, PartialOrd, Ord, Hash)]
 #[automaton(super::grammar::Duration)]
-#[newtype(owned(DurationBuf, derive(PartialEq, Eq, PartialOrd, Ord, Hash)))]
-pub struct Duration(str);
+#[newtype(owned(XsdDurationString, derive(PartialEq, Eq, PartialOrd, Ord, Hash)))]
+pub struct XsdDurationStr(str);
 
-impl Duration {
+impl XsdDurationStr {
 	pub fn parts(&self) -> Parts<'_> {
 		enum State {
 			Sign,
@@ -122,18 +126,18 @@ impl Duration {
 	}
 }
 
-impl XsdLexicalForm for Duration {
-	type Value = crate::Duration;
+impl XsdLexicalForm for XsdDurationStr {
+	type Value = crate::XsdDuration;
 }
 
-impl<'a> crate::XsdFromStr<'a> for &'a Duration {
+impl<'a> crate::XsdFromStr<'a> for &'a XsdDurationStr {
 	fn xsd_from_str(value: &'a str) -> Result<Self, XsdError> {
-		Duration::new(value).map_err(|_| XsdError::lexical_form(InvalidDuration(value)))
+		XsdDurationStr::new(value).map_err(|_| XsdError::lexical_form(InvalidXsdDurationStr(value)))
 	}
 }
 
-impl<'a> From<&'a Duration> for crate::Duration {
-	fn from(value: &'a Duration) -> crate::Duration {
+impl<'a> From<&'a XsdDurationStr> for crate::XsdDuration {
+	fn from(value: &'a XsdDurationStr) -> crate::XsdDuration {
 		value.parts().to_duration()
 	}
 }
@@ -169,7 +173,7 @@ impl<'a> Parts<'a> {
 			second,
 		}
 	}
-	fn to_duration(&self) -> crate::Duration {
+	fn to_duration(&self) -> crate::XsdDuration {
 		let mut months = 0u32;
 
 		if let Some(y) = self.year {
@@ -207,7 +211,7 @@ impl<'a> Parts<'a> {
 			nano_seconds = ns;
 		}
 
-		crate::Duration::new(self.is_negative, months, seconds, nano_seconds)
+		crate::XsdDuration::new(self.is_negative, months, seconds, nano_seconds)
 	}
 }
 
@@ -244,10 +248,10 @@ mod tests {
 		];
 
 		for (input, parts, normalized) in vectors {
-			let lexical_repr = Duration::new(input).unwrap();
+			let lexical_repr = XsdDurationStr::new(input).unwrap();
 			assert_eq!(lexical_repr.parts(), parts);
 
-			let value: crate::Duration = lexical_repr.into();
+			let value: crate::XsdDuration = lexical_repr.into();
 			assert_eq!(value.to_string().as_str(), normalized)
 		}
 	}

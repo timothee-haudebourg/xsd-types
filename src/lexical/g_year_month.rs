@@ -5,7 +5,7 @@ use crate::{lexical::parse_timezone, utils::byte_index_of, XsdError};
 
 use super::XsdLexicalForm;
 
-/// GYearMonth.
+/// XsdGYearMonthStr.
 ///
 /// This is the `gYearMonthLexicalRep` production of the XSD 1.1
 /// Datatypes specification:
@@ -16,10 +16,10 @@ use super::XsdLexicalForm;
 /// ```
 #[derive(Validate, StrNewType, PartialEq, Eq, PartialOrd, Ord, Hash)]
 #[automaton(super::grammar::GYearMonth)]
-#[newtype(owned(GYearMonthBuf, derive(PartialEq, Eq, PartialOrd, Ord, Hash)))]
-pub struct GYearMonth(str);
+#[newtype(owned(XsdGYearMonthString, derive(PartialEq, Eq, PartialOrd, Ord, Hash)))]
+pub struct XsdGYearMonthStr(str);
 
-impl GYearMonth {
+impl XsdGYearMonthStr {
 	pub fn parts(&self) -> Parts<'_> {
 		let year_end = byte_index_of(self.0.as_bytes(), 4, b'-').unwrap();
 		let month_end = year_end + 3;
@@ -36,18 +36,19 @@ impl GYearMonth {
 	}
 }
 
-impl XsdLexicalForm for GYearMonth {
-	type Value = crate::GYearMonth;
+impl XsdLexicalForm for XsdGYearMonthStr {
+	type Value = crate::XsdGYearMonth;
 }
 
-impl<'a> crate::XsdFromStr<'a> for &'a GYearMonth {
+impl<'a> crate::XsdFromStr<'a> for &'a XsdGYearMonthStr {
 	fn xsd_from_str(value: &'a str) -> Result<Self, XsdError> {
-		GYearMonth::new(value).map_err(|_| XsdError::lexical_form(InvalidGYearMonth(value)))
+		XsdGYearMonthStr::new(value)
+			.map_err(|_| XsdError::lexical_form(InvalidXsdGYearMonthStr(value)))
 	}
 }
 
-impl<'a> From<&'a GYearMonth> for crate::GYearMonth {
-	fn from(value: &'a GYearMonth) -> crate::GYearMonth {
+impl<'a> From<&'a XsdGYearMonthStr> for crate::XsdGYearMonth {
+	fn from(value: &'a XsdGYearMonthStr) -> crate::XsdGYearMonth {
 		value.parts().to_g_year_month()
 	}
 }
@@ -68,8 +69,8 @@ impl<'a> Parts<'a> {
 		}
 	}
 
-	fn to_g_year_month(&self) -> crate::GYearMonth {
-		crate::GYearMonth::new(
+	fn to_g_year_month(&self) -> crate::XsdGYearMonth {
+		crate::XsdGYearMonth::new(
 			self.year.parse().unwrap(),
 			self.month.parse().unwrap(),
 			self.timezone.map(|tz| parse_timezone(tz).unwrap()),
@@ -91,10 +92,10 @@ mod tests {
 		];
 
 		for (input, parts) in vectors {
-			let lexical_repr = GYearMonth::new(input).unwrap();
+			let lexical_repr = XsdGYearMonthStr::new(input).unwrap();
 			assert_eq!(lexical_repr.parts(), parts);
 
-			let value: crate::GYearMonth = lexical_repr.into();
+			let value: crate::XsdGYearMonth = lexical_repr.into();
 			assert_eq!(value.to_string().as_str(), input)
 		}
 	}
