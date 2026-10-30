@@ -45,13 +45,16 @@ lexical_form! {
 	parent_forms: {}
 }
 
-pub const XSD_FLOAT_NAN: &XsdFloatStr = unsafe { XsdFloatStr::new_unchecked_from_bytes(b"NaN") };
-pub const XSD_FLOAT_POSITIVE_INFINITY: &XsdFloatStr =
-	unsafe { XsdFloatStr::new_unchecked_from_bytes(b"INF") };
-pub const XSD_FLOAT_NEGATIVE_INFINITY: &XsdFloatStr =
-	unsafe { XsdFloatStr::new_unchecked_from_bytes(b"-INF") };
-
 impl XsdFloatStr {
+	/// Lexical form of the *not a number* value (`NaN`).
+	pub const NAN: &'static Self = unsafe { Self::new_unchecked_from_bytes(b"NaN") };
+
+	/// Lexical form of the positive infinity (`INF`).
+	pub const POSITIVE_INFINITY: &'static Self = unsafe { Self::new_unchecked_from_bytes(b"INF") };
+
+	/// Lexical form of the negative infinity (`-INF`).
+	pub const NEGATIVE_INFINITY: &'static Self = unsafe { Self::new_unchecked_from_bytes(b"-INF") };
+
 	pub fn is_infinite(&self) -> bool {
 		matches!(self.as_str(), "INF" | "+INF" | "-INF")
 	}
@@ -220,17 +223,17 @@ impl<'a> From<&'a XsdNonPositiveIntegerStr> for &'a XsdFloatStr {
 impl XsdFloatString {
 	#[inline(always)]
 	pub fn nan() -> Self {
-		XSD_FLOAT_NAN.to_owned()
+		XsdFloatStr::NAN.to_owned()
 	}
 
 	#[inline(always)]
 	pub fn positive_infinity() -> Self {
-		XSD_FLOAT_POSITIVE_INFINITY.to_owned()
+		XsdFloatStr::POSITIVE_INFINITY.to_owned()
 	}
 
 	#[inline(always)]
 	pub fn negative_infinity() -> Self {
-		XSD_FLOAT_NEGATIVE_INFINITY.to_owned()
+		XsdFloatStr::NEGATIVE_INFINITY.to_owned()
 	}
 }
 
