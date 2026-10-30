@@ -1,6 +1,6 @@
 //! Value domain types.
 mod any_uri;
-pub mod base64_binary;
+mod base64_binary;
 mod boolean;
 mod date;
 mod date_time;
@@ -13,13 +13,13 @@ mod g_month;
 mod g_month_day;
 mod g_year;
 mod g_year_month;
-pub mod hex_binary;
+mod hex_binary;
 mod q_name;
 mod string;
 mod time;
 
 pub use any_uri::*;
-pub use base64_binary::{InvalidXsdBase64, XsdBase64Binary, XsdBase64BinaryBuf};
+pub use base64_binary::*;
 pub use boolean::*;
 pub use date::*;
 pub use date_time::*;
@@ -32,7 +32,7 @@ pub use g_month::*;
 pub use g_month_day::*;
 pub use g_year::*;
 pub use g_year_month::*;
-pub use hex_binary::{InvalidXsdHex, XsdHexBinary, XsdHexBinaryBuf};
+pub use hex_binary::*;
 
 pub use string::*;
 pub use time::*;

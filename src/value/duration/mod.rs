@@ -5,10 +5,10 @@ use crate::{
 use core::fmt;
 use std::{cmp::Ordering, hash::Hash, str::FromStr};
 
-pub mod day_time_duration;
+mod day_time_duration;
 pub use day_time_duration::*;
 
-pub mod year_month_duration;
+mod year_month_duration;
 pub use year_month_duration::*;
 
 /// Duration value.
