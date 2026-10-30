@@ -37,15 +37,15 @@
 //!
 //! ## Any value
 //!
-//! The [`Value`] type provides a simple way to represent *any* XSD value.
+//! The [`XsdValue`] type provides a simple way to represent *any* XSD value.
 //!
 //! ```
-//! use xsd_types::{XSD_DATE, XsdDatatype, Value};
+//! use xsd_types::{XSD_DATE, XsdDatatype, XsdValue};
 //! let dt = XsdDatatype::from_iri(XSD_DATE).unwrap();
-//! let value: Value = dt.parse("1758-12-25").unwrap(); // Halley is back!
+//! let value: XsdValue = dt.parse("1758-12-25").unwrap(); // Halley is back!
 //! ```
 //!
-//! [`Value`]: crate::Value
+//! [`XsdValue`]: crate::XsdValue
 #[doc(hidden)]
 pub use iref;
 

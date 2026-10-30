@@ -37,7 +37,7 @@ pub use hex_binary::{InvalidHex, XsdHexBinary, XsdHexBinaryBuf};
 pub use string::*;
 pub use time::*;
 
-use crate::{Value, ValueRef, XsdDatatype, lexical::XsdLexicalForm};
+use crate::{XsdDatatype, XsdValue, XsdValueRef, lexical::XsdLexicalForm};
 
 /// XSD value.
 ///
@@ -77,37 +77,37 @@ pub trait XsdTyped {
 	fn datatype(&self) -> XsdDatatype;
 }
 
-impl From<Value> for std::string::String {
-	fn from(value: Value) -> Self {
+impl From<XsdValue> for std::string::String {
+	fn from(value: XsdValue) -> Self {
 		value.to_string()
 	}
 }
 
-/// A [`Value`] that is either borrowed as a [`ValueRef`] or owned.
+/// An [`XsdValue`] that is either borrowed as an [`XsdValueRef`] or owned.
 ///
 /// This is the value-space equivalent of [`std::borrow::Cow`], used to avoid
 /// unnecessary cloning when a value is already available by reference.
-pub enum CowValue<'a> {
+pub enum XsdCowValue<'a> {
 	/// A borrowed value.
-	Borrowed(ValueRef<'a>),
+	Borrowed(XsdValueRef<'a>),
 
 	/// An owned value.
-	Owned(Value),
+	Owned(XsdValue),
 }
 
-impl<'a> CowValue<'a> {
-	/// Returns this value as a [`ValueRef`], borrowing from the owned
+impl<'a> XsdCowValue<'a> {
+	/// Returns this value as a [`XsdValueRef`], borrowing from the owned
 	/// variant if necessary.
-	pub fn as_value_ref(&self) -> ValueRef<'_> {
+	pub fn as_value_ref(&self) -> XsdValueRef<'_> {
 		match self {
 			Self::Borrowed(v) => *v,
 			Self::Owned(v) => v.as_ref(),
 		}
 	}
 
-	/// Converts `self` into an owned [`Value`], cloning it if it was
+	/// Converts `self` into an owned [`XsdValue`], cloning it if it was
 	/// borrowed.
-	pub fn into_owned(self) -> Value {
+	pub fn into_owned(self) -> XsdValue {
 		match self {
 			Self::Borrowed(v) => v.into_owned(),
 			Self::Owned(v) => v,
@@ -115,7 +115,7 @@ impl<'a> CowValue<'a> {
 	}
 }
 
-impl<'a> XsdTyped for CowValue<'a> {
+impl<'a> XsdTyped for XsdCowValue<'a> {
 	fn datatype(&self) -> XsdDatatype {
 		match self {
 			Self::Borrowed(v) => v.datatype(),

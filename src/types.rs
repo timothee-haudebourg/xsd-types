@@ -147,26 +147,26 @@ impl XsdDatatype {
 		}
 	}
 	/// Parses `value` as a lexical representation of this specific datatype.
-	pub fn parse(&self, value: &str) -> Result<Value, XsdError> {
+	pub fn parse(&self, value: &str) -> Result<XsdValue, XsdError> {
 		match self {
-			Self::Boolean => XsdFromStr::xsd_from_str(value).map(Value::Boolean),
-			Self::Float => XsdFromStr::xsd_from_str(value).map(Value::Float),
-			Self::Double => XsdFromStr::xsd_from_str(value).map(Value::Double),
+			Self::Boolean => XsdFromStr::xsd_from_str(value).map(XsdValue::Boolean),
+			Self::Float => XsdFromStr::xsd_from_str(value).map(XsdValue::Float),
+			Self::Double => XsdFromStr::xsd_from_str(value).map(XsdValue::Double),
 			Self::Decimal(t) => t.parse(value).map(Into::into),
 			Self::String(t) => t.parse(value).map(Into::into),
 			Self::Duration(t) => t.parse(value).map(Into::into),
 			Self::DateTime(t) => t.parse(value).map(Into::into),
-			Self::Time => XsdFromStr::xsd_from_str(value).map(Value::Time),
-			Self::Date => XsdFromStr::xsd_from_str(value).map(Value::Date),
-			Self::GYearMonth => XsdFromStr::xsd_from_str(value).map(Value::GYearMonth),
-			Self::GYear => XsdFromStr::xsd_from_str(value).map(Value::GYear),
-			Self::GMonthDay => XsdFromStr::xsd_from_str(value).map(Value::GMonthDay),
-			Self::GDay => XsdFromStr::xsd_from_str(value).map(Value::GDay),
-			Self::GMonth => XsdFromStr::xsd_from_str(value).map(Value::GMonth),
-			Self::Base64Binary => XsdFromStr::xsd_from_str(value).map(Value::Base64Binary),
-			Self::HexBinary => XsdFromStr::xsd_from_str(value).map(Value::HexBinary),
-			Self::AnyUri => XsdFromStr::xsd_from_str(value).map(Value::AnyUri),
-			Self::QName => XsdFromStr::xsd_from_str(value).map(Value::QName),
+			Self::Time => XsdFromStr::xsd_from_str(value).map(XsdValue::Time),
+			Self::Date => XsdFromStr::xsd_from_str(value).map(XsdValue::Date),
+			Self::GYearMonth => XsdFromStr::xsd_from_str(value).map(XsdValue::GYearMonth),
+			Self::GYear => XsdFromStr::xsd_from_str(value).map(XsdValue::GYear),
+			Self::GMonthDay => XsdFromStr::xsd_from_str(value).map(XsdValue::GMonthDay),
+			Self::GDay => XsdFromStr::xsd_from_str(value).map(XsdValue::GDay),
+			Self::GMonth => XsdFromStr::xsd_from_str(value).map(XsdValue::GMonth),
+			Self::Base64Binary => XsdFromStr::xsd_from_str(value).map(XsdValue::Base64Binary),
+			Self::HexBinary => XsdFromStr::xsd_from_str(value).map(XsdValue::HexBinary),
+			Self::AnyUri => XsdFromStr::xsd_from_str(value).map(XsdValue::AnyUri),
+			Self::QName => XsdFromStr::xsd_from_str(value).map(XsdValue::QName),
 		}
 	}
 }
@@ -197,9 +197,9 @@ impl XsdDecimalDatatype {
 		}
 	}
 	/// Parses `value` as a lexical representation of this specific datatype.
-	pub fn parse(&self, value: &str) -> Result<DecimalValue, XsdError> {
+	pub fn parse(&self, value: &str) -> Result<XsdDecimalValue, XsdError> {
 		match self {
-			Self::Decimal => XsdFromStr::xsd_from_str(value).map(DecimalValue::Decimal),
+			Self::Decimal => XsdFromStr::xsd_from_str(value).map(XsdDecimalValue::Decimal),
 			Self::Integer(t) => t.parse(value).map(Into::into),
 		}
 	}
@@ -383,9 +383,9 @@ impl XsdStringDatatype {
 		}
 	}
 	/// Parses `value` as a lexical representation of this specific datatype.
-	pub fn parse(&self, value: &str) -> Result<StringValue, XsdError> {
+	pub fn parse(&self, value: &str) -> Result<XsdStringValue, XsdError> {
 		match self {
-			Self::String => XsdFromStr::xsd_from_str(value).map(StringValue::String),
+			Self::String => XsdFromStr::xsd_from_str(value).map(XsdStringValue::String),
 			Self::NormalizedString(t) => t.parse(value).map(Into::into),
 		}
 	}
@@ -489,14 +489,14 @@ impl XsdDurationDatatype {
 		}
 	}
 	/// Parses `value` as a lexical representation of this specific datatype.
-	pub fn parse(&self, value: &str) -> Result<DurationValue, XsdError> {
+	pub fn parse(&self, value: &str) -> Result<XsdDurationValue, XsdError> {
 		match self {
-			Self::Duration => XsdFromStr::xsd_from_str(value).map(DurationValue::Duration),
+			Self::Duration => XsdFromStr::xsd_from_str(value).map(XsdDurationValue::Duration),
 			Self::DayTimeDuration => {
-				XsdFromStr::xsd_from_str(value).map(DurationValue::DayTimeDuration)
+				XsdFromStr::xsd_from_str(value).map(XsdDurationValue::DayTimeDuration)
 			}
 			Self::YearMonthDuration => {
-				XsdFromStr::xsd_from_str(value).map(DurationValue::YearMonthDuration)
+				XsdFromStr::xsd_from_str(value).map(XsdDurationValue::YearMonthDuration)
 			}
 		}
 	}
@@ -528,18 +528,18 @@ impl XsdDateTimeDatatype {
 		}
 	}
 	/// Parses `value` as a lexical representation of this specific datatype.
-	pub fn parse(&self, value: &str) -> Result<DateTimeValue, XsdError> {
+	pub fn parse(&self, value: &str) -> Result<XsdDateTimeValue, XsdError> {
 		match self {
-			Self::DateTime => XsdFromStr::xsd_from_str(value).map(DateTimeValue::DateTime),
+			Self::DateTime => XsdFromStr::xsd_from_str(value).map(XsdDateTimeValue::DateTime),
 			Self::DateTimeStamp => {
-				XsdFromStr::xsd_from_str(value).map(DateTimeValue::DateTimeStamp)
+				XsdFromStr::xsd_from_str(value).map(XsdDateTimeValue::DateTimeStamp)
 			}
 		}
 	}
 }
 /// Any XSD value.
 #[derive(Debug, Clone, PartialEq, PartialOrd)]
-pub enum Value {
+pub enum XsdValue {
 	/// A `Boolean` value.
 	Boolean(XsdBoolean),
 	/// A `Float` value.
@@ -625,7 +625,7 @@ pub enum Value {
 	/// A `QName` value.
 	QName(XsdQNameBuf),
 }
-impl Value {
+impl XsdValue {
 	/// Returns the datatype of this value.
 	pub fn datatype(&self) -> XsdDatatype {
 		match self {
@@ -760,12 +760,12 @@ impl Value {
 		}
 	}
 }
-impl XsdTyped for Value {
+impl XsdTyped for XsdValue {
 	fn datatype(&self) -> XsdDatatype {
 		self.datatype()
 	}
 }
-impl fmt::Display for Value {
+impl fmt::Display for XsdValue {
 	fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
 		match self {
 			Self::Boolean(v) => v.fmt(f),
@@ -815,7 +815,7 @@ impl fmt::Display for Value {
 }
 /// Any XSD value reference.
 #[derive(Debug, Clone, Copy, PartialEq, PartialOrd)]
-pub enum ValueRef<'a> {
+pub enum XsdValueRef<'a> {
 	/// A reference to a `Boolean` value.
 	Boolean(XsdBoolean),
 	/// A reference to a `Float` value.
@@ -901,7 +901,7 @@ pub enum ValueRef<'a> {
 	/// A reference to a `QName` value.
 	QName(&'a XsdQName),
 }
-impl<'a> fmt::Display for ValueRef<'a> {
+impl<'a> fmt::Display for XsdValueRef<'a> {
 	fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
 		match self {
 			Self::Boolean(v) => v.fmt(f),
@@ -949,56 +949,56 @@ impl<'a> fmt::Display for ValueRef<'a> {
 		}
 	}
 }
-impl Value {
+impl XsdValue {
 	/// Borrows this value.
-	pub fn as_ref(&self) -> ValueRef<'_> {
+	pub fn as_ref(&self) -> XsdValueRef<'_> {
 		match self {
-			Self::Boolean(value) => ValueRef::Boolean(*value),
-			Self::Float(value) => ValueRef::Float(*value),
-			Self::Double(value) => ValueRef::Double(*value),
-			Self::Decimal(value) => ValueRef::Decimal(value),
-			Self::Integer(value) => ValueRef::Integer(value),
-			Self::NonPositiveInteger(value) => ValueRef::NonPositiveInteger(value),
-			Self::NegativeInteger(value) => ValueRef::NegativeInteger(value),
-			Self::NonNegativeInteger(value) => ValueRef::NonNegativeInteger(value),
-			Self::PositiveInteger(value) => ValueRef::PositiveInteger(value),
-			Self::UnsignedLong(value) => ValueRef::UnsignedLong(*value),
-			Self::UnsignedInt(value) => ValueRef::UnsignedInt(*value),
-			Self::UnsignedShort(value) => ValueRef::UnsignedShort(*value),
-			Self::UnsignedByte(value) => ValueRef::UnsignedByte(*value),
-			Self::Long(value) => ValueRef::Long(*value),
-			Self::Int(value) => ValueRef::Int(*value),
-			Self::Short(value) => ValueRef::Short(*value),
-			Self::Byte(value) => ValueRef::Byte(*value),
-			Self::String(value) => ValueRef::String(value),
-			Self::NormalizedString(value) => ValueRef::NormalizedString(value),
-			Self::Token(value) => ValueRef::Token(value),
-			Self::Language(value) => ValueRef::Language(value),
-			Self::Name(value) => ValueRef::Name(value),
-			Self::NCName(value) => ValueRef::NCName(value),
-			Self::Id(value) => ValueRef::Id(value),
-			Self::IdRef(value) => ValueRef::IdRef(value),
-			Self::NMToken(value) => ValueRef::NMToken(value),
-			Self::Duration(value) => ValueRef::Duration(*value),
-			Self::DayTimeDuration(value) => ValueRef::DayTimeDuration(*value),
-			Self::YearMonthDuration(value) => ValueRef::YearMonthDuration(*value),
-			Self::DateTime(value) => ValueRef::DateTime(*value),
-			Self::DateTimeStamp(value) => ValueRef::DateTimeStamp(*value),
-			Self::Time(value) => ValueRef::Time(*value),
-			Self::Date(value) => ValueRef::Date(*value),
-			Self::GYearMonth(value) => ValueRef::GYearMonth(*value),
-			Self::GYear(value) => ValueRef::GYear(*value),
-			Self::GMonthDay(value) => ValueRef::GMonthDay(*value),
-			Self::GDay(value) => ValueRef::GDay(*value),
-			Self::GMonth(value) => ValueRef::GMonth(*value),
-			Self::Base64Binary(value) => ValueRef::Base64Binary(value),
-			Self::HexBinary(value) => ValueRef::HexBinary(value),
-			Self::AnyUri(value) => ValueRef::AnyUri(value),
-			Self::QName(value) => ValueRef::QName(value),
+			Self::Boolean(value) => XsdValueRef::Boolean(*value),
+			Self::Float(value) => XsdValueRef::Float(*value),
+			Self::Double(value) => XsdValueRef::Double(*value),
+			Self::Decimal(value) => XsdValueRef::Decimal(value),
+			Self::Integer(value) => XsdValueRef::Integer(value),
+			Self::NonPositiveInteger(value) => XsdValueRef::NonPositiveInteger(value),
+			Self::NegativeInteger(value) => XsdValueRef::NegativeInteger(value),
+			Self::NonNegativeInteger(value) => XsdValueRef::NonNegativeInteger(value),
+			Self::PositiveInteger(value) => XsdValueRef::PositiveInteger(value),
+			Self::UnsignedLong(value) => XsdValueRef::UnsignedLong(*value),
+			Self::UnsignedInt(value) => XsdValueRef::UnsignedInt(*value),
+			Self::UnsignedShort(value) => XsdValueRef::UnsignedShort(*value),
+			Self::UnsignedByte(value) => XsdValueRef::UnsignedByte(*value),
+			Self::Long(value) => XsdValueRef::Long(*value),
+			Self::Int(value) => XsdValueRef::Int(*value),
+			Self::Short(value) => XsdValueRef::Short(*value),
+			Self::Byte(value) => XsdValueRef::Byte(*value),
+			Self::String(value) => XsdValueRef::String(value),
+			Self::NormalizedString(value) => XsdValueRef::NormalizedString(value),
+			Self::Token(value) => XsdValueRef::Token(value),
+			Self::Language(value) => XsdValueRef::Language(value),
+			Self::Name(value) => XsdValueRef::Name(value),
+			Self::NCName(value) => XsdValueRef::NCName(value),
+			Self::Id(value) => XsdValueRef::Id(value),
+			Self::IdRef(value) => XsdValueRef::IdRef(value),
+			Self::NMToken(value) => XsdValueRef::NMToken(value),
+			Self::Duration(value) => XsdValueRef::Duration(*value),
+			Self::DayTimeDuration(value) => XsdValueRef::DayTimeDuration(*value),
+			Self::YearMonthDuration(value) => XsdValueRef::YearMonthDuration(*value),
+			Self::DateTime(value) => XsdValueRef::DateTime(*value),
+			Self::DateTimeStamp(value) => XsdValueRef::DateTimeStamp(*value),
+			Self::Time(value) => XsdValueRef::Time(*value),
+			Self::Date(value) => XsdValueRef::Date(*value),
+			Self::GYearMonth(value) => XsdValueRef::GYearMonth(*value),
+			Self::GYear(value) => XsdValueRef::GYear(*value),
+			Self::GMonthDay(value) => XsdValueRef::GMonthDay(*value),
+			Self::GDay(value) => XsdValueRef::GDay(*value),
+			Self::GMonth(value) => XsdValueRef::GMonth(*value),
+			Self::Base64Binary(value) => XsdValueRef::Base64Binary(value),
+			Self::HexBinary(value) => XsdValueRef::HexBinary(value),
+			Self::AnyUri(value) => XsdValueRef::AnyUri(value),
+			Self::QName(value) => XsdValueRef::QName(value),
 		}
 	}
 }
-impl<'a> ValueRef<'a> {
+impl<'a> XsdValueRef<'a> {
 	/// Returns the datatype of this value.
 	pub fn datatype(&self) -> XsdDatatype {
 		match self {
@@ -1133,54 +1133,54 @@ impl<'a> ValueRef<'a> {
 		}
 	}
 	/// Clones the referenced data into an owned value.
-	pub fn into_owned(self) -> Value {
+	pub fn into_owned(self) -> XsdValue {
 		match self {
-			Self::Boolean(value) => Value::Boolean(value),
-			Self::Float(value) => Value::Float(value),
-			Self::Double(value) => Value::Double(value),
-			Self::Decimal(value) => Value::Decimal(value.to_owned()),
-			Self::Integer(value) => Value::Integer(value.to_owned()),
-			Self::NonPositiveInteger(value) => Value::NonPositiveInteger(value.to_owned()),
-			Self::NegativeInteger(value) => Value::NegativeInteger(value.to_owned()),
-			Self::NonNegativeInteger(value) => Value::NonNegativeInteger(value.to_owned()),
-			Self::PositiveInteger(value) => Value::PositiveInteger(value.to_owned()),
-			Self::UnsignedLong(value) => Value::UnsignedLong(value),
-			Self::UnsignedInt(value) => Value::UnsignedInt(value),
-			Self::UnsignedShort(value) => Value::UnsignedShort(value),
-			Self::UnsignedByte(value) => Value::UnsignedByte(value),
-			Self::Long(value) => Value::Long(value),
-			Self::Int(value) => Value::Int(value),
-			Self::Short(value) => Value::Short(value),
-			Self::Byte(value) => Value::Byte(value),
-			Self::String(value) => Value::String(value.to_owned()),
-			Self::NormalizedString(value) => Value::NormalizedString(value.to_owned()),
-			Self::Token(value) => Value::Token(value.to_owned()),
-			Self::Language(value) => Value::Language(value.to_owned()),
-			Self::Name(value) => Value::Name(value.to_owned()),
-			Self::NCName(value) => Value::NCName(value.to_owned()),
-			Self::Id(value) => Value::Id(value.to_owned()),
-			Self::IdRef(value) => Value::IdRef(value.to_owned()),
-			Self::NMToken(value) => Value::NMToken(value.to_owned()),
-			Self::Duration(value) => Value::Duration(value),
-			Self::DayTimeDuration(value) => Value::DayTimeDuration(value),
-			Self::YearMonthDuration(value) => Value::YearMonthDuration(value),
-			Self::DateTime(value) => Value::DateTime(value),
-			Self::DateTimeStamp(value) => Value::DateTimeStamp(value),
-			Self::Time(value) => Value::Time(value),
-			Self::Date(value) => Value::Date(value),
-			Self::GYearMonth(value) => Value::GYearMonth(value),
-			Self::GYear(value) => Value::GYear(value),
-			Self::GMonthDay(value) => Value::GMonthDay(value),
-			Self::GDay(value) => Value::GDay(value),
-			Self::GMonth(value) => Value::GMonth(value),
-			Self::Base64Binary(value) => Value::Base64Binary(value.to_owned()),
-			Self::HexBinary(value) => Value::HexBinary(value.to_owned()),
-			Self::AnyUri(value) => Value::AnyUri(value.to_owned()),
-			Self::QName(value) => Value::QName(value.to_owned()),
+			Self::Boolean(value) => XsdValue::Boolean(value),
+			Self::Float(value) => XsdValue::Float(value),
+			Self::Double(value) => XsdValue::Double(value),
+			Self::Decimal(value) => XsdValue::Decimal(value.to_owned()),
+			Self::Integer(value) => XsdValue::Integer(value.to_owned()),
+			Self::NonPositiveInteger(value) => XsdValue::NonPositiveInteger(value.to_owned()),
+			Self::NegativeInteger(value) => XsdValue::NegativeInteger(value.to_owned()),
+			Self::NonNegativeInteger(value) => XsdValue::NonNegativeInteger(value.to_owned()),
+			Self::PositiveInteger(value) => XsdValue::PositiveInteger(value.to_owned()),
+			Self::UnsignedLong(value) => XsdValue::UnsignedLong(value),
+			Self::UnsignedInt(value) => XsdValue::UnsignedInt(value),
+			Self::UnsignedShort(value) => XsdValue::UnsignedShort(value),
+			Self::UnsignedByte(value) => XsdValue::UnsignedByte(value),
+			Self::Long(value) => XsdValue::Long(value),
+			Self::Int(value) => XsdValue::Int(value),
+			Self::Short(value) => XsdValue::Short(value),
+			Self::Byte(value) => XsdValue::Byte(value),
+			Self::String(value) => XsdValue::String(value.to_owned()),
+			Self::NormalizedString(value) => XsdValue::NormalizedString(value.to_owned()),
+			Self::Token(value) => XsdValue::Token(value.to_owned()),
+			Self::Language(value) => XsdValue::Language(value.to_owned()),
+			Self::Name(value) => XsdValue::Name(value.to_owned()),
+			Self::NCName(value) => XsdValue::NCName(value.to_owned()),
+			Self::Id(value) => XsdValue::Id(value.to_owned()),
+			Self::IdRef(value) => XsdValue::IdRef(value.to_owned()),
+			Self::NMToken(value) => XsdValue::NMToken(value.to_owned()),
+			Self::Duration(value) => XsdValue::Duration(value),
+			Self::DayTimeDuration(value) => XsdValue::DayTimeDuration(value),
+			Self::YearMonthDuration(value) => XsdValue::YearMonthDuration(value),
+			Self::DateTime(value) => XsdValue::DateTime(value),
+			Self::DateTimeStamp(value) => XsdValue::DateTimeStamp(value),
+			Self::Time(value) => XsdValue::Time(value),
+			Self::Date(value) => XsdValue::Date(value),
+			Self::GYearMonth(value) => XsdValue::GYearMonth(value),
+			Self::GYear(value) => XsdValue::GYear(value),
+			Self::GMonthDay(value) => XsdValue::GMonthDay(value),
+			Self::GDay(value) => XsdValue::GDay(value),
+			Self::GMonth(value) => XsdValue::GMonth(value),
+			Self::Base64Binary(value) => XsdValue::Base64Binary(value.to_owned()),
+			Self::HexBinary(value) => XsdValue::HexBinary(value.to_owned()),
+			Self::AnyUri(value) => XsdValue::AnyUri(value.to_owned()),
+			Self::QName(value) => XsdValue::QName(value.to_owned()),
 		}
 	}
 }
-impl<'a> XsdTyped for ValueRef<'a> {
+impl<'a> XsdTyped for XsdValueRef<'a> {
 	fn datatype(&self) -> XsdDatatype {
 		self.datatype()
 	}
@@ -1373,385 +1373,389 @@ impl TryFrom<XsdDatatype> for XsdShortDatatype {
 		}
 	}
 }
-impl From<DecimalValue> for Value {
-	fn from(value: DecimalValue) -> Self {
+impl From<XsdDecimalValue> for XsdValue {
+	fn from(value: XsdDecimalValue) -> Self {
 		match value {
-			DecimalValue::Decimal(value) => Self::Decimal(value),
-			DecimalValue::Integer(value) => Self::Integer(value),
-			DecimalValue::NonPositiveInteger(value) => Self::NonPositiveInteger(value),
-			DecimalValue::NegativeInteger(value) => Self::NegativeInteger(value),
-			DecimalValue::NonNegativeInteger(value) => Self::NonNegativeInteger(value),
-			DecimalValue::PositiveInteger(value) => Self::PositiveInteger(value),
-			DecimalValue::UnsignedLong(value) => Self::UnsignedLong(value),
-			DecimalValue::UnsignedInt(value) => Self::UnsignedInt(value),
-			DecimalValue::UnsignedShort(value) => Self::UnsignedShort(value),
-			DecimalValue::UnsignedByte(value) => Self::UnsignedByte(value),
-			DecimalValue::Long(value) => Self::Long(value),
-			DecimalValue::Int(value) => Self::Int(value),
-			DecimalValue::Short(value) => Self::Short(value),
-			DecimalValue::Byte(value) => Self::Byte(value),
+			XsdDecimalValue::Decimal(value) => Self::Decimal(value),
+			XsdDecimalValue::Integer(value) => Self::Integer(value),
+			XsdDecimalValue::NonPositiveInteger(value) => Self::NonPositiveInteger(value),
+			XsdDecimalValue::NegativeInteger(value) => Self::NegativeInteger(value),
+			XsdDecimalValue::NonNegativeInteger(value) => Self::NonNegativeInteger(value),
+			XsdDecimalValue::PositiveInteger(value) => Self::PositiveInteger(value),
+			XsdDecimalValue::UnsignedLong(value) => Self::UnsignedLong(value),
+			XsdDecimalValue::UnsignedInt(value) => Self::UnsignedInt(value),
+			XsdDecimalValue::UnsignedShort(value) => Self::UnsignedShort(value),
+			XsdDecimalValue::UnsignedByte(value) => Self::UnsignedByte(value),
+			XsdDecimalValue::Long(value) => Self::Long(value),
+			XsdDecimalValue::Int(value) => Self::Int(value),
+			XsdDecimalValue::Short(value) => Self::Short(value),
+			XsdDecimalValue::Byte(value) => Self::Byte(value),
 		}
 	}
 }
-impl From<IntegerValue> for Value {
-	fn from(value: IntegerValue) -> Self {
+impl From<XsdIntegerValue> for XsdValue {
+	fn from(value: XsdIntegerValue) -> Self {
 		match value {
-			IntegerValue::Integer(value) => Self::Integer(value),
-			IntegerValue::NonPositiveInteger(value) => Self::NonPositiveInteger(value),
-			IntegerValue::NegativeInteger(value) => Self::NegativeInteger(value),
-			IntegerValue::NonNegativeInteger(value) => Self::NonNegativeInteger(value),
-			IntegerValue::PositiveInteger(value) => Self::PositiveInteger(value),
-			IntegerValue::UnsignedLong(value) => Self::UnsignedLong(value),
-			IntegerValue::UnsignedInt(value) => Self::UnsignedInt(value),
-			IntegerValue::UnsignedShort(value) => Self::UnsignedShort(value),
-			IntegerValue::UnsignedByte(value) => Self::UnsignedByte(value),
-			IntegerValue::Long(value) => Self::Long(value),
-			IntegerValue::Int(value) => Self::Int(value),
-			IntegerValue::Short(value) => Self::Short(value),
-			IntegerValue::Byte(value) => Self::Byte(value),
+			XsdIntegerValue::Integer(value) => Self::Integer(value),
+			XsdIntegerValue::NonPositiveInteger(value) => Self::NonPositiveInteger(value),
+			XsdIntegerValue::NegativeInteger(value) => Self::NegativeInteger(value),
+			XsdIntegerValue::NonNegativeInteger(value) => Self::NonNegativeInteger(value),
+			XsdIntegerValue::PositiveInteger(value) => Self::PositiveInteger(value),
+			XsdIntegerValue::UnsignedLong(value) => Self::UnsignedLong(value),
+			XsdIntegerValue::UnsignedInt(value) => Self::UnsignedInt(value),
+			XsdIntegerValue::UnsignedShort(value) => Self::UnsignedShort(value),
+			XsdIntegerValue::UnsignedByte(value) => Self::UnsignedByte(value),
+			XsdIntegerValue::Long(value) => Self::Long(value),
+			XsdIntegerValue::Int(value) => Self::Int(value),
+			XsdIntegerValue::Short(value) => Self::Short(value),
+			XsdIntegerValue::Byte(value) => Self::Byte(value),
 		}
 	}
 }
-impl From<NonPositiveIntegerValue> for Value {
-	fn from(value: NonPositiveIntegerValue) -> Self {
+impl From<XsdNonPositiveIntegerValue> for XsdValue {
+	fn from(value: XsdNonPositiveIntegerValue) -> Self {
 		match value {
-			NonPositiveIntegerValue::NonPositiveInteger(value) => Self::NonPositiveInteger(value),
-			NonPositiveIntegerValue::NegativeInteger(value) => Self::NegativeInteger(value),
-		}
-	}
-}
-impl From<NonNegativeIntegerValue> for Value {
-	fn from(value: NonNegativeIntegerValue) -> Self {
-		match value {
-			NonNegativeIntegerValue::NonNegativeInteger(value) => Self::NonNegativeInteger(value),
-			NonNegativeIntegerValue::PositiveInteger(value) => Self::PositiveInteger(value),
-			NonNegativeIntegerValue::UnsignedLong(value) => Self::UnsignedLong(value),
-			NonNegativeIntegerValue::UnsignedInt(value) => Self::UnsignedInt(value),
-			NonNegativeIntegerValue::UnsignedShort(value) => Self::UnsignedShort(value),
-			NonNegativeIntegerValue::UnsignedByte(value) => Self::UnsignedByte(value),
-		}
-	}
-}
-impl From<UnsignedLongValue> for Value {
-	fn from(value: UnsignedLongValue) -> Self {
-		match value {
-			UnsignedLongValue::UnsignedLong(value) => Self::UnsignedLong(value),
-			UnsignedLongValue::UnsignedInt(value) => Self::UnsignedInt(value),
-			UnsignedLongValue::UnsignedShort(value) => Self::UnsignedShort(value),
-			UnsignedLongValue::UnsignedByte(value) => Self::UnsignedByte(value),
-		}
-	}
-}
-impl From<UnsignedIntValue> for Value {
-	fn from(value: UnsignedIntValue) -> Self {
-		match value {
-			UnsignedIntValue::UnsignedInt(value) => Self::UnsignedInt(value),
-			UnsignedIntValue::UnsignedShort(value) => Self::UnsignedShort(value),
-			UnsignedIntValue::UnsignedByte(value) => Self::UnsignedByte(value),
-		}
-	}
-}
-impl From<UnsignedShortValue> for Value {
-	fn from(value: UnsignedShortValue) -> Self {
-		match value {
-			UnsignedShortValue::UnsignedShort(value) => Self::UnsignedShort(value),
-			UnsignedShortValue::UnsignedByte(value) => Self::UnsignedByte(value),
-		}
-	}
-}
-impl From<LongValue> for Value {
-	fn from(value: LongValue) -> Self {
-		match value {
-			LongValue::Long(value) => Self::Long(value),
-			LongValue::Int(value) => Self::Int(value),
-			LongValue::Short(value) => Self::Short(value),
-			LongValue::Byte(value) => Self::Byte(value),
-		}
-	}
-}
-impl From<IntValue> for Value {
-	fn from(value: IntValue) -> Self {
-		match value {
-			IntValue::Int(value) => Self::Int(value),
-			IntValue::Short(value) => Self::Short(value),
-			IntValue::Byte(value) => Self::Byte(value),
-		}
-	}
-}
-impl From<ShortValue> for Value {
-	fn from(value: ShortValue) -> Self {
-		match value {
-			ShortValue::Short(value) => Self::Short(value),
-			ShortValue::Byte(value) => Self::Byte(value),
-		}
-	}
-}
-impl TryFrom<Value> for DecimalValue {
-	type Error = Value;
-	fn try_from(value: Value) -> Result<Self, Value> {
-		match value {
-			Value::Decimal(value) => Ok(Self::Decimal(value)),
-			Value::Integer(value) => Ok(Self::Integer(value)),
-			Value::NonPositiveInteger(value) => Ok(Self::NonPositiveInteger(value)),
-			Value::NegativeInteger(value) => Ok(Self::NegativeInteger(value)),
-			Value::NonNegativeInteger(value) => Ok(Self::NonNegativeInteger(value)),
-			Value::PositiveInteger(value) => Ok(Self::PositiveInteger(value)),
-			Value::UnsignedLong(value) => Ok(Self::UnsignedLong(value)),
-			Value::UnsignedInt(value) => Ok(Self::UnsignedInt(value)),
-			Value::UnsignedShort(value) => Ok(Self::UnsignedShort(value)),
-			Value::UnsignedByte(value) => Ok(Self::UnsignedByte(value)),
-			Value::Long(value) => Ok(Self::Long(value)),
-			Value::Int(value) => Ok(Self::Int(value)),
-			Value::Short(value) => Ok(Self::Short(value)),
-			Value::Byte(value) => Ok(Self::Byte(value)),
-			other => Err(other),
-		}
-	}
-}
-impl TryFrom<Value> for IntegerValue {
-	type Error = Value;
-	fn try_from(value: Value) -> Result<Self, Value> {
-		match value {
-			Value::Integer(value) => Ok(Self::Integer(value)),
-			Value::NonPositiveInteger(value) => Ok(Self::NonPositiveInteger(value)),
-			Value::NegativeInteger(value) => Ok(Self::NegativeInteger(value)),
-			Value::NonNegativeInteger(value) => Ok(Self::NonNegativeInteger(value)),
-			Value::PositiveInteger(value) => Ok(Self::PositiveInteger(value)),
-			Value::UnsignedLong(value) => Ok(Self::UnsignedLong(value)),
-			Value::UnsignedInt(value) => Ok(Self::UnsignedInt(value)),
-			Value::UnsignedShort(value) => Ok(Self::UnsignedShort(value)),
-			Value::UnsignedByte(value) => Ok(Self::UnsignedByte(value)),
-			Value::Long(value) => Ok(Self::Long(value)),
-			Value::Int(value) => Ok(Self::Int(value)),
-			Value::Short(value) => Ok(Self::Short(value)),
-			Value::Byte(value) => Ok(Self::Byte(value)),
-			other => Err(other),
-		}
-	}
-}
-impl TryFrom<Value> for NonPositiveIntegerValue {
-	type Error = Value;
-	fn try_from(value: Value) -> Result<Self, Value> {
-		match value {
-			Value::NonPositiveInteger(value) => Ok(Self::NonPositiveInteger(value)),
-			Value::NegativeInteger(value) => Ok(Self::NegativeInteger(value)),
-			other => Err(other),
-		}
-	}
-}
-impl TryFrom<Value> for NonNegativeIntegerValue {
-	type Error = Value;
-	fn try_from(value: Value) -> Result<Self, Value> {
-		match value {
-			Value::NonNegativeInteger(value) => Ok(Self::NonNegativeInteger(value)),
-			Value::PositiveInteger(value) => Ok(Self::PositiveInteger(value)),
-			Value::UnsignedLong(value) => Ok(Self::UnsignedLong(value)),
-			Value::UnsignedInt(value) => Ok(Self::UnsignedInt(value)),
-			Value::UnsignedShort(value) => Ok(Self::UnsignedShort(value)),
-			Value::UnsignedByte(value) => Ok(Self::UnsignedByte(value)),
-			other => Err(other),
-		}
-	}
-}
-impl TryFrom<Value> for UnsignedLongValue {
-	type Error = Value;
-	fn try_from(value: Value) -> Result<Self, Value> {
-		match value {
-			Value::UnsignedLong(value) => Ok(Self::UnsignedLong(value)),
-			Value::UnsignedInt(value) => Ok(Self::UnsignedInt(value)),
-			Value::UnsignedShort(value) => Ok(Self::UnsignedShort(value)),
-			Value::UnsignedByte(value) => Ok(Self::UnsignedByte(value)),
-			other => Err(other),
-		}
-	}
-}
-impl TryFrom<Value> for UnsignedIntValue {
-	type Error = Value;
-	fn try_from(value: Value) -> Result<Self, Value> {
-		match value {
-			Value::UnsignedInt(value) => Ok(Self::UnsignedInt(value)),
-			Value::UnsignedShort(value) => Ok(Self::UnsignedShort(value)),
-			Value::UnsignedByte(value) => Ok(Self::UnsignedByte(value)),
-			other => Err(other),
-		}
-	}
-}
-impl TryFrom<Value> for UnsignedShortValue {
-	type Error = Value;
-	fn try_from(value: Value) -> Result<Self, Value> {
-		match value {
-			Value::UnsignedShort(value) => Ok(Self::UnsignedShort(value)),
-			Value::UnsignedByte(value) => Ok(Self::UnsignedByte(value)),
-			other => Err(other),
-		}
-	}
-}
-impl TryFrom<Value> for LongValue {
-	type Error = Value;
-	fn try_from(value: Value) -> Result<Self, Value> {
-		match value {
-			Value::Long(value) => Ok(Self::Long(value)),
-			Value::Int(value) => Ok(Self::Int(value)),
-			Value::Short(value) => Ok(Self::Short(value)),
-			Value::Byte(value) => Ok(Self::Byte(value)),
-			other => Err(other),
-		}
-	}
-}
-impl TryFrom<Value> for IntValue {
-	type Error = Value;
-	fn try_from(value: Value) -> Result<Self, Value> {
-		match value {
-			Value::Int(value) => Ok(Self::Int(value)),
-			Value::Short(value) => Ok(Self::Short(value)),
-			Value::Byte(value) => Ok(Self::Byte(value)),
-			other => Err(other),
-		}
-	}
-}
-impl TryFrom<Value> for ShortValue {
-	type Error = Value;
-	fn try_from(value: Value) -> Result<Self, Value> {
-		match value {
-			Value::Short(value) => Ok(Self::Short(value)),
-			Value::Byte(value) => Ok(Self::Byte(value)),
-			other => Err(other),
-		}
-	}
-}
-impl<'a> From<DecimalValueRef<'a>> for ValueRef<'a> {
-	fn from(value: DecimalValueRef<'a>) -> Self {
-		match value {
-			DecimalValueRef::Decimal(value) => Self::Decimal(value),
-			DecimalValueRef::Integer(value) => Self::Integer(value),
-			DecimalValueRef::NonPositiveInteger(value) => Self::NonPositiveInteger(value),
-			DecimalValueRef::NegativeInteger(value) => Self::NegativeInteger(value),
-			DecimalValueRef::NonNegativeInteger(value) => Self::NonNegativeInteger(value),
-			DecimalValueRef::PositiveInteger(value) => Self::PositiveInteger(value),
-			DecimalValueRef::UnsignedLong(value) => Self::UnsignedLong(value),
-			DecimalValueRef::UnsignedInt(value) => Self::UnsignedInt(value),
-			DecimalValueRef::UnsignedShort(value) => Self::UnsignedShort(value),
-			DecimalValueRef::UnsignedByte(value) => Self::UnsignedByte(value),
-			DecimalValueRef::Long(value) => Self::Long(value),
-			DecimalValueRef::Int(value) => Self::Int(value),
-			DecimalValueRef::Short(value) => Self::Short(value),
-			DecimalValueRef::Byte(value) => Self::Byte(value),
-		}
-	}
-}
-impl<'a> From<IntegerValueRef<'a>> for ValueRef<'a> {
-	fn from(value: IntegerValueRef<'a>) -> Self {
-		match value {
-			IntegerValueRef::Integer(value) => Self::Integer(value),
-			IntegerValueRef::NonPositiveInteger(value) => Self::NonPositiveInteger(value),
-			IntegerValueRef::NegativeInteger(value) => Self::NegativeInteger(value),
-			IntegerValueRef::NonNegativeInteger(value) => Self::NonNegativeInteger(value),
-			IntegerValueRef::PositiveInteger(value) => Self::PositiveInteger(value),
-			IntegerValueRef::UnsignedLong(value) => Self::UnsignedLong(value),
-			IntegerValueRef::UnsignedInt(value) => Self::UnsignedInt(value),
-			IntegerValueRef::UnsignedShort(value) => Self::UnsignedShort(value),
-			IntegerValueRef::UnsignedByte(value) => Self::UnsignedByte(value),
-			IntegerValueRef::Long(value) => Self::Long(value),
-			IntegerValueRef::Int(value) => Self::Int(value),
-			IntegerValueRef::Short(value) => Self::Short(value),
-			IntegerValueRef::Byte(value) => Self::Byte(value),
-		}
-	}
-}
-impl<'a> From<NonPositiveIntegerValueRef<'a>> for ValueRef<'a> {
-	fn from(value: NonPositiveIntegerValueRef<'a>) -> Self {
-		match value {
-			NonPositiveIntegerValueRef::NonPositiveInteger(value) => {
+			XsdNonPositiveIntegerValue::NonPositiveInteger(value) => {
 				Self::NonPositiveInteger(value)
 			}
-			NonPositiveIntegerValueRef::NegativeInteger(value) => Self::NegativeInteger(value),
+			XsdNonPositiveIntegerValue::NegativeInteger(value) => Self::NegativeInteger(value),
 		}
 	}
 }
-impl<'a> From<NonNegativeIntegerValueRef<'a>> for ValueRef<'a> {
-	fn from(value: NonNegativeIntegerValueRef<'a>) -> Self {
+impl From<XsdNonNegativeIntegerValue> for XsdValue {
+	fn from(value: XsdNonNegativeIntegerValue) -> Self {
 		match value {
-			NonNegativeIntegerValueRef::NonNegativeInteger(value) => {
+			XsdNonNegativeIntegerValue::NonNegativeInteger(value) => {
 				Self::NonNegativeInteger(value)
 			}
-			NonNegativeIntegerValueRef::PositiveInteger(value) => Self::PositiveInteger(value),
-			NonNegativeIntegerValueRef::UnsignedLong(value) => Self::UnsignedLong(value),
-			NonNegativeIntegerValueRef::UnsignedInt(value) => Self::UnsignedInt(value),
-			NonNegativeIntegerValueRef::UnsignedShort(value) => Self::UnsignedShort(value),
-			NonNegativeIntegerValueRef::UnsignedByte(value) => Self::UnsignedByte(value),
+			XsdNonNegativeIntegerValue::PositiveInteger(value) => Self::PositiveInteger(value),
+			XsdNonNegativeIntegerValue::UnsignedLong(value) => Self::UnsignedLong(value),
+			XsdNonNegativeIntegerValue::UnsignedInt(value) => Self::UnsignedInt(value),
+			XsdNonNegativeIntegerValue::UnsignedShort(value) => Self::UnsignedShort(value),
+			XsdNonNegativeIntegerValue::UnsignedByte(value) => Self::UnsignedByte(value),
 		}
 	}
 }
-impl<'a> TryFrom<ValueRef<'a>> for DecimalValueRef<'a> {
-	type Error = ValueRef<'a>;
-	fn try_from(value: ValueRef<'a>) -> Result<Self, ValueRef<'a>> {
+impl From<XsdUnsignedLongValue> for XsdValue {
+	fn from(value: XsdUnsignedLongValue) -> Self {
 		match value {
-			ValueRef::Decimal(value) => Ok(Self::Decimal(value)),
-			ValueRef::Integer(value) => Ok(Self::Integer(value)),
-			ValueRef::NonPositiveInteger(value) => Ok(Self::NonPositiveInteger(value)),
-			ValueRef::NegativeInteger(value) => Ok(Self::NegativeInteger(value)),
-			ValueRef::NonNegativeInteger(value) => Ok(Self::NonNegativeInteger(value)),
-			ValueRef::PositiveInteger(value) => Ok(Self::PositiveInteger(value)),
-			ValueRef::UnsignedLong(value) => Ok(Self::UnsignedLong(value)),
-			ValueRef::UnsignedInt(value) => Ok(Self::UnsignedInt(value)),
-			ValueRef::UnsignedShort(value) => Ok(Self::UnsignedShort(value)),
-			ValueRef::UnsignedByte(value) => Ok(Self::UnsignedByte(value)),
-			ValueRef::Long(value) => Ok(Self::Long(value)),
-			ValueRef::Int(value) => Ok(Self::Int(value)),
-			ValueRef::Short(value) => Ok(Self::Short(value)),
-			ValueRef::Byte(value) => Ok(Self::Byte(value)),
+			XsdUnsignedLongValue::UnsignedLong(value) => Self::UnsignedLong(value),
+			XsdUnsignedLongValue::UnsignedInt(value) => Self::UnsignedInt(value),
+			XsdUnsignedLongValue::UnsignedShort(value) => Self::UnsignedShort(value),
+			XsdUnsignedLongValue::UnsignedByte(value) => Self::UnsignedByte(value),
+		}
+	}
+}
+impl From<XsdUnsignedIntValue> for XsdValue {
+	fn from(value: XsdUnsignedIntValue) -> Self {
+		match value {
+			XsdUnsignedIntValue::UnsignedInt(value) => Self::UnsignedInt(value),
+			XsdUnsignedIntValue::UnsignedShort(value) => Self::UnsignedShort(value),
+			XsdUnsignedIntValue::UnsignedByte(value) => Self::UnsignedByte(value),
+		}
+	}
+}
+impl From<XsdUnsignedShortValue> for XsdValue {
+	fn from(value: XsdUnsignedShortValue) -> Self {
+		match value {
+			XsdUnsignedShortValue::UnsignedShort(value) => Self::UnsignedShort(value),
+			XsdUnsignedShortValue::UnsignedByte(value) => Self::UnsignedByte(value),
+		}
+	}
+}
+impl From<XsdLongValue> for XsdValue {
+	fn from(value: XsdLongValue) -> Self {
+		match value {
+			XsdLongValue::Long(value) => Self::Long(value),
+			XsdLongValue::Int(value) => Self::Int(value),
+			XsdLongValue::Short(value) => Self::Short(value),
+			XsdLongValue::Byte(value) => Self::Byte(value),
+		}
+	}
+}
+impl From<XsdIntValue> for XsdValue {
+	fn from(value: XsdIntValue) -> Self {
+		match value {
+			XsdIntValue::Int(value) => Self::Int(value),
+			XsdIntValue::Short(value) => Self::Short(value),
+			XsdIntValue::Byte(value) => Self::Byte(value),
+		}
+	}
+}
+impl From<XsdShortValue> for XsdValue {
+	fn from(value: XsdShortValue) -> Self {
+		match value {
+			XsdShortValue::Short(value) => Self::Short(value),
+			XsdShortValue::Byte(value) => Self::Byte(value),
+		}
+	}
+}
+impl TryFrom<XsdValue> for XsdDecimalValue {
+	type Error = XsdValue;
+	fn try_from(value: XsdValue) -> Result<Self, XsdValue> {
+		match value {
+			XsdValue::Decimal(value) => Ok(Self::Decimal(value)),
+			XsdValue::Integer(value) => Ok(Self::Integer(value)),
+			XsdValue::NonPositiveInteger(value) => Ok(Self::NonPositiveInteger(value)),
+			XsdValue::NegativeInteger(value) => Ok(Self::NegativeInteger(value)),
+			XsdValue::NonNegativeInteger(value) => Ok(Self::NonNegativeInteger(value)),
+			XsdValue::PositiveInteger(value) => Ok(Self::PositiveInteger(value)),
+			XsdValue::UnsignedLong(value) => Ok(Self::UnsignedLong(value)),
+			XsdValue::UnsignedInt(value) => Ok(Self::UnsignedInt(value)),
+			XsdValue::UnsignedShort(value) => Ok(Self::UnsignedShort(value)),
+			XsdValue::UnsignedByte(value) => Ok(Self::UnsignedByte(value)),
+			XsdValue::Long(value) => Ok(Self::Long(value)),
+			XsdValue::Int(value) => Ok(Self::Int(value)),
+			XsdValue::Short(value) => Ok(Self::Short(value)),
+			XsdValue::Byte(value) => Ok(Self::Byte(value)),
 			other => Err(other),
 		}
 	}
 }
-impl<'a> TryFrom<ValueRef<'a>> for IntegerValueRef<'a> {
-	type Error = ValueRef<'a>;
-	fn try_from(value: ValueRef<'a>) -> Result<Self, ValueRef<'a>> {
+impl TryFrom<XsdValue> for XsdIntegerValue {
+	type Error = XsdValue;
+	fn try_from(value: XsdValue) -> Result<Self, XsdValue> {
 		match value {
-			ValueRef::Integer(value) => Ok(Self::Integer(value)),
-			ValueRef::NonPositiveInteger(value) => Ok(Self::NonPositiveInteger(value)),
-			ValueRef::NegativeInteger(value) => Ok(Self::NegativeInteger(value)),
-			ValueRef::NonNegativeInteger(value) => Ok(Self::NonNegativeInteger(value)),
-			ValueRef::PositiveInteger(value) => Ok(Self::PositiveInteger(value)),
-			ValueRef::UnsignedLong(value) => Ok(Self::UnsignedLong(value)),
-			ValueRef::UnsignedInt(value) => Ok(Self::UnsignedInt(value)),
-			ValueRef::UnsignedShort(value) => Ok(Self::UnsignedShort(value)),
-			ValueRef::UnsignedByte(value) => Ok(Self::UnsignedByte(value)),
-			ValueRef::Long(value) => Ok(Self::Long(value)),
-			ValueRef::Int(value) => Ok(Self::Int(value)),
-			ValueRef::Short(value) => Ok(Self::Short(value)),
-			ValueRef::Byte(value) => Ok(Self::Byte(value)),
+			XsdValue::Integer(value) => Ok(Self::Integer(value)),
+			XsdValue::NonPositiveInteger(value) => Ok(Self::NonPositiveInteger(value)),
+			XsdValue::NegativeInteger(value) => Ok(Self::NegativeInteger(value)),
+			XsdValue::NonNegativeInteger(value) => Ok(Self::NonNegativeInteger(value)),
+			XsdValue::PositiveInteger(value) => Ok(Self::PositiveInteger(value)),
+			XsdValue::UnsignedLong(value) => Ok(Self::UnsignedLong(value)),
+			XsdValue::UnsignedInt(value) => Ok(Self::UnsignedInt(value)),
+			XsdValue::UnsignedShort(value) => Ok(Self::UnsignedShort(value)),
+			XsdValue::UnsignedByte(value) => Ok(Self::UnsignedByte(value)),
+			XsdValue::Long(value) => Ok(Self::Long(value)),
+			XsdValue::Int(value) => Ok(Self::Int(value)),
+			XsdValue::Short(value) => Ok(Self::Short(value)),
+			XsdValue::Byte(value) => Ok(Self::Byte(value)),
 			other => Err(other),
 		}
 	}
 }
-impl<'a> TryFrom<ValueRef<'a>> for NonPositiveIntegerValueRef<'a> {
-	type Error = ValueRef<'a>;
-	fn try_from(value: ValueRef<'a>) -> Result<Self, ValueRef<'a>> {
+impl TryFrom<XsdValue> for XsdNonPositiveIntegerValue {
+	type Error = XsdValue;
+	fn try_from(value: XsdValue) -> Result<Self, XsdValue> {
 		match value {
-			ValueRef::NonPositiveInteger(value) => Ok(Self::NonPositiveInteger(value)),
-			ValueRef::NegativeInteger(value) => Ok(Self::NegativeInteger(value)),
+			XsdValue::NonPositiveInteger(value) => Ok(Self::NonPositiveInteger(value)),
+			XsdValue::NegativeInteger(value) => Ok(Self::NegativeInteger(value)),
 			other => Err(other),
 		}
 	}
 }
-impl<'a> TryFrom<ValueRef<'a>> for NonNegativeIntegerValueRef<'a> {
-	type Error = ValueRef<'a>;
-	fn try_from(value: ValueRef<'a>) -> Result<Self, ValueRef<'a>> {
+impl TryFrom<XsdValue> for XsdNonNegativeIntegerValue {
+	type Error = XsdValue;
+	fn try_from(value: XsdValue) -> Result<Self, XsdValue> {
 		match value {
-			ValueRef::NonNegativeInteger(value) => Ok(Self::NonNegativeInteger(value)),
-			ValueRef::PositiveInteger(value) => Ok(Self::PositiveInteger(value)),
-			ValueRef::UnsignedLong(value) => Ok(Self::UnsignedLong(value)),
-			ValueRef::UnsignedInt(value) => Ok(Self::UnsignedInt(value)),
-			ValueRef::UnsignedShort(value) => Ok(Self::UnsignedShort(value)),
-			ValueRef::UnsignedByte(value) => Ok(Self::UnsignedByte(value)),
+			XsdValue::NonNegativeInteger(value) => Ok(Self::NonNegativeInteger(value)),
+			XsdValue::PositiveInteger(value) => Ok(Self::PositiveInteger(value)),
+			XsdValue::UnsignedLong(value) => Ok(Self::UnsignedLong(value)),
+			XsdValue::UnsignedInt(value) => Ok(Self::UnsignedInt(value)),
+			XsdValue::UnsignedShort(value) => Ok(Self::UnsignedShort(value)),
+			XsdValue::UnsignedByte(value) => Ok(Self::UnsignedByte(value)),
+			other => Err(other),
+		}
+	}
+}
+impl TryFrom<XsdValue> for XsdUnsignedLongValue {
+	type Error = XsdValue;
+	fn try_from(value: XsdValue) -> Result<Self, XsdValue> {
+		match value {
+			XsdValue::UnsignedLong(value) => Ok(Self::UnsignedLong(value)),
+			XsdValue::UnsignedInt(value) => Ok(Self::UnsignedInt(value)),
+			XsdValue::UnsignedShort(value) => Ok(Self::UnsignedShort(value)),
+			XsdValue::UnsignedByte(value) => Ok(Self::UnsignedByte(value)),
+			other => Err(other),
+		}
+	}
+}
+impl TryFrom<XsdValue> for XsdUnsignedIntValue {
+	type Error = XsdValue;
+	fn try_from(value: XsdValue) -> Result<Self, XsdValue> {
+		match value {
+			XsdValue::UnsignedInt(value) => Ok(Self::UnsignedInt(value)),
+			XsdValue::UnsignedShort(value) => Ok(Self::UnsignedShort(value)),
+			XsdValue::UnsignedByte(value) => Ok(Self::UnsignedByte(value)),
+			other => Err(other),
+		}
+	}
+}
+impl TryFrom<XsdValue> for XsdUnsignedShortValue {
+	type Error = XsdValue;
+	fn try_from(value: XsdValue) -> Result<Self, XsdValue> {
+		match value {
+			XsdValue::UnsignedShort(value) => Ok(Self::UnsignedShort(value)),
+			XsdValue::UnsignedByte(value) => Ok(Self::UnsignedByte(value)),
+			other => Err(other),
+		}
+	}
+}
+impl TryFrom<XsdValue> for XsdLongValue {
+	type Error = XsdValue;
+	fn try_from(value: XsdValue) -> Result<Self, XsdValue> {
+		match value {
+			XsdValue::Long(value) => Ok(Self::Long(value)),
+			XsdValue::Int(value) => Ok(Self::Int(value)),
+			XsdValue::Short(value) => Ok(Self::Short(value)),
+			XsdValue::Byte(value) => Ok(Self::Byte(value)),
+			other => Err(other),
+		}
+	}
+}
+impl TryFrom<XsdValue> for XsdIntValue {
+	type Error = XsdValue;
+	fn try_from(value: XsdValue) -> Result<Self, XsdValue> {
+		match value {
+			XsdValue::Int(value) => Ok(Self::Int(value)),
+			XsdValue::Short(value) => Ok(Self::Short(value)),
+			XsdValue::Byte(value) => Ok(Self::Byte(value)),
+			other => Err(other),
+		}
+	}
+}
+impl TryFrom<XsdValue> for XsdShortValue {
+	type Error = XsdValue;
+	fn try_from(value: XsdValue) -> Result<Self, XsdValue> {
+		match value {
+			XsdValue::Short(value) => Ok(Self::Short(value)),
+			XsdValue::Byte(value) => Ok(Self::Byte(value)),
+			other => Err(other),
+		}
+	}
+}
+impl<'a> From<XsdDecimalValueRef<'a>> for XsdValueRef<'a> {
+	fn from(value: XsdDecimalValueRef<'a>) -> Self {
+		match value {
+			XsdDecimalValueRef::Decimal(value) => Self::Decimal(value),
+			XsdDecimalValueRef::Integer(value) => Self::Integer(value),
+			XsdDecimalValueRef::NonPositiveInteger(value) => Self::NonPositiveInteger(value),
+			XsdDecimalValueRef::NegativeInteger(value) => Self::NegativeInteger(value),
+			XsdDecimalValueRef::NonNegativeInteger(value) => Self::NonNegativeInteger(value),
+			XsdDecimalValueRef::PositiveInteger(value) => Self::PositiveInteger(value),
+			XsdDecimalValueRef::UnsignedLong(value) => Self::UnsignedLong(value),
+			XsdDecimalValueRef::UnsignedInt(value) => Self::UnsignedInt(value),
+			XsdDecimalValueRef::UnsignedShort(value) => Self::UnsignedShort(value),
+			XsdDecimalValueRef::UnsignedByte(value) => Self::UnsignedByte(value),
+			XsdDecimalValueRef::Long(value) => Self::Long(value),
+			XsdDecimalValueRef::Int(value) => Self::Int(value),
+			XsdDecimalValueRef::Short(value) => Self::Short(value),
+			XsdDecimalValueRef::Byte(value) => Self::Byte(value),
+		}
+	}
+}
+impl<'a> From<XsdIntegerValueRef<'a>> for XsdValueRef<'a> {
+	fn from(value: XsdIntegerValueRef<'a>) -> Self {
+		match value {
+			XsdIntegerValueRef::Integer(value) => Self::Integer(value),
+			XsdIntegerValueRef::NonPositiveInteger(value) => Self::NonPositiveInteger(value),
+			XsdIntegerValueRef::NegativeInteger(value) => Self::NegativeInteger(value),
+			XsdIntegerValueRef::NonNegativeInteger(value) => Self::NonNegativeInteger(value),
+			XsdIntegerValueRef::PositiveInteger(value) => Self::PositiveInteger(value),
+			XsdIntegerValueRef::UnsignedLong(value) => Self::UnsignedLong(value),
+			XsdIntegerValueRef::UnsignedInt(value) => Self::UnsignedInt(value),
+			XsdIntegerValueRef::UnsignedShort(value) => Self::UnsignedShort(value),
+			XsdIntegerValueRef::UnsignedByte(value) => Self::UnsignedByte(value),
+			XsdIntegerValueRef::Long(value) => Self::Long(value),
+			XsdIntegerValueRef::Int(value) => Self::Int(value),
+			XsdIntegerValueRef::Short(value) => Self::Short(value),
+			XsdIntegerValueRef::Byte(value) => Self::Byte(value),
+		}
+	}
+}
+impl<'a> From<XsdNonPositiveIntegerValueRef<'a>> for XsdValueRef<'a> {
+	fn from(value: XsdNonPositiveIntegerValueRef<'a>) -> Self {
+		match value {
+			XsdNonPositiveIntegerValueRef::NonPositiveInteger(value) => {
+				Self::NonPositiveInteger(value)
+			}
+			XsdNonPositiveIntegerValueRef::NegativeInteger(value) => Self::NegativeInteger(value),
+		}
+	}
+}
+impl<'a> From<XsdNonNegativeIntegerValueRef<'a>> for XsdValueRef<'a> {
+	fn from(value: XsdNonNegativeIntegerValueRef<'a>) -> Self {
+		match value {
+			XsdNonNegativeIntegerValueRef::NonNegativeInteger(value) => {
+				Self::NonNegativeInteger(value)
+			}
+			XsdNonNegativeIntegerValueRef::PositiveInteger(value) => Self::PositiveInteger(value),
+			XsdNonNegativeIntegerValueRef::UnsignedLong(value) => Self::UnsignedLong(value),
+			XsdNonNegativeIntegerValueRef::UnsignedInt(value) => Self::UnsignedInt(value),
+			XsdNonNegativeIntegerValueRef::UnsignedShort(value) => Self::UnsignedShort(value),
+			XsdNonNegativeIntegerValueRef::UnsignedByte(value) => Self::UnsignedByte(value),
+		}
+	}
+}
+impl<'a> TryFrom<XsdValueRef<'a>> for XsdDecimalValueRef<'a> {
+	type Error = XsdValueRef<'a>;
+	fn try_from(value: XsdValueRef<'a>) -> Result<Self, XsdValueRef<'a>> {
+		match value {
+			XsdValueRef::Decimal(value) => Ok(Self::Decimal(value)),
+			XsdValueRef::Integer(value) => Ok(Self::Integer(value)),
+			XsdValueRef::NonPositiveInteger(value) => Ok(Self::NonPositiveInteger(value)),
+			XsdValueRef::NegativeInteger(value) => Ok(Self::NegativeInteger(value)),
+			XsdValueRef::NonNegativeInteger(value) => Ok(Self::NonNegativeInteger(value)),
+			XsdValueRef::PositiveInteger(value) => Ok(Self::PositiveInteger(value)),
+			XsdValueRef::UnsignedLong(value) => Ok(Self::UnsignedLong(value)),
+			XsdValueRef::UnsignedInt(value) => Ok(Self::UnsignedInt(value)),
+			XsdValueRef::UnsignedShort(value) => Ok(Self::UnsignedShort(value)),
+			XsdValueRef::UnsignedByte(value) => Ok(Self::UnsignedByte(value)),
+			XsdValueRef::Long(value) => Ok(Self::Long(value)),
+			XsdValueRef::Int(value) => Ok(Self::Int(value)),
+			XsdValueRef::Short(value) => Ok(Self::Short(value)),
+			XsdValueRef::Byte(value) => Ok(Self::Byte(value)),
+			other => Err(other),
+		}
+	}
+}
+impl<'a> TryFrom<XsdValueRef<'a>> for XsdIntegerValueRef<'a> {
+	type Error = XsdValueRef<'a>;
+	fn try_from(value: XsdValueRef<'a>) -> Result<Self, XsdValueRef<'a>> {
+		match value {
+			XsdValueRef::Integer(value) => Ok(Self::Integer(value)),
+			XsdValueRef::NonPositiveInteger(value) => Ok(Self::NonPositiveInteger(value)),
+			XsdValueRef::NegativeInteger(value) => Ok(Self::NegativeInteger(value)),
+			XsdValueRef::NonNegativeInteger(value) => Ok(Self::NonNegativeInteger(value)),
+			XsdValueRef::PositiveInteger(value) => Ok(Self::PositiveInteger(value)),
+			XsdValueRef::UnsignedLong(value) => Ok(Self::UnsignedLong(value)),
+			XsdValueRef::UnsignedInt(value) => Ok(Self::UnsignedInt(value)),
+			XsdValueRef::UnsignedShort(value) => Ok(Self::UnsignedShort(value)),
+			XsdValueRef::UnsignedByte(value) => Ok(Self::UnsignedByte(value)),
+			XsdValueRef::Long(value) => Ok(Self::Long(value)),
+			XsdValueRef::Int(value) => Ok(Self::Int(value)),
+			XsdValueRef::Short(value) => Ok(Self::Short(value)),
+			XsdValueRef::Byte(value) => Ok(Self::Byte(value)),
+			other => Err(other),
+		}
+	}
+}
+impl<'a> TryFrom<XsdValueRef<'a>> for XsdNonPositiveIntegerValueRef<'a> {
+	type Error = XsdValueRef<'a>;
+	fn try_from(value: XsdValueRef<'a>) -> Result<Self, XsdValueRef<'a>> {
+		match value {
+			XsdValueRef::NonPositiveInteger(value) => Ok(Self::NonPositiveInteger(value)),
+			XsdValueRef::NegativeInteger(value) => Ok(Self::NegativeInteger(value)),
+			other => Err(other),
+		}
+	}
+}
+impl<'a> TryFrom<XsdValueRef<'a>> for XsdNonNegativeIntegerValueRef<'a> {
+	type Error = XsdValueRef<'a>;
+	fn try_from(value: XsdValueRef<'a>) -> Result<Self, XsdValueRef<'a>> {
+		match value {
+			XsdValueRef::NonNegativeInteger(value) => Ok(Self::NonNegativeInteger(value)),
+			XsdValueRef::PositiveInteger(value) => Ok(Self::PositiveInteger(value)),
+			XsdValueRef::UnsignedLong(value) => Ok(Self::UnsignedLong(value)),
+			XsdValueRef::UnsignedInt(value) => Ok(Self::UnsignedInt(value)),
+			XsdValueRef::UnsignedShort(value) => Ok(Self::UnsignedShort(value)),
+			XsdValueRef::UnsignedByte(value) => Ok(Self::UnsignedByte(value)),
 			other => Err(other),
 		}
 	}
 }
 /// Any specialized [`XsdDecimal`] value.
 #[derive(Debug, Clone, PartialEq, Eq, PartialOrd, Ord, Hash)]
-pub enum DecimalValue {
+pub enum XsdDecimalValue {
 	/// A `Decimal` value.
 	Decimal(XsdDecimal),
 	/// An `Integer` value.
@@ -1781,7 +1785,7 @@ pub enum DecimalValue {
 	/// A `Byte` value.
 	Byte(XsdByte),
 }
-impl DecimalValue {
+impl XsdDecimalValue {
 	/// Returns the specific datatype of this value.
 	pub fn datatype(&self) -> XsdDecimalDatatype {
 		match self {
@@ -1858,12 +1862,12 @@ impl DecimalValue {
 		}
 	}
 }
-impl XsdTyped for DecimalValue {
+impl XsdTyped for XsdDecimalValue {
 	fn datatype(&self) -> XsdDatatype {
 		self.datatype().into()
 	}
 }
-impl fmt::Display for DecimalValue {
+impl fmt::Display for XsdDecimalValue {
 	fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
 		match self {
 			Self::Decimal(v) => v.fmt(f),
@@ -1883,206 +1887,210 @@ impl fmt::Display for DecimalValue {
 		}
 	}
 }
-impl From<IntegerValue> for DecimalValue {
-	fn from(value: IntegerValue) -> Self {
+impl From<XsdIntegerValue> for XsdDecimalValue {
+	fn from(value: XsdIntegerValue) -> Self {
 		match value {
-			IntegerValue::Integer(value) => Self::Integer(value),
-			IntegerValue::NonPositiveInteger(value) => Self::NonPositiveInteger(value),
-			IntegerValue::NegativeInteger(value) => Self::NegativeInteger(value),
-			IntegerValue::NonNegativeInteger(value) => Self::NonNegativeInteger(value),
-			IntegerValue::PositiveInteger(value) => Self::PositiveInteger(value),
-			IntegerValue::UnsignedLong(value) => Self::UnsignedLong(value),
-			IntegerValue::UnsignedInt(value) => Self::UnsignedInt(value),
-			IntegerValue::UnsignedShort(value) => Self::UnsignedShort(value),
-			IntegerValue::UnsignedByte(value) => Self::UnsignedByte(value),
-			IntegerValue::Long(value) => Self::Long(value),
-			IntegerValue::Int(value) => Self::Int(value),
-			IntegerValue::Short(value) => Self::Short(value),
-			IntegerValue::Byte(value) => Self::Byte(value),
+			XsdIntegerValue::Integer(value) => Self::Integer(value),
+			XsdIntegerValue::NonPositiveInteger(value) => Self::NonPositiveInteger(value),
+			XsdIntegerValue::NegativeInteger(value) => Self::NegativeInteger(value),
+			XsdIntegerValue::NonNegativeInteger(value) => Self::NonNegativeInteger(value),
+			XsdIntegerValue::PositiveInteger(value) => Self::PositiveInteger(value),
+			XsdIntegerValue::UnsignedLong(value) => Self::UnsignedLong(value),
+			XsdIntegerValue::UnsignedInt(value) => Self::UnsignedInt(value),
+			XsdIntegerValue::UnsignedShort(value) => Self::UnsignedShort(value),
+			XsdIntegerValue::UnsignedByte(value) => Self::UnsignedByte(value),
+			XsdIntegerValue::Long(value) => Self::Long(value),
+			XsdIntegerValue::Int(value) => Self::Int(value),
+			XsdIntegerValue::Short(value) => Self::Short(value),
+			XsdIntegerValue::Byte(value) => Self::Byte(value),
 		}
 	}
 }
-impl From<NonPositiveIntegerValue> for DecimalValue {
-	fn from(value: NonPositiveIntegerValue) -> Self {
+impl From<XsdNonPositiveIntegerValue> for XsdDecimalValue {
+	fn from(value: XsdNonPositiveIntegerValue) -> Self {
 		match value {
-			NonPositiveIntegerValue::NonPositiveInteger(value) => Self::NonPositiveInteger(value),
-			NonPositiveIntegerValue::NegativeInteger(value) => Self::NegativeInteger(value),
+			XsdNonPositiveIntegerValue::NonPositiveInteger(value) => {
+				Self::NonPositiveInteger(value)
+			}
+			XsdNonPositiveIntegerValue::NegativeInteger(value) => Self::NegativeInteger(value),
 		}
 	}
 }
-impl From<NonNegativeIntegerValue> for DecimalValue {
-	fn from(value: NonNegativeIntegerValue) -> Self {
+impl From<XsdNonNegativeIntegerValue> for XsdDecimalValue {
+	fn from(value: XsdNonNegativeIntegerValue) -> Self {
 		match value {
-			NonNegativeIntegerValue::NonNegativeInteger(value) => Self::NonNegativeInteger(value),
-			NonNegativeIntegerValue::PositiveInteger(value) => Self::PositiveInteger(value),
-			NonNegativeIntegerValue::UnsignedLong(value) => Self::UnsignedLong(value),
-			NonNegativeIntegerValue::UnsignedInt(value) => Self::UnsignedInt(value),
-			NonNegativeIntegerValue::UnsignedShort(value) => Self::UnsignedShort(value),
-			NonNegativeIntegerValue::UnsignedByte(value) => Self::UnsignedByte(value),
+			XsdNonNegativeIntegerValue::NonNegativeInteger(value) => {
+				Self::NonNegativeInteger(value)
+			}
+			XsdNonNegativeIntegerValue::PositiveInteger(value) => Self::PositiveInteger(value),
+			XsdNonNegativeIntegerValue::UnsignedLong(value) => Self::UnsignedLong(value),
+			XsdNonNegativeIntegerValue::UnsignedInt(value) => Self::UnsignedInt(value),
+			XsdNonNegativeIntegerValue::UnsignedShort(value) => Self::UnsignedShort(value),
+			XsdNonNegativeIntegerValue::UnsignedByte(value) => Self::UnsignedByte(value),
 		}
 	}
 }
-impl From<UnsignedLongValue> for DecimalValue {
-	fn from(value: UnsignedLongValue) -> Self {
+impl From<XsdUnsignedLongValue> for XsdDecimalValue {
+	fn from(value: XsdUnsignedLongValue) -> Self {
 		match value {
-			UnsignedLongValue::UnsignedLong(value) => Self::UnsignedLong(value),
-			UnsignedLongValue::UnsignedInt(value) => Self::UnsignedInt(value),
-			UnsignedLongValue::UnsignedShort(value) => Self::UnsignedShort(value),
-			UnsignedLongValue::UnsignedByte(value) => Self::UnsignedByte(value),
+			XsdUnsignedLongValue::UnsignedLong(value) => Self::UnsignedLong(value),
+			XsdUnsignedLongValue::UnsignedInt(value) => Self::UnsignedInt(value),
+			XsdUnsignedLongValue::UnsignedShort(value) => Self::UnsignedShort(value),
+			XsdUnsignedLongValue::UnsignedByte(value) => Self::UnsignedByte(value),
 		}
 	}
 }
-impl From<UnsignedIntValue> for DecimalValue {
-	fn from(value: UnsignedIntValue) -> Self {
+impl From<XsdUnsignedIntValue> for XsdDecimalValue {
+	fn from(value: XsdUnsignedIntValue) -> Self {
 		match value {
-			UnsignedIntValue::UnsignedInt(value) => Self::UnsignedInt(value),
-			UnsignedIntValue::UnsignedShort(value) => Self::UnsignedShort(value),
-			UnsignedIntValue::UnsignedByte(value) => Self::UnsignedByte(value),
+			XsdUnsignedIntValue::UnsignedInt(value) => Self::UnsignedInt(value),
+			XsdUnsignedIntValue::UnsignedShort(value) => Self::UnsignedShort(value),
+			XsdUnsignedIntValue::UnsignedByte(value) => Self::UnsignedByte(value),
 		}
 	}
 }
-impl From<UnsignedShortValue> for DecimalValue {
-	fn from(value: UnsignedShortValue) -> Self {
+impl From<XsdUnsignedShortValue> for XsdDecimalValue {
+	fn from(value: XsdUnsignedShortValue) -> Self {
 		match value {
-			UnsignedShortValue::UnsignedShort(value) => Self::UnsignedShort(value),
-			UnsignedShortValue::UnsignedByte(value) => Self::UnsignedByte(value),
+			XsdUnsignedShortValue::UnsignedShort(value) => Self::UnsignedShort(value),
+			XsdUnsignedShortValue::UnsignedByte(value) => Self::UnsignedByte(value),
 		}
 	}
 }
-impl From<LongValue> for DecimalValue {
-	fn from(value: LongValue) -> Self {
+impl From<XsdLongValue> for XsdDecimalValue {
+	fn from(value: XsdLongValue) -> Self {
 		match value {
-			LongValue::Long(value) => Self::Long(value),
-			LongValue::Int(value) => Self::Int(value),
-			LongValue::Short(value) => Self::Short(value),
-			LongValue::Byte(value) => Self::Byte(value),
+			XsdLongValue::Long(value) => Self::Long(value),
+			XsdLongValue::Int(value) => Self::Int(value),
+			XsdLongValue::Short(value) => Self::Short(value),
+			XsdLongValue::Byte(value) => Self::Byte(value),
 		}
 	}
 }
-impl From<IntValue> for DecimalValue {
-	fn from(value: IntValue) -> Self {
+impl From<XsdIntValue> for XsdDecimalValue {
+	fn from(value: XsdIntValue) -> Self {
 		match value {
-			IntValue::Int(value) => Self::Int(value),
-			IntValue::Short(value) => Self::Short(value),
-			IntValue::Byte(value) => Self::Byte(value),
+			XsdIntValue::Int(value) => Self::Int(value),
+			XsdIntValue::Short(value) => Self::Short(value),
+			XsdIntValue::Byte(value) => Self::Byte(value),
 		}
 	}
 }
-impl From<ShortValue> for DecimalValue {
-	fn from(value: ShortValue) -> Self {
+impl From<XsdShortValue> for XsdDecimalValue {
+	fn from(value: XsdShortValue) -> Self {
 		match value {
-			ShortValue::Short(value) => Self::Short(value),
-			ShortValue::Byte(value) => Self::Byte(value),
+			XsdShortValue::Short(value) => Self::Short(value),
+			XsdShortValue::Byte(value) => Self::Byte(value),
 		}
 	}
 }
-impl TryFrom<DecimalValue> for IntegerValue {
-	type Error = DecimalValue;
-	fn try_from(value: DecimalValue) -> Result<Self, DecimalValue> {
+impl TryFrom<XsdDecimalValue> for XsdIntegerValue {
+	type Error = XsdDecimalValue;
+	fn try_from(value: XsdDecimalValue) -> Result<Self, XsdDecimalValue> {
 		match value {
-			DecimalValue::Integer(value) => Ok(Self::Integer(value)),
-			DecimalValue::NonPositiveInteger(value) => Ok(Self::NonPositiveInteger(value)),
-			DecimalValue::NegativeInteger(value) => Ok(Self::NegativeInteger(value)),
-			DecimalValue::NonNegativeInteger(value) => Ok(Self::NonNegativeInteger(value)),
-			DecimalValue::PositiveInteger(value) => Ok(Self::PositiveInteger(value)),
-			DecimalValue::UnsignedLong(value) => Ok(Self::UnsignedLong(value)),
-			DecimalValue::UnsignedInt(value) => Ok(Self::UnsignedInt(value)),
-			DecimalValue::UnsignedShort(value) => Ok(Self::UnsignedShort(value)),
-			DecimalValue::UnsignedByte(value) => Ok(Self::UnsignedByte(value)),
-			DecimalValue::Long(value) => Ok(Self::Long(value)),
-			DecimalValue::Int(value) => Ok(Self::Int(value)),
-			DecimalValue::Short(value) => Ok(Self::Short(value)),
-			DecimalValue::Byte(value) => Ok(Self::Byte(value)),
+			XsdDecimalValue::Integer(value) => Ok(Self::Integer(value)),
+			XsdDecimalValue::NonPositiveInteger(value) => Ok(Self::NonPositiveInteger(value)),
+			XsdDecimalValue::NegativeInteger(value) => Ok(Self::NegativeInteger(value)),
+			XsdDecimalValue::NonNegativeInteger(value) => Ok(Self::NonNegativeInteger(value)),
+			XsdDecimalValue::PositiveInteger(value) => Ok(Self::PositiveInteger(value)),
+			XsdDecimalValue::UnsignedLong(value) => Ok(Self::UnsignedLong(value)),
+			XsdDecimalValue::UnsignedInt(value) => Ok(Self::UnsignedInt(value)),
+			XsdDecimalValue::UnsignedShort(value) => Ok(Self::UnsignedShort(value)),
+			XsdDecimalValue::UnsignedByte(value) => Ok(Self::UnsignedByte(value)),
+			XsdDecimalValue::Long(value) => Ok(Self::Long(value)),
+			XsdDecimalValue::Int(value) => Ok(Self::Int(value)),
+			XsdDecimalValue::Short(value) => Ok(Self::Short(value)),
+			XsdDecimalValue::Byte(value) => Ok(Self::Byte(value)),
 			other => Err(other),
 		}
 	}
 }
-impl TryFrom<DecimalValue> for NonPositiveIntegerValue {
-	type Error = DecimalValue;
-	fn try_from(value: DecimalValue) -> Result<Self, DecimalValue> {
+impl TryFrom<XsdDecimalValue> for XsdNonPositiveIntegerValue {
+	type Error = XsdDecimalValue;
+	fn try_from(value: XsdDecimalValue) -> Result<Self, XsdDecimalValue> {
 		match value {
-			DecimalValue::NonPositiveInteger(value) => Ok(Self::NonPositiveInteger(value)),
-			DecimalValue::NegativeInteger(value) => Ok(Self::NegativeInteger(value)),
+			XsdDecimalValue::NonPositiveInteger(value) => Ok(Self::NonPositiveInteger(value)),
+			XsdDecimalValue::NegativeInteger(value) => Ok(Self::NegativeInteger(value)),
 			other => Err(other),
 		}
 	}
 }
-impl TryFrom<DecimalValue> for NonNegativeIntegerValue {
-	type Error = DecimalValue;
-	fn try_from(value: DecimalValue) -> Result<Self, DecimalValue> {
+impl TryFrom<XsdDecimalValue> for XsdNonNegativeIntegerValue {
+	type Error = XsdDecimalValue;
+	fn try_from(value: XsdDecimalValue) -> Result<Self, XsdDecimalValue> {
 		match value {
-			DecimalValue::NonNegativeInteger(value) => Ok(Self::NonNegativeInteger(value)),
-			DecimalValue::PositiveInteger(value) => Ok(Self::PositiveInteger(value)),
-			DecimalValue::UnsignedLong(value) => Ok(Self::UnsignedLong(value)),
-			DecimalValue::UnsignedInt(value) => Ok(Self::UnsignedInt(value)),
-			DecimalValue::UnsignedShort(value) => Ok(Self::UnsignedShort(value)),
-			DecimalValue::UnsignedByte(value) => Ok(Self::UnsignedByte(value)),
+			XsdDecimalValue::NonNegativeInteger(value) => Ok(Self::NonNegativeInteger(value)),
+			XsdDecimalValue::PositiveInteger(value) => Ok(Self::PositiveInteger(value)),
+			XsdDecimalValue::UnsignedLong(value) => Ok(Self::UnsignedLong(value)),
+			XsdDecimalValue::UnsignedInt(value) => Ok(Self::UnsignedInt(value)),
+			XsdDecimalValue::UnsignedShort(value) => Ok(Self::UnsignedShort(value)),
+			XsdDecimalValue::UnsignedByte(value) => Ok(Self::UnsignedByte(value)),
 			other => Err(other),
 		}
 	}
 }
-impl TryFrom<DecimalValue> for UnsignedLongValue {
-	type Error = DecimalValue;
-	fn try_from(value: DecimalValue) -> Result<Self, DecimalValue> {
+impl TryFrom<XsdDecimalValue> for XsdUnsignedLongValue {
+	type Error = XsdDecimalValue;
+	fn try_from(value: XsdDecimalValue) -> Result<Self, XsdDecimalValue> {
 		match value {
-			DecimalValue::UnsignedLong(value) => Ok(Self::UnsignedLong(value)),
-			DecimalValue::UnsignedInt(value) => Ok(Self::UnsignedInt(value)),
-			DecimalValue::UnsignedShort(value) => Ok(Self::UnsignedShort(value)),
-			DecimalValue::UnsignedByte(value) => Ok(Self::UnsignedByte(value)),
+			XsdDecimalValue::UnsignedLong(value) => Ok(Self::UnsignedLong(value)),
+			XsdDecimalValue::UnsignedInt(value) => Ok(Self::UnsignedInt(value)),
+			XsdDecimalValue::UnsignedShort(value) => Ok(Self::UnsignedShort(value)),
+			XsdDecimalValue::UnsignedByte(value) => Ok(Self::UnsignedByte(value)),
 			other => Err(other),
 		}
 	}
 }
-impl TryFrom<DecimalValue> for UnsignedIntValue {
-	type Error = DecimalValue;
-	fn try_from(value: DecimalValue) -> Result<Self, DecimalValue> {
+impl TryFrom<XsdDecimalValue> for XsdUnsignedIntValue {
+	type Error = XsdDecimalValue;
+	fn try_from(value: XsdDecimalValue) -> Result<Self, XsdDecimalValue> {
 		match value {
-			DecimalValue::UnsignedInt(value) => Ok(Self::UnsignedInt(value)),
-			DecimalValue::UnsignedShort(value) => Ok(Self::UnsignedShort(value)),
-			DecimalValue::UnsignedByte(value) => Ok(Self::UnsignedByte(value)),
+			XsdDecimalValue::UnsignedInt(value) => Ok(Self::UnsignedInt(value)),
+			XsdDecimalValue::UnsignedShort(value) => Ok(Self::UnsignedShort(value)),
+			XsdDecimalValue::UnsignedByte(value) => Ok(Self::UnsignedByte(value)),
 			other => Err(other),
 		}
 	}
 }
-impl TryFrom<DecimalValue> for UnsignedShortValue {
-	type Error = DecimalValue;
-	fn try_from(value: DecimalValue) -> Result<Self, DecimalValue> {
+impl TryFrom<XsdDecimalValue> for XsdUnsignedShortValue {
+	type Error = XsdDecimalValue;
+	fn try_from(value: XsdDecimalValue) -> Result<Self, XsdDecimalValue> {
 		match value {
-			DecimalValue::UnsignedShort(value) => Ok(Self::UnsignedShort(value)),
-			DecimalValue::UnsignedByte(value) => Ok(Self::UnsignedByte(value)),
+			XsdDecimalValue::UnsignedShort(value) => Ok(Self::UnsignedShort(value)),
+			XsdDecimalValue::UnsignedByte(value) => Ok(Self::UnsignedByte(value)),
 			other => Err(other),
 		}
 	}
 }
-impl TryFrom<DecimalValue> for LongValue {
-	type Error = DecimalValue;
-	fn try_from(value: DecimalValue) -> Result<Self, DecimalValue> {
+impl TryFrom<XsdDecimalValue> for XsdLongValue {
+	type Error = XsdDecimalValue;
+	fn try_from(value: XsdDecimalValue) -> Result<Self, XsdDecimalValue> {
 		match value {
-			DecimalValue::Long(value) => Ok(Self::Long(value)),
-			DecimalValue::Int(value) => Ok(Self::Int(value)),
-			DecimalValue::Short(value) => Ok(Self::Short(value)),
-			DecimalValue::Byte(value) => Ok(Self::Byte(value)),
+			XsdDecimalValue::Long(value) => Ok(Self::Long(value)),
+			XsdDecimalValue::Int(value) => Ok(Self::Int(value)),
+			XsdDecimalValue::Short(value) => Ok(Self::Short(value)),
+			XsdDecimalValue::Byte(value) => Ok(Self::Byte(value)),
 			other => Err(other),
 		}
 	}
 }
-impl TryFrom<DecimalValue> for IntValue {
-	type Error = DecimalValue;
-	fn try_from(value: DecimalValue) -> Result<Self, DecimalValue> {
+impl TryFrom<XsdDecimalValue> for XsdIntValue {
+	type Error = XsdDecimalValue;
+	fn try_from(value: XsdDecimalValue) -> Result<Self, XsdDecimalValue> {
 		match value {
-			DecimalValue::Int(value) => Ok(Self::Int(value)),
-			DecimalValue::Short(value) => Ok(Self::Short(value)),
-			DecimalValue::Byte(value) => Ok(Self::Byte(value)),
+			XsdDecimalValue::Int(value) => Ok(Self::Int(value)),
+			XsdDecimalValue::Short(value) => Ok(Self::Short(value)),
+			XsdDecimalValue::Byte(value) => Ok(Self::Byte(value)),
 			other => Err(other),
 		}
 	}
 }
-impl TryFrom<DecimalValue> for ShortValue {
-	type Error = DecimalValue;
-	fn try_from(value: DecimalValue) -> Result<Self, DecimalValue> {
+impl TryFrom<XsdDecimalValue> for XsdShortValue {
+	type Error = XsdDecimalValue;
+	fn try_from(value: XsdDecimalValue) -> Result<Self, XsdDecimalValue> {
 		match value {
-			DecimalValue::Short(value) => Ok(Self::Short(value)),
-			DecimalValue::Byte(value) => Ok(Self::Byte(value)),
+			XsdDecimalValue::Short(value) => Ok(Self::Short(value)),
+			XsdDecimalValue::Byte(value) => Ok(Self::Byte(value)),
 			other => Err(other),
 		}
 	}
@@ -2126,9 +2134,9 @@ impl XsdIntegerDatatype {
 		}
 	}
 	/// Parses `value` as a lexical representation of this specific datatype.
-	pub fn parse(&self, value: &str) -> Result<IntegerValue, XsdError> {
+	pub fn parse(&self, value: &str) -> Result<XsdIntegerValue, XsdError> {
 		match self {
-			Self::Integer => XsdFromStr::xsd_from_str(value).map(IntegerValue::Integer),
+			Self::Integer => XsdFromStr::xsd_from_str(value).map(XsdIntegerValue::Integer),
 			Self::NonPositiveInteger(t) => t.parse(value).map(Into::into),
 			Self::NonNegativeInteger(t) => t.parse(value).map(Into::into),
 			Self::Long(t) => t.parse(value).map(Into::into),
@@ -2265,7 +2273,7 @@ impl TryFrom<XsdIntegerDatatype> for XsdShortDatatype {
 }
 /// Any specialized [`XsdDecimal`] value reference.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash)]
-pub enum DecimalValueRef<'a> {
+pub enum XsdDecimalValueRef<'a> {
 	/// A reference to a `Decimal` value.
 	Decimal(&'a XsdDecimal),
 	/// A reference to an `Integer` value.
@@ -2295,28 +2303,28 @@ pub enum DecimalValueRef<'a> {
 	/// A reference to a `Byte` value.
 	Byte(XsdByte),
 }
-impl DecimalValue {
+impl XsdDecimalValue {
 	/// Borrows this value.
-	pub fn as_ref(&self) -> DecimalValueRef<'_> {
+	pub fn as_ref(&self) -> XsdDecimalValueRef<'_> {
 		match self {
-			Self::Decimal(value) => DecimalValueRef::Decimal(value),
-			Self::Integer(value) => DecimalValueRef::Integer(value),
-			Self::NonPositiveInteger(value) => DecimalValueRef::NonPositiveInteger(value),
-			Self::NegativeInteger(value) => DecimalValueRef::NegativeInteger(value),
-			Self::NonNegativeInteger(value) => DecimalValueRef::NonNegativeInteger(value),
-			Self::PositiveInteger(value) => DecimalValueRef::PositiveInteger(value),
-			Self::UnsignedLong(value) => DecimalValueRef::UnsignedLong(*value),
-			Self::UnsignedInt(value) => DecimalValueRef::UnsignedInt(*value),
-			Self::UnsignedShort(value) => DecimalValueRef::UnsignedShort(*value),
-			Self::UnsignedByte(value) => DecimalValueRef::UnsignedByte(*value),
-			Self::Long(value) => DecimalValueRef::Long(*value),
-			Self::Int(value) => DecimalValueRef::Int(*value),
-			Self::Short(value) => DecimalValueRef::Short(*value),
-			Self::Byte(value) => DecimalValueRef::Byte(*value),
+			Self::Decimal(value) => XsdDecimalValueRef::Decimal(value),
+			Self::Integer(value) => XsdDecimalValueRef::Integer(value),
+			Self::NonPositiveInteger(value) => XsdDecimalValueRef::NonPositiveInteger(value),
+			Self::NegativeInteger(value) => XsdDecimalValueRef::NegativeInteger(value),
+			Self::NonNegativeInteger(value) => XsdDecimalValueRef::NonNegativeInteger(value),
+			Self::PositiveInteger(value) => XsdDecimalValueRef::PositiveInteger(value),
+			Self::UnsignedLong(value) => XsdDecimalValueRef::UnsignedLong(*value),
+			Self::UnsignedInt(value) => XsdDecimalValueRef::UnsignedInt(*value),
+			Self::UnsignedShort(value) => XsdDecimalValueRef::UnsignedShort(*value),
+			Self::UnsignedByte(value) => XsdDecimalValueRef::UnsignedByte(*value),
+			Self::Long(value) => XsdDecimalValueRef::Long(*value),
+			Self::Int(value) => XsdDecimalValueRef::Int(*value),
+			Self::Short(value) => XsdDecimalValueRef::Short(*value),
+			Self::Byte(value) => XsdDecimalValueRef::Byte(*value),
 		}
 	}
 }
-impl<'a> DecimalValueRef<'a> {
+impl<'a> XsdDecimalValueRef<'a> {
 	/// Returns the specific datatype of this value.
 	pub fn datatype(&self) -> XsdDecimalDatatype {
 		match self {
@@ -2393,31 +2401,35 @@ impl<'a> DecimalValueRef<'a> {
 		}
 	}
 	/// Clones the referenced data into an owned value.
-	pub fn into_owned(self) -> DecimalValue {
+	pub fn into_owned(self) -> XsdDecimalValue {
 		match self {
-			Self::Decimal(value) => DecimalValue::Decimal(value.to_owned()),
-			Self::Integer(value) => DecimalValue::Integer(value.to_owned()),
-			Self::NonPositiveInteger(value) => DecimalValue::NonPositiveInteger(value.to_owned()),
-			Self::NegativeInteger(value) => DecimalValue::NegativeInteger(value.to_owned()),
-			Self::NonNegativeInteger(value) => DecimalValue::NonNegativeInteger(value.to_owned()),
-			Self::PositiveInteger(value) => DecimalValue::PositiveInteger(value.to_owned()),
-			Self::UnsignedLong(value) => DecimalValue::UnsignedLong(value),
-			Self::UnsignedInt(value) => DecimalValue::UnsignedInt(value),
-			Self::UnsignedShort(value) => DecimalValue::UnsignedShort(value),
-			Self::UnsignedByte(value) => DecimalValue::UnsignedByte(value),
-			Self::Long(value) => DecimalValue::Long(value),
-			Self::Int(value) => DecimalValue::Int(value),
-			Self::Short(value) => DecimalValue::Short(value),
-			Self::Byte(value) => DecimalValue::Byte(value),
+			Self::Decimal(value) => XsdDecimalValue::Decimal(value.to_owned()),
+			Self::Integer(value) => XsdDecimalValue::Integer(value.to_owned()),
+			Self::NonPositiveInteger(value) => {
+				XsdDecimalValue::NonPositiveInteger(value.to_owned())
+			}
+			Self::NegativeInteger(value) => XsdDecimalValue::NegativeInteger(value.to_owned()),
+			Self::NonNegativeInteger(value) => {
+				XsdDecimalValue::NonNegativeInteger(value.to_owned())
+			}
+			Self::PositiveInteger(value) => XsdDecimalValue::PositiveInteger(value.to_owned()),
+			Self::UnsignedLong(value) => XsdDecimalValue::UnsignedLong(value),
+			Self::UnsignedInt(value) => XsdDecimalValue::UnsignedInt(value),
+			Self::UnsignedShort(value) => XsdDecimalValue::UnsignedShort(value),
+			Self::UnsignedByte(value) => XsdDecimalValue::UnsignedByte(value),
+			Self::Long(value) => XsdDecimalValue::Long(value),
+			Self::Int(value) => XsdDecimalValue::Int(value),
+			Self::Short(value) => XsdDecimalValue::Short(value),
+			Self::Byte(value) => XsdDecimalValue::Byte(value),
 		}
 	}
 }
-impl<'a> XsdTyped for DecimalValueRef<'a> {
+impl<'a> XsdTyped for XsdDecimalValueRef<'a> {
 	fn datatype(&self) -> XsdDatatype {
 		self.datatype().into()
 	}
 }
-impl<'a> fmt::Display for DecimalValueRef<'a> {
+impl<'a> fmt::Display for XsdDecimalValueRef<'a> {
 	fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
 		match self {
 			Self::Decimal(v) => v.fmt(f),
@@ -2437,97 +2449,97 @@ impl<'a> fmt::Display for DecimalValueRef<'a> {
 		}
 	}
 }
-impl<'a> From<IntegerValueRef<'a>> for DecimalValueRef<'a> {
-	fn from(value: IntegerValueRef<'a>) -> Self {
+impl<'a> From<XsdIntegerValueRef<'a>> for XsdDecimalValueRef<'a> {
+	fn from(value: XsdIntegerValueRef<'a>) -> Self {
 		match value {
-			IntegerValueRef::Integer(value) => Self::Integer(value),
-			IntegerValueRef::NonPositiveInteger(value) => Self::NonPositiveInteger(value),
-			IntegerValueRef::NegativeInteger(value) => Self::NegativeInteger(value),
-			IntegerValueRef::NonNegativeInteger(value) => Self::NonNegativeInteger(value),
-			IntegerValueRef::PositiveInteger(value) => Self::PositiveInteger(value),
-			IntegerValueRef::UnsignedLong(value) => Self::UnsignedLong(value),
-			IntegerValueRef::UnsignedInt(value) => Self::UnsignedInt(value),
-			IntegerValueRef::UnsignedShort(value) => Self::UnsignedShort(value),
-			IntegerValueRef::UnsignedByte(value) => Self::UnsignedByte(value),
-			IntegerValueRef::Long(value) => Self::Long(value),
-			IntegerValueRef::Int(value) => Self::Int(value),
-			IntegerValueRef::Short(value) => Self::Short(value),
-			IntegerValueRef::Byte(value) => Self::Byte(value),
+			XsdIntegerValueRef::Integer(value) => Self::Integer(value),
+			XsdIntegerValueRef::NonPositiveInteger(value) => Self::NonPositiveInteger(value),
+			XsdIntegerValueRef::NegativeInteger(value) => Self::NegativeInteger(value),
+			XsdIntegerValueRef::NonNegativeInteger(value) => Self::NonNegativeInteger(value),
+			XsdIntegerValueRef::PositiveInteger(value) => Self::PositiveInteger(value),
+			XsdIntegerValueRef::UnsignedLong(value) => Self::UnsignedLong(value),
+			XsdIntegerValueRef::UnsignedInt(value) => Self::UnsignedInt(value),
+			XsdIntegerValueRef::UnsignedShort(value) => Self::UnsignedShort(value),
+			XsdIntegerValueRef::UnsignedByte(value) => Self::UnsignedByte(value),
+			XsdIntegerValueRef::Long(value) => Self::Long(value),
+			XsdIntegerValueRef::Int(value) => Self::Int(value),
+			XsdIntegerValueRef::Short(value) => Self::Short(value),
+			XsdIntegerValueRef::Byte(value) => Self::Byte(value),
 		}
 	}
 }
-impl<'a> From<NonPositiveIntegerValueRef<'a>> for DecimalValueRef<'a> {
-	fn from(value: NonPositiveIntegerValueRef<'a>) -> Self {
+impl<'a> From<XsdNonPositiveIntegerValueRef<'a>> for XsdDecimalValueRef<'a> {
+	fn from(value: XsdNonPositiveIntegerValueRef<'a>) -> Self {
 		match value {
-			NonPositiveIntegerValueRef::NonPositiveInteger(value) => {
+			XsdNonPositiveIntegerValueRef::NonPositiveInteger(value) => {
 				Self::NonPositiveInteger(value)
 			}
-			NonPositiveIntegerValueRef::NegativeInteger(value) => Self::NegativeInteger(value),
+			XsdNonPositiveIntegerValueRef::NegativeInteger(value) => Self::NegativeInteger(value),
 		}
 	}
 }
-impl<'a> From<NonNegativeIntegerValueRef<'a>> for DecimalValueRef<'a> {
-	fn from(value: NonNegativeIntegerValueRef<'a>) -> Self {
+impl<'a> From<XsdNonNegativeIntegerValueRef<'a>> for XsdDecimalValueRef<'a> {
+	fn from(value: XsdNonNegativeIntegerValueRef<'a>) -> Self {
 		match value {
-			NonNegativeIntegerValueRef::NonNegativeInteger(value) => {
+			XsdNonNegativeIntegerValueRef::NonNegativeInteger(value) => {
 				Self::NonNegativeInteger(value)
 			}
-			NonNegativeIntegerValueRef::PositiveInteger(value) => Self::PositiveInteger(value),
-			NonNegativeIntegerValueRef::UnsignedLong(value) => Self::UnsignedLong(value),
-			NonNegativeIntegerValueRef::UnsignedInt(value) => Self::UnsignedInt(value),
-			NonNegativeIntegerValueRef::UnsignedShort(value) => Self::UnsignedShort(value),
-			NonNegativeIntegerValueRef::UnsignedByte(value) => Self::UnsignedByte(value),
+			XsdNonNegativeIntegerValueRef::PositiveInteger(value) => Self::PositiveInteger(value),
+			XsdNonNegativeIntegerValueRef::UnsignedLong(value) => Self::UnsignedLong(value),
+			XsdNonNegativeIntegerValueRef::UnsignedInt(value) => Self::UnsignedInt(value),
+			XsdNonNegativeIntegerValueRef::UnsignedShort(value) => Self::UnsignedShort(value),
+			XsdNonNegativeIntegerValueRef::UnsignedByte(value) => Self::UnsignedByte(value),
 		}
 	}
 }
-impl<'a> TryFrom<DecimalValueRef<'a>> for IntegerValueRef<'a> {
-	type Error = DecimalValueRef<'a>;
-	fn try_from(value: DecimalValueRef<'a>) -> Result<Self, DecimalValueRef<'a>> {
+impl<'a> TryFrom<XsdDecimalValueRef<'a>> for XsdIntegerValueRef<'a> {
+	type Error = XsdDecimalValueRef<'a>;
+	fn try_from(value: XsdDecimalValueRef<'a>) -> Result<Self, XsdDecimalValueRef<'a>> {
 		match value {
-			DecimalValueRef::Integer(value) => Ok(Self::Integer(value)),
-			DecimalValueRef::NonPositiveInteger(value) => Ok(Self::NonPositiveInteger(value)),
-			DecimalValueRef::NegativeInteger(value) => Ok(Self::NegativeInteger(value)),
-			DecimalValueRef::NonNegativeInteger(value) => Ok(Self::NonNegativeInteger(value)),
-			DecimalValueRef::PositiveInteger(value) => Ok(Self::PositiveInteger(value)),
-			DecimalValueRef::UnsignedLong(value) => Ok(Self::UnsignedLong(value)),
-			DecimalValueRef::UnsignedInt(value) => Ok(Self::UnsignedInt(value)),
-			DecimalValueRef::UnsignedShort(value) => Ok(Self::UnsignedShort(value)),
-			DecimalValueRef::UnsignedByte(value) => Ok(Self::UnsignedByte(value)),
-			DecimalValueRef::Long(value) => Ok(Self::Long(value)),
-			DecimalValueRef::Int(value) => Ok(Self::Int(value)),
-			DecimalValueRef::Short(value) => Ok(Self::Short(value)),
-			DecimalValueRef::Byte(value) => Ok(Self::Byte(value)),
+			XsdDecimalValueRef::Integer(value) => Ok(Self::Integer(value)),
+			XsdDecimalValueRef::NonPositiveInteger(value) => Ok(Self::NonPositiveInteger(value)),
+			XsdDecimalValueRef::NegativeInteger(value) => Ok(Self::NegativeInteger(value)),
+			XsdDecimalValueRef::NonNegativeInteger(value) => Ok(Self::NonNegativeInteger(value)),
+			XsdDecimalValueRef::PositiveInteger(value) => Ok(Self::PositiveInteger(value)),
+			XsdDecimalValueRef::UnsignedLong(value) => Ok(Self::UnsignedLong(value)),
+			XsdDecimalValueRef::UnsignedInt(value) => Ok(Self::UnsignedInt(value)),
+			XsdDecimalValueRef::UnsignedShort(value) => Ok(Self::UnsignedShort(value)),
+			XsdDecimalValueRef::UnsignedByte(value) => Ok(Self::UnsignedByte(value)),
+			XsdDecimalValueRef::Long(value) => Ok(Self::Long(value)),
+			XsdDecimalValueRef::Int(value) => Ok(Self::Int(value)),
+			XsdDecimalValueRef::Short(value) => Ok(Self::Short(value)),
+			XsdDecimalValueRef::Byte(value) => Ok(Self::Byte(value)),
 			other => Err(other),
 		}
 	}
 }
-impl<'a> TryFrom<DecimalValueRef<'a>> for NonPositiveIntegerValueRef<'a> {
-	type Error = DecimalValueRef<'a>;
-	fn try_from(value: DecimalValueRef<'a>) -> Result<Self, DecimalValueRef<'a>> {
+impl<'a> TryFrom<XsdDecimalValueRef<'a>> for XsdNonPositiveIntegerValueRef<'a> {
+	type Error = XsdDecimalValueRef<'a>;
+	fn try_from(value: XsdDecimalValueRef<'a>) -> Result<Self, XsdDecimalValueRef<'a>> {
 		match value {
-			DecimalValueRef::NonPositiveInteger(value) => Ok(Self::NonPositiveInteger(value)),
-			DecimalValueRef::NegativeInteger(value) => Ok(Self::NegativeInteger(value)),
+			XsdDecimalValueRef::NonPositiveInteger(value) => Ok(Self::NonPositiveInteger(value)),
+			XsdDecimalValueRef::NegativeInteger(value) => Ok(Self::NegativeInteger(value)),
 			other => Err(other),
 		}
 	}
 }
-impl<'a> TryFrom<DecimalValueRef<'a>> for NonNegativeIntegerValueRef<'a> {
-	type Error = DecimalValueRef<'a>;
-	fn try_from(value: DecimalValueRef<'a>) -> Result<Self, DecimalValueRef<'a>> {
+impl<'a> TryFrom<XsdDecimalValueRef<'a>> for XsdNonNegativeIntegerValueRef<'a> {
+	type Error = XsdDecimalValueRef<'a>;
+	fn try_from(value: XsdDecimalValueRef<'a>) -> Result<Self, XsdDecimalValueRef<'a>> {
 		match value {
-			DecimalValueRef::NonNegativeInteger(value) => Ok(Self::NonNegativeInteger(value)),
-			DecimalValueRef::PositiveInteger(value) => Ok(Self::PositiveInteger(value)),
-			DecimalValueRef::UnsignedLong(value) => Ok(Self::UnsignedLong(value)),
-			DecimalValueRef::UnsignedInt(value) => Ok(Self::UnsignedInt(value)),
-			DecimalValueRef::UnsignedShort(value) => Ok(Self::UnsignedShort(value)),
-			DecimalValueRef::UnsignedByte(value) => Ok(Self::UnsignedByte(value)),
+			XsdDecimalValueRef::NonNegativeInteger(value) => Ok(Self::NonNegativeInteger(value)),
+			XsdDecimalValueRef::PositiveInteger(value) => Ok(Self::PositiveInteger(value)),
+			XsdDecimalValueRef::UnsignedLong(value) => Ok(Self::UnsignedLong(value)),
+			XsdDecimalValueRef::UnsignedInt(value) => Ok(Self::UnsignedInt(value)),
+			XsdDecimalValueRef::UnsignedShort(value) => Ok(Self::UnsignedShort(value)),
+			XsdDecimalValueRef::UnsignedByte(value) => Ok(Self::UnsignedByte(value)),
 			other => Err(other),
 		}
 	}
 }
 /// Any specialized [`XsdInteger`] value.
 #[derive(Debug, Clone, PartialEq, Eq, PartialOrd, Ord, Hash)]
-pub enum IntegerValue {
+pub enum XsdIntegerValue {
 	/// An `Integer` value.
 	Integer(XsdInteger),
 	/// A `NonPositiveInteger` value.
@@ -2555,7 +2567,7 @@ pub enum IntegerValue {
 	/// A `Byte` value.
 	Byte(XsdByte),
 }
-impl IntegerValue {
+impl XsdIntegerValue {
 	/// Returns the specific datatype of this value.
 	pub fn datatype(&self) -> XsdIntegerDatatype {
 		match self {
@@ -2601,12 +2613,12 @@ impl IntegerValue {
 		}
 	}
 }
-impl XsdTyped for IntegerValue {
+impl XsdTyped for XsdIntegerValue {
 	fn datatype(&self) -> XsdDatatype {
 		self.datatype().into()
 	}
 }
-impl fmt::Display for IntegerValue {
+impl fmt::Display for XsdIntegerValue {
 	fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
 		match self {
 			Self::Integer(v) => v.fmt(f),
@@ -2625,20 +2637,22 @@ impl fmt::Display for IntegerValue {
 		}
 	}
 }
-impl From<NonPositiveIntegerValue> for IntegerValue {
-	fn from(value: NonPositiveIntegerValue) -> Self {
+impl From<XsdNonPositiveIntegerValue> for XsdIntegerValue {
+	fn from(value: XsdNonPositiveIntegerValue) -> Self {
 		match value {
-			NonPositiveIntegerValue::NonPositiveInteger(value) => Self::NonPositiveInteger(value),
-			NonPositiveIntegerValue::NegativeInteger(value) => Self::NegativeInteger(value),
+			XsdNonPositiveIntegerValue::NonPositiveInteger(value) => {
+				Self::NonPositiveInteger(value)
+			}
+			XsdNonPositiveIntegerValue::NegativeInteger(value) => Self::NegativeInteger(value),
 		}
 	}
 }
-impl TryFrom<IntegerValue> for NonPositiveIntegerValue {
-	type Error = IntegerValue;
-	fn try_from(value: IntegerValue) -> Result<Self, IntegerValue> {
+impl TryFrom<XsdIntegerValue> for XsdNonPositiveIntegerValue {
+	type Error = XsdIntegerValue;
+	fn try_from(value: XsdIntegerValue) -> Result<Self, XsdIntegerValue> {
 		match value {
-			IntegerValue::NonPositiveInteger(value) => Ok(Self::NonPositiveInteger(value)),
-			IntegerValue::NegativeInteger(value) => Ok(Self::NegativeInteger(value)),
+			XsdIntegerValue::NonPositiveInteger(value) => Ok(Self::NonPositiveInteger(value)),
+			XsdIntegerValue::NegativeInteger(value) => Ok(Self::NegativeInteger(value)),
 			other => Err(other),
 		}
 	}
@@ -2670,99 +2684,101 @@ impl XsdNonPositiveIntegerDatatype {
 		}
 	}
 	/// Parses `value` as a lexical representation of this specific datatype.
-	pub fn parse(&self, value: &str) -> Result<NonPositiveIntegerValue, XsdError> {
+	pub fn parse(&self, value: &str) -> Result<XsdNonPositiveIntegerValue, XsdError> {
 		match self {
 			Self::NonPositiveInteger => {
-				XsdFromStr::xsd_from_str(value).map(NonPositiveIntegerValue::NonPositiveInteger)
+				XsdFromStr::xsd_from_str(value).map(XsdNonPositiveIntegerValue::NonPositiveInteger)
 			}
 			Self::NegativeInteger => {
-				XsdFromStr::xsd_from_str(value).map(NonPositiveIntegerValue::NegativeInteger)
+				XsdFromStr::xsd_from_str(value).map(XsdNonPositiveIntegerValue::NegativeInteger)
 			}
 		}
 	}
 }
-impl From<NonNegativeIntegerValue> for IntegerValue {
-	fn from(value: NonNegativeIntegerValue) -> Self {
+impl From<XsdNonNegativeIntegerValue> for XsdIntegerValue {
+	fn from(value: XsdNonNegativeIntegerValue) -> Self {
 		match value {
-			NonNegativeIntegerValue::NonNegativeInteger(value) => Self::NonNegativeInteger(value),
-			NonNegativeIntegerValue::PositiveInteger(value) => Self::PositiveInteger(value),
-			NonNegativeIntegerValue::UnsignedLong(value) => Self::UnsignedLong(value),
-			NonNegativeIntegerValue::UnsignedInt(value) => Self::UnsignedInt(value),
-			NonNegativeIntegerValue::UnsignedShort(value) => Self::UnsignedShort(value),
-			NonNegativeIntegerValue::UnsignedByte(value) => Self::UnsignedByte(value),
+			XsdNonNegativeIntegerValue::NonNegativeInteger(value) => {
+				Self::NonNegativeInteger(value)
+			}
+			XsdNonNegativeIntegerValue::PositiveInteger(value) => Self::PositiveInteger(value),
+			XsdNonNegativeIntegerValue::UnsignedLong(value) => Self::UnsignedLong(value),
+			XsdNonNegativeIntegerValue::UnsignedInt(value) => Self::UnsignedInt(value),
+			XsdNonNegativeIntegerValue::UnsignedShort(value) => Self::UnsignedShort(value),
+			XsdNonNegativeIntegerValue::UnsignedByte(value) => Self::UnsignedByte(value),
 		}
 	}
 }
-impl From<UnsignedLongValue> for IntegerValue {
-	fn from(value: UnsignedLongValue) -> Self {
+impl From<XsdUnsignedLongValue> for XsdIntegerValue {
+	fn from(value: XsdUnsignedLongValue) -> Self {
 		match value {
-			UnsignedLongValue::UnsignedLong(value) => Self::UnsignedLong(value),
-			UnsignedLongValue::UnsignedInt(value) => Self::UnsignedInt(value),
-			UnsignedLongValue::UnsignedShort(value) => Self::UnsignedShort(value),
-			UnsignedLongValue::UnsignedByte(value) => Self::UnsignedByte(value),
+			XsdUnsignedLongValue::UnsignedLong(value) => Self::UnsignedLong(value),
+			XsdUnsignedLongValue::UnsignedInt(value) => Self::UnsignedInt(value),
+			XsdUnsignedLongValue::UnsignedShort(value) => Self::UnsignedShort(value),
+			XsdUnsignedLongValue::UnsignedByte(value) => Self::UnsignedByte(value),
 		}
 	}
 }
-impl From<UnsignedIntValue> for IntegerValue {
-	fn from(value: UnsignedIntValue) -> Self {
+impl From<XsdUnsignedIntValue> for XsdIntegerValue {
+	fn from(value: XsdUnsignedIntValue) -> Self {
 		match value {
-			UnsignedIntValue::UnsignedInt(value) => Self::UnsignedInt(value),
-			UnsignedIntValue::UnsignedShort(value) => Self::UnsignedShort(value),
-			UnsignedIntValue::UnsignedByte(value) => Self::UnsignedByte(value),
+			XsdUnsignedIntValue::UnsignedInt(value) => Self::UnsignedInt(value),
+			XsdUnsignedIntValue::UnsignedShort(value) => Self::UnsignedShort(value),
+			XsdUnsignedIntValue::UnsignedByte(value) => Self::UnsignedByte(value),
 		}
 	}
 }
-impl From<UnsignedShortValue> for IntegerValue {
-	fn from(value: UnsignedShortValue) -> Self {
+impl From<XsdUnsignedShortValue> for XsdIntegerValue {
+	fn from(value: XsdUnsignedShortValue) -> Self {
 		match value {
-			UnsignedShortValue::UnsignedShort(value) => Self::UnsignedShort(value),
-			UnsignedShortValue::UnsignedByte(value) => Self::UnsignedByte(value),
+			XsdUnsignedShortValue::UnsignedShort(value) => Self::UnsignedShort(value),
+			XsdUnsignedShortValue::UnsignedByte(value) => Self::UnsignedByte(value),
 		}
 	}
 }
-impl TryFrom<IntegerValue> for NonNegativeIntegerValue {
-	type Error = IntegerValue;
-	fn try_from(value: IntegerValue) -> Result<Self, IntegerValue> {
+impl TryFrom<XsdIntegerValue> for XsdNonNegativeIntegerValue {
+	type Error = XsdIntegerValue;
+	fn try_from(value: XsdIntegerValue) -> Result<Self, XsdIntegerValue> {
 		match value {
-			IntegerValue::NonNegativeInteger(value) => Ok(Self::NonNegativeInteger(value)),
-			IntegerValue::PositiveInteger(value) => Ok(Self::PositiveInteger(value)),
-			IntegerValue::UnsignedLong(value) => Ok(Self::UnsignedLong(value)),
-			IntegerValue::UnsignedInt(value) => Ok(Self::UnsignedInt(value)),
-			IntegerValue::UnsignedShort(value) => Ok(Self::UnsignedShort(value)),
-			IntegerValue::UnsignedByte(value) => Ok(Self::UnsignedByte(value)),
+			XsdIntegerValue::NonNegativeInteger(value) => Ok(Self::NonNegativeInteger(value)),
+			XsdIntegerValue::PositiveInteger(value) => Ok(Self::PositiveInteger(value)),
+			XsdIntegerValue::UnsignedLong(value) => Ok(Self::UnsignedLong(value)),
+			XsdIntegerValue::UnsignedInt(value) => Ok(Self::UnsignedInt(value)),
+			XsdIntegerValue::UnsignedShort(value) => Ok(Self::UnsignedShort(value)),
+			XsdIntegerValue::UnsignedByte(value) => Ok(Self::UnsignedByte(value)),
 			other => Err(other),
 		}
 	}
 }
-impl TryFrom<IntegerValue> for UnsignedLongValue {
-	type Error = IntegerValue;
-	fn try_from(value: IntegerValue) -> Result<Self, IntegerValue> {
+impl TryFrom<XsdIntegerValue> for XsdUnsignedLongValue {
+	type Error = XsdIntegerValue;
+	fn try_from(value: XsdIntegerValue) -> Result<Self, XsdIntegerValue> {
 		match value {
-			IntegerValue::UnsignedLong(value) => Ok(Self::UnsignedLong(value)),
-			IntegerValue::UnsignedInt(value) => Ok(Self::UnsignedInt(value)),
-			IntegerValue::UnsignedShort(value) => Ok(Self::UnsignedShort(value)),
-			IntegerValue::UnsignedByte(value) => Ok(Self::UnsignedByte(value)),
+			XsdIntegerValue::UnsignedLong(value) => Ok(Self::UnsignedLong(value)),
+			XsdIntegerValue::UnsignedInt(value) => Ok(Self::UnsignedInt(value)),
+			XsdIntegerValue::UnsignedShort(value) => Ok(Self::UnsignedShort(value)),
+			XsdIntegerValue::UnsignedByte(value) => Ok(Self::UnsignedByte(value)),
 			other => Err(other),
 		}
 	}
 }
-impl TryFrom<IntegerValue> for UnsignedIntValue {
-	type Error = IntegerValue;
-	fn try_from(value: IntegerValue) -> Result<Self, IntegerValue> {
+impl TryFrom<XsdIntegerValue> for XsdUnsignedIntValue {
+	type Error = XsdIntegerValue;
+	fn try_from(value: XsdIntegerValue) -> Result<Self, XsdIntegerValue> {
 		match value {
-			IntegerValue::UnsignedInt(value) => Ok(Self::UnsignedInt(value)),
-			IntegerValue::UnsignedShort(value) => Ok(Self::UnsignedShort(value)),
-			IntegerValue::UnsignedByte(value) => Ok(Self::UnsignedByte(value)),
+			XsdIntegerValue::UnsignedInt(value) => Ok(Self::UnsignedInt(value)),
+			XsdIntegerValue::UnsignedShort(value) => Ok(Self::UnsignedShort(value)),
+			XsdIntegerValue::UnsignedByte(value) => Ok(Self::UnsignedByte(value)),
 			other => Err(other),
 		}
 	}
 }
-impl TryFrom<IntegerValue> for UnsignedShortValue {
-	type Error = IntegerValue;
-	fn try_from(value: IntegerValue) -> Result<Self, IntegerValue> {
+impl TryFrom<XsdIntegerValue> for XsdUnsignedShortValue {
+	type Error = XsdIntegerValue;
+	fn try_from(value: XsdIntegerValue) -> Result<Self, XsdIntegerValue> {
 		match value {
-			IntegerValue::UnsignedShort(value) => Ok(Self::UnsignedShort(value)),
-			IntegerValue::UnsignedByte(value) => Ok(Self::UnsignedByte(value)),
+			XsdIntegerValue::UnsignedShort(value) => Ok(Self::UnsignedShort(value)),
+			XsdIntegerValue::UnsignedByte(value) => Ok(Self::UnsignedByte(value)),
 			other => Err(other),
 		}
 	}
@@ -2800,13 +2816,13 @@ impl XsdNonNegativeIntegerDatatype {
 		}
 	}
 	/// Parses `value` as a lexical representation of this specific datatype.
-	pub fn parse(&self, value: &str) -> Result<NonNegativeIntegerValue, XsdError> {
+	pub fn parse(&self, value: &str) -> Result<XsdNonNegativeIntegerValue, XsdError> {
 		match self {
 			Self::NonNegativeInteger => {
-				XsdFromStr::xsd_from_str(value).map(NonNegativeIntegerValue::NonNegativeInteger)
+				XsdFromStr::xsd_from_str(value).map(XsdNonNegativeIntegerValue::NonNegativeInteger)
 			}
 			Self::PositiveInteger => {
-				XsdFromStr::xsd_from_str(value).map(NonNegativeIntegerValue::PositiveInteger)
+				XsdFromStr::xsd_from_str(value).map(XsdNonNegativeIntegerValue::PositiveInteger)
 			}
 			Self::UnsignedLong(t) => t.parse(value).map(Into::into),
 		}
@@ -2866,62 +2882,62 @@ impl TryFrom<XsdNonNegativeIntegerDatatype> for XsdUnsignedShortDatatype {
 		}
 	}
 }
-impl From<LongValue> for IntegerValue {
-	fn from(value: LongValue) -> Self {
+impl From<XsdLongValue> for XsdIntegerValue {
+	fn from(value: XsdLongValue) -> Self {
 		match value {
-			LongValue::Long(value) => Self::Long(value),
-			LongValue::Int(value) => Self::Int(value),
-			LongValue::Short(value) => Self::Short(value),
-			LongValue::Byte(value) => Self::Byte(value),
+			XsdLongValue::Long(value) => Self::Long(value),
+			XsdLongValue::Int(value) => Self::Int(value),
+			XsdLongValue::Short(value) => Self::Short(value),
+			XsdLongValue::Byte(value) => Self::Byte(value),
 		}
 	}
 }
-impl From<IntValue> for IntegerValue {
-	fn from(value: IntValue) -> Self {
+impl From<XsdIntValue> for XsdIntegerValue {
+	fn from(value: XsdIntValue) -> Self {
 		match value {
-			IntValue::Int(value) => Self::Int(value),
-			IntValue::Short(value) => Self::Short(value),
-			IntValue::Byte(value) => Self::Byte(value),
+			XsdIntValue::Int(value) => Self::Int(value),
+			XsdIntValue::Short(value) => Self::Short(value),
+			XsdIntValue::Byte(value) => Self::Byte(value),
 		}
 	}
 }
-impl From<ShortValue> for IntegerValue {
-	fn from(value: ShortValue) -> Self {
+impl From<XsdShortValue> for XsdIntegerValue {
+	fn from(value: XsdShortValue) -> Self {
 		match value {
-			ShortValue::Short(value) => Self::Short(value),
-			ShortValue::Byte(value) => Self::Byte(value),
+			XsdShortValue::Short(value) => Self::Short(value),
+			XsdShortValue::Byte(value) => Self::Byte(value),
 		}
 	}
 }
-impl TryFrom<IntegerValue> for LongValue {
-	type Error = IntegerValue;
-	fn try_from(value: IntegerValue) -> Result<Self, IntegerValue> {
+impl TryFrom<XsdIntegerValue> for XsdLongValue {
+	type Error = XsdIntegerValue;
+	fn try_from(value: XsdIntegerValue) -> Result<Self, XsdIntegerValue> {
 		match value {
-			IntegerValue::Long(value) => Ok(Self::Long(value)),
-			IntegerValue::Int(value) => Ok(Self::Int(value)),
-			IntegerValue::Short(value) => Ok(Self::Short(value)),
-			IntegerValue::Byte(value) => Ok(Self::Byte(value)),
+			XsdIntegerValue::Long(value) => Ok(Self::Long(value)),
+			XsdIntegerValue::Int(value) => Ok(Self::Int(value)),
+			XsdIntegerValue::Short(value) => Ok(Self::Short(value)),
+			XsdIntegerValue::Byte(value) => Ok(Self::Byte(value)),
 			other => Err(other),
 		}
 	}
 }
-impl TryFrom<IntegerValue> for IntValue {
-	type Error = IntegerValue;
-	fn try_from(value: IntegerValue) -> Result<Self, IntegerValue> {
+impl TryFrom<XsdIntegerValue> for XsdIntValue {
+	type Error = XsdIntegerValue;
+	fn try_from(value: XsdIntegerValue) -> Result<Self, XsdIntegerValue> {
 		match value {
-			IntegerValue::Int(value) => Ok(Self::Int(value)),
-			IntegerValue::Short(value) => Ok(Self::Short(value)),
-			IntegerValue::Byte(value) => Ok(Self::Byte(value)),
+			XsdIntegerValue::Int(value) => Ok(Self::Int(value)),
+			XsdIntegerValue::Short(value) => Ok(Self::Short(value)),
+			XsdIntegerValue::Byte(value) => Ok(Self::Byte(value)),
 			other => Err(other),
 		}
 	}
 }
-impl TryFrom<IntegerValue> for ShortValue {
-	type Error = IntegerValue;
-	fn try_from(value: IntegerValue) -> Result<Self, IntegerValue> {
+impl TryFrom<XsdIntegerValue> for XsdShortValue {
+	type Error = XsdIntegerValue;
+	fn try_from(value: XsdIntegerValue) -> Result<Self, XsdIntegerValue> {
 		match value {
-			IntegerValue::Short(value) => Ok(Self::Short(value)),
-			IntegerValue::Byte(value) => Ok(Self::Byte(value)),
+			XsdIntegerValue::Short(value) => Ok(Self::Short(value)),
+			XsdIntegerValue::Byte(value) => Ok(Self::Byte(value)),
 			other => Err(other),
 		}
 	}
@@ -2953,9 +2969,9 @@ impl XsdLongDatatype {
 		}
 	}
 	/// Parses `value` as a lexical representation of this specific datatype.
-	pub fn parse(&self, value: &str) -> Result<LongValue, XsdError> {
+	pub fn parse(&self, value: &str) -> Result<XsdLongValue, XsdError> {
 		match self {
-			Self::Long => XsdFromStr::xsd_from_str(value).map(LongValue::Long),
+			Self::Long => XsdFromStr::xsd_from_str(value).map(XsdLongValue::Long),
 			Self::Int(t) => t.parse(value).map(Into::into),
 		}
 	}
@@ -2990,7 +3006,7 @@ impl TryFrom<XsdLongDatatype> for XsdShortDatatype {
 }
 /// Any specialized [`XsdInteger`] value reference.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash)]
-pub enum IntegerValueRef<'a> {
+pub enum XsdIntegerValueRef<'a> {
 	/// A reference to an `Integer` value.
 	Integer(&'a XsdInteger),
 	/// A reference to a `NonPositiveInteger` value.
@@ -3018,27 +3034,27 @@ pub enum IntegerValueRef<'a> {
 	/// A reference to a `Byte` value.
 	Byte(XsdByte),
 }
-impl IntegerValue {
+impl XsdIntegerValue {
 	/// Borrows this value.
-	pub fn as_ref(&self) -> IntegerValueRef<'_> {
+	pub fn as_ref(&self) -> XsdIntegerValueRef<'_> {
 		match self {
-			Self::Integer(value) => IntegerValueRef::Integer(value),
-			Self::NonPositiveInteger(value) => IntegerValueRef::NonPositiveInteger(value),
-			Self::NegativeInteger(value) => IntegerValueRef::NegativeInteger(value),
-			Self::NonNegativeInteger(value) => IntegerValueRef::NonNegativeInteger(value),
-			Self::PositiveInteger(value) => IntegerValueRef::PositiveInteger(value),
-			Self::UnsignedLong(value) => IntegerValueRef::UnsignedLong(*value),
-			Self::UnsignedInt(value) => IntegerValueRef::UnsignedInt(*value),
-			Self::UnsignedShort(value) => IntegerValueRef::UnsignedShort(*value),
-			Self::UnsignedByte(value) => IntegerValueRef::UnsignedByte(*value),
-			Self::Long(value) => IntegerValueRef::Long(*value),
-			Self::Int(value) => IntegerValueRef::Int(*value),
-			Self::Short(value) => IntegerValueRef::Short(*value),
-			Self::Byte(value) => IntegerValueRef::Byte(*value),
+			Self::Integer(value) => XsdIntegerValueRef::Integer(value),
+			Self::NonPositiveInteger(value) => XsdIntegerValueRef::NonPositiveInteger(value),
+			Self::NegativeInteger(value) => XsdIntegerValueRef::NegativeInteger(value),
+			Self::NonNegativeInteger(value) => XsdIntegerValueRef::NonNegativeInteger(value),
+			Self::PositiveInteger(value) => XsdIntegerValueRef::PositiveInteger(value),
+			Self::UnsignedLong(value) => XsdIntegerValueRef::UnsignedLong(*value),
+			Self::UnsignedInt(value) => XsdIntegerValueRef::UnsignedInt(*value),
+			Self::UnsignedShort(value) => XsdIntegerValueRef::UnsignedShort(*value),
+			Self::UnsignedByte(value) => XsdIntegerValueRef::UnsignedByte(*value),
+			Self::Long(value) => XsdIntegerValueRef::Long(*value),
+			Self::Int(value) => XsdIntegerValueRef::Int(*value),
+			Self::Short(value) => XsdIntegerValueRef::Short(*value),
+			Self::Byte(value) => XsdIntegerValueRef::Byte(*value),
 		}
 	}
 }
-impl<'a> IntegerValueRef<'a> {
+impl<'a> XsdIntegerValueRef<'a> {
 	/// Returns the specific datatype of this value.
 	pub fn datatype(&self) -> XsdIntegerDatatype {
 		match self {
@@ -3084,30 +3100,34 @@ impl<'a> IntegerValueRef<'a> {
 		}
 	}
 	/// Clones the referenced data into an owned value.
-	pub fn into_owned(self) -> IntegerValue {
+	pub fn into_owned(self) -> XsdIntegerValue {
 		match self {
-			Self::Integer(value) => IntegerValue::Integer(value.to_owned()),
-			Self::NonPositiveInteger(value) => IntegerValue::NonPositiveInteger(value.to_owned()),
-			Self::NegativeInteger(value) => IntegerValue::NegativeInteger(value.to_owned()),
-			Self::NonNegativeInteger(value) => IntegerValue::NonNegativeInteger(value.to_owned()),
-			Self::PositiveInteger(value) => IntegerValue::PositiveInteger(value.to_owned()),
-			Self::UnsignedLong(value) => IntegerValue::UnsignedLong(value),
-			Self::UnsignedInt(value) => IntegerValue::UnsignedInt(value),
-			Self::UnsignedShort(value) => IntegerValue::UnsignedShort(value),
-			Self::UnsignedByte(value) => IntegerValue::UnsignedByte(value),
-			Self::Long(value) => IntegerValue::Long(value),
-			Self::Int(value) => IntegerValue::Int(value),
-			Self::Short(value) => IntegerValue::Short(value),
-			Self::Byte(value) => IntegerValue::Byte(value),
+			Self::Integer(value) => XsdIntegerValue::Integer(value.to_owned()),
+			Self::NonPositiveInteger(value) => {
+				XsdIntegerValue::NonPositiveInteger(value.to_owned())
+			}
+			Self::NegativeInteger(value) => XsdIntegerValue::NegativeInteger(value.to_owned()),
+			Self::NonNegativeInteger(value) => {
+				XsdIntegerValue::NonNegativeInteger(value.to_owned())
+			}
+			Self::PositiveInteger(value) => XsdIntegerValue::PositiveInteger(value.to_owned()),
+			Self::UnsignedLong(value) => XsdIntegerValue::UnsignedLong(value),
+			Self::UnsignedInt(value) => XsdIntegerValue::UnsignedInt(value),
+			Self::UnsignedShort(value) => XsdIntegerValue::UnsignedShort(value),
+			Self::UnsignedByte(value) => XsdIntegerValue::UnsignedByte(value),
+			Self::Long(value) => XsdIntegerValue::Long(value),
+			Self::Int(value) => XsdIntegerValue::Int(value),
+			Self::Short(value) => XsdIntegerValue::Short(value),
+			Self::Byte(value) => XsdIntegerValue::Byte(value),
 		}
 	}
 }
-impl<'a> XsdTyped for IntegerValueRef<'a> {
+impl<'a> XsdTyped for XsdIntegerValueRef<'a> {
 	fn datatype(&self) -> XsdDatatype {
 		self.datatype().into()
 	}
 }
-impl<'a> fmt::Display for IntegerValueRef<'a> {
+impl<'a> fmt::Display for XsdIntegerValueRef<'a> {
 	fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
 		match self {
 			Self::Integer(v) => v.fmt(f),
@@ -3126,63 +3146,63 @@ impl<'a> fmt::Display for IntegerValueRef<'a> {
 		}
 	}
 }
-impl<'a> From<NonPositiveIntegerValueRef<'a>> for IntegerValueRef<'a> {
-	fn from(value: NonPositiveIntegerValueRef<'a>) -> Self {
+impl<'a> From<XsdNonPositiveIntegerValueRef<'a>> for XsdIntegerValueRef<'a> {
+	fn from(value: XsdNonPositiveIntegerValueRef<'a>) -> Self {
 		match value {
-			NonPositiveIntegerValueRef::NonPositiveInteger(value) => {
+			XsdNonPositiveIntegerValueRef::NonPositiveInteger(value) => {
 				Self::NonPositiveInteger(value)
 			}
-			NonPositiveIntegerValueRef::NegativeInteger(value) => Self::NegativeInteger(value),
+			XsdNonPositiveIntegerValueRef::NegativeInteger(value) => Self::NegativeInteger(value),
 		}
 	}
 }
-impl<'a> TryFrom<IntegerValueRef<'a>> for NonPositiveIntegerValueRef<'a> {
-	type Error = IntegerValueRef<'a>;
-	fn try_from(value: IntegerValueRef<'a>) -> Result<Self, IntegerValueRef<'a>> {
+impl<'a> TryFrom<XsdIntegerValueRef<'a>> for XsdNonPositiveIntegerValueRef<'a> {
+	type Error = XsdIntegerValueRef<'a>;
+	fn try_from(value: XsdIntegerValueRef<'a>) -> Result<Self, XsdIntegerValueRef<'a>> {
 		match value {
-			IntegerValueRef::NonPositiveInteger(value) => Ok(Self::NonPositiveInteger(value)),
-			IntegerValueRef::NegativeInteger(value) => Ok(Self::NegativeInteger(value)),
+			XsdIntegerValueRef::NonPositiveInteger(value) => Ok(Self::NonPositiveInteger(value)),
+			XsdIntegerValueRef::NegativeInteger(value) => Ok(Self::NegativeInteger(value)),
 			other => Err(other),
 		}
 	}
 }
-impl<'a> From<NonNegativeIntegerValueRef<'a>> for IntegerValueRef<'a> {
-	fn from(value: NonNegativeIntegerValueRef<'a>) -> Self {
+impl<'a> From<XsdNonNegativeIntegerValueRef<'a>> for XsdIntegerValueRef<'a> {
+	fn from(value: XsdNonNegativeIntegerValueRef<'a>) -> Self {
 		match value {
-			NonNegativeIntegerValueRef::NonNegativeInteger(value) => {
+			XsdNonNegativeIntegerValueRef::NonNegativeInteger(value) => {
 				Self::NonNegativeInteger(value)
 			}
-			NonNegativeIntegerValueRef::PositiveInteger(value) => Self::PositiveInteger(value),
-			NonNegativeIntegerValueRef::UnsignedLong(value) => Self::UnsignedLong(value),
-			NonNegativeIntegerValueRef::UnsignedInt(value) => Self::UnsignedInt(value),
-			NonNegativeIntegerValueRef::UnsignedShort(value) => Self::UnsignedShort(value),
-			NonNegativeIntegerValueRef::UnsignedByte(value) => Self::UnsignedByte(value),
+			XsdNonNegativeIntegerValueRef::PositiveInteger(value) => Self::PositiveInteger(value),
+			XsdNonNegativeIntegerValueRef::UnsignedLong(value) => Self::UnsignedLong(value),
+			XsdNonNegativeIntegerValueRef::UnsignedInt(value) => Self::UnsignedInt(value),
+			XsdNonNegativeIntegerValueRef::UnsignedShort(value) => Self::UnsignedShort(value),
+			XsdNonNegativeIntegerValueRef::UnsignedByte(value) => Self::UnsignedByte(value),
 		}
 	}
 }
-impl<'a> TryFrom<IntegerValueRef<'a>> for NonNegativeIntegerValueRef<'a> {
-	type Error = IntegerValueRef<'a>;
-	fn try_from(value: IntegerValueRef<'a>) -> Result<Self, IntegerValueRef<'a>> {
+impl<'a> TryFrom<XsdIntegerValueRef<'a>> for XsdNonNegativeIntegerValueRef<'a> {
+	type Error = XsdIntegerValueRef<'a>;
+	fn try_from(value: XsdIntegerValueRef<'a>) -> Result<Self, XsdIntegerValueRef<'a>> {
 		match value {
-			IntegerValueRef::NonNegativeInteger(value) => Ok(Self::NonNegativeInteger(value)),
-			IntegerValueRef::PositiveInteger(value) => Ok(Self::PositiveInteger(value)),
-			IntegerValueRef::UnsignedLong(value) => Ok(Self::UnsignedLong(value)),
-			IntegerValueRef::UnsignedInt(value) => Ok(Self::UnsignedInt(value)),
-			IntegerValueRef::UnsignedShort(value) => Ok(Self::UnsignedShort(value)),
-			IntegerValueRef::UnsignedByte(value) => Ok(Self::UnsignedByte(value)),
+			XsdIntegerValueRef::NonNegativeInteger(value) => Ok(Self::NonNegativeInteger(value)),
+			XsdIntegerValueRef::PositiveInteger(value) => Ok(Self::PositiveInteger(value)),
+			XsdIntegerValueRef::UnsignedLong(value) => Ok(Self::UnsignedLong(value)),
+			XsdIntegerValueRef::UnsignedInt(value) => Ok(Self::UnsignedInt(value)),
+			XsdIntegerValueRef::UnsignedShort(value) => Ok(Self::UnsignedShort(value)),
+			XsdIntegerValueRef::UnsignedByte(value) => Ok(Self::UnsignedByte(value)),
 			other => Err(other),
 		}
 	}
 }
 /// Any specialized [`XsdNonPositiveInteger`] value.
 #[derive(Debug, Clone, PartialEq, Eq, PartialOrd, Ord, Hash)]
-pub enum NonPositiveIntegerValue {
+pub enum XsdNonPositiveIntegerValue {
 	/// A `NonPositiveInteger` value.
 	NonPositiveInteger(XsdNonPositiveInteger),
 	/// A `NegativeInteger` value.
 	NegativeInteger(XsdNegativeInteger),
 }
-impl NonPositiveIntegerValue {
+impl XsdNonPositiveIntegerValue {
 	/// Returns the specific datatype of this value.
 	pub fn datatype(&self) -> XsdNonPositiveIntegerDatatype {
 		match self {
@@ -3191,12 +3211,12 @@ impl NonPositiveIntegerValue {
 		}
 	}
 }
-impl XsdTyped for NonPositiveIntegerValue {
+impl XsdTyped for XsdNonPositiveIntegerValue {
 	fn datatype(&self) -> XsdDatatype {
 		self.datatype().into()
 	}
 }
-impl fmt::Display for NonPositiveIntegerValue {
+impl fmt::Display for XsdNonPositiveIntegerValue {
 	fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
 		match self {
 			Self::NonPositiveInteger(v) => v.fmt(f),
@@ -3206,24 +3226,24 @@ impl fmt::Display for NonPositiveIntegerValue {
 }
 /// Any specialized [`XsdNonPositiveInteger`] value reference.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash)]
-pub enum NonPositiveIntegerValueRef<'a> {
+pub enum XsdNonPositiveIntegerValueRef<'a> {
 	/// A reference to a `NonPositiveInteger` value.
 	NonPositiveInteger(&'a XsdNonPositiveInteger),
 	/// A reference to a `NegativeInteger` value.
 	NegativeInteger(&'a XsdNegativeInteger),
 }
-impl NonPositiveIntegerValue {
+impl XsdNonPositiveIntegerValue {
 	/// Borrows this value.
-	pub fn as_ref(&self) -> NonPositiveIntegerValueRef<'_> {
+	pub fn as_ref(&self) -> XsdNonPositiveIntegerValueRef<'_> {
 		match self {
 			Self::NonPositiveInteger(value) => {
-				NonPositiveIntegerValueRef::NonPositiveInteger(value)
+				XsdNonPositiveIntegerValueRef::NonPositiveInteger(value)
 			}
-			Self::NegativeInteger(value) => NonPositiveIntegerValueRef::NegativeInteger(value),
+			Self::NegativeInteger(value) => XsdNonPositiveIntegerValueRef::NegativeInteger(value),
 		}
 	}
 }
-impl<'a> NonPositiveIntegerValueRef<'a> {
+impl<'a> XsdNonPositiveIntegerValueRef<'a> {
 	/// Returns the specific datatype of this value.
 	pub fn datatype(&self) -> XsdNonPositiveIntegerDatatype {
 		match self {
@@ -3232,23 +3252,23 @@ impl<'a> NonPositiveIntegerValueRef<'a> {
 		}
 	}
 	/// Clones the referenced data into an owned value.
-	pub fn into_owned(self) -> NonPositiveIntegerValue {
+	pub fn into_owned(self) -> XsdNonPositiveIntegerValue {
 		match self {
 			Self::NonPositiveInteger(value) => {
-				NonPositiveIntegerValue::NonPositiveInteger(value.to_owned())
+				XsdNonPositiveIntegerValue::NonPositiveInteger(value.to_owned())
 			}
 			Self::NegativeInteger(value) => {
-				NonPositiveIntegerValue::NegativeInteger(value.to_owned())
+				XsdNonPositiveIntegerValue::NegativeInteger(value.to_owned())
 			}
 		}
 	}
 }
-impl<'a> XsdTyped for NonPositiveIntegerValueRef<'a> {
+impl<'a> XsdTyped for XsdNonPositiveIntegerValueRef<'a> {
 	fn datatype(&self) -> XsdDatatype {
 		self.datatype().into()
 	}
 }
-impl<'a> fmt::Display for NonPositiveIntegerValueRef<'a> {
+impl<'a> fmt::Display for XsdNonPositiveIntegerValueRef<'a> {
 	fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
 		match self {
 			Self::NonPositiveInteger(v) => v.fmt(f),
@@ -3258,7 +3278,7 @@ impl<'a> fmt::Display for NonPositiveIntegerValueRef<'a> {
 }
 /// Any specialized [`XsdNonNegativeInteger`] value.
 #[derive(Debug, Clone, PartialEq, Eq, PartialOrd, Ord, Hash)]
-pub enum NonNegativeIntegerValue {
+pub enum XsdNonNegativeIntegerValue {
 	/// A `NonNegativeInteger` value.
 	NonNegativeInteger(XsdNonNegativeInteger),
 	/// A `PositiveInteger` value.
@@ -3272,7 +3292,7 @@ pub enum NonNegativeIntegerValue {
 	/// An `UnsignedByte` value.
 	UnsignedByte(XsdUnsignedByte),
 }
-impl NonNegativeIntegerValue {
+impl XsdNonNegativeIntegerValue {
 	/// Returns the specific datatype of this value.
 	pub fn datatype(&self) -> XsdNonNegativeIntegerDatatype {
 		match self {
@@ -3297,12 +3317,12 @@ impl NonNegativeIntegerValue {
 		}
 	}
 }
-impl XsdTyped for NonNegativeIntegerValue {
+impl XsdTyped for XsdNonNegativeIntegerValue {
 	fn datatype(&self) -> XsdDatatype {
 		self.datatype().into()
 	}
 }
-impl fmt::Display for NonNegativeIntegerValue {
+impl fmt::Display for XsdNonNegativeIntegerValue {
 	fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
 		match self {
 			Self::NonNegativeInteger(v) => v.fmt(f),
@@ -3314,62 +3334,62 @@ impl fmt::Display for NonNegativeIntegerValue {
 		}
 	}
 }
-impl From<UnsignedLongValue> for NonNegativeIntegerValue {
-	fn from(value: UnsignedLongValue) -> Self {
+impl From<XsdUnsignedLongValue> for XsdNonNegativeIntegerValue {
+	fn from(value: XsdUnsignedLongValue) -> Self {
 		match value {
-			UnsignedLongValue::UnsignedLong(value) => Self::UnsignedLong(value),
-			UnsignedLongValue::UnsignedInt(value) => Self::UnsignedInt(value),
-			UnsignedLongValue::UnsignedShort(value) => Self::UnsignedShort(value),
-			UnsignedLongValue::UnsignedByte(value) => Self::UnsignedByte(value),
+			XsdUnsignedLongValue::UnsignedLong(value) => Self::UnsignedLong(value),
+			XsdUnsignedLongValue::UnsignedInt(value) => Self::UnsignedInt(value),
+			XsdUnsignedLongValue::UnsignedShort(value) => Self::UnsignedShort(value),
+			XsdUnsignedLongValue::UnsignedByte(value) => Self::UnsignedByte(value),
 		}
 	}
 }
-impl From<UnsignedIntValue> for NonNegativeIntegerValue {
-	fn from(value: UnsignedIntValue) -> Self {
+impl From<XsdUnsignedIntValue> for XsdNonNegativeIntegerValue {
+	fn from(value: XsdUnsignedIntValue) -> Self {
 		match value {
-			UnsignedIntValue::UnsignedInt(value) => Self::UnsignedInt(value),
-			UnsignedIntValue::UnsignedShort(value) => Self::UnsignedShort(value),
-			UnsignedIntValue::UnsignedByte(value) => Self::UnsignedByte(value),
+			XsdUnsignedIntValue::UnsignedInt(value) => Self::UnsignedInt(value),
+			XsdUnsignedIntValue::UnsignedShort(value) => Self::UnsignedShort(value),
+			XsdUnsignedIntValue::UnsignedByte(value) => Self::UnsignedByte(value),
 		}
 	}
 }
-impl From<UnsignedShortValue> for NonNegativeIntegerValue {
-	fn from(value: UnsignedShortValue) -> Self {
+impl From<XsdUnsignedShortValue> for XsdNonNegativeIntegerValue {
+	fn from(value: XsdUnsignedShortValue) -> Self {
 		match value {
-			UnsignedShortValue::UnsignedShort(value) => Self::UnsignedShort(value),
-			UnsignedShortValue::UnsignedByte(value) => Self::UnsignedByte(value),
+			XsdUnsignedShortValue::UnsignedShort(value) => Self::UnsignedShort(value),
+			XsdUnsignedShortValue::UnsignedByte(value) => Self::UnsignedByte(value),
 		}
 	}
 }
-impl TryFrom<NonNegativeIntegerValue> for UnsignedLongValue {
-	type Error = NonNegativeIntegerValue;
-	fn try_from(value: NonNegativeIntegerValue) -> Result<Self, NonNegativeIntegerValue> {
+impl TryFrom<XsdNonNegativeIntegerValue> for XsdUnsignedLongValue {
+	type Error = XsdNonNegativeIntegerValue;
+	fn try_from(value: XsdNonNegativeIntegerValue) -> Result<Self, XsdNonNegativeIntegerValue> {
 		match value {
-			NonNegativeIntegerValue::UnsignedLong(value) => Ok(Self::UnsignedLong(value)),
-			NonNegativeIntegerValue::UnsignedInt(value) => Ok(Self::UnsignedInt(value)),
-			NonNegativeIntegerValue::UnsignedShort(value) => Ok(Self::UnsignedShort(value)),
-			NonNegativeIntegerValue::UnsignedByte(value) => Ok(Self::UnsignedByte(value)),
+			XsdNonNegativeIntegerValue::UnsignedLong(value) => Ok(Self::UnsignedLong(value)),
+			XsdNonNegativeIntegerValue::UnsignedInt(value) => Ok(Self::UnsignedInt(value)),
+			XsdNonNegativeIntegerValue::UnsignedShort(value) => Ok(Self::UnsignedShort(value)),
+			XsdNonNegativeIntegerValue::UnsignedByte(value) => Ok(Self::UnsignedByte(value)),
 			other => Err(other),
 		}
 	}
 }
-impl TryFrom<NonNegativeIntegerValue> for UnsignedIntValue {
-	type Error = NonNegativeIntegerValue;
-	fn try_from(value: NonNegativeIntegerValue) -> Result<Self, NonNegativeIntegerValue> {
+impl TryFrom<XsdNonNegativeIntegerValue> for XsdUnsignedIntValue {
+	type Error = XsdNonNegativeIntegerValue;
+	fn try_from(value: XsdNonNegativeIntegerValue) -> Result<Self, XsdNonNegativeIntegerValue> {
 		match value {
-			NonNegativeIntegerValue::UnsignedInt(value) => Ok(Self::UnsignedInt(value)),
-			NonNegativeIntegerValue::UnsignedShort(value) => Ok(Self::UnsignedShort(value)),
-			NonNegativeIntegerValue::UnsignedByte(value) => Ok(Self::UnsignedByte(value)),
+			XsdNonNegativeIntegerValue::UnsignedInt(value) => Ok(Self::UnsignedInt(value)),
+			XsdNonNegativeIntegerValue::UnsignedShort(value) => Ok(Self::UnsignedShort(value)),
+			XsdNonNegativeIntegerValue::UnsignedByte(value) => Ok(Self::UnsignedByte(value)),
 			other => Err(other),
 		}
 	}
 }
-impl TryFrom<NonNegativeIntegerValue> for UnsignedShortValue {
-	type Error = NonNegativeIntegerValue;
-	fn try_from(value: NonNegativeIntegerValue) -> Result<Self, NonNegativeIntegerValue> {
+impl TryFrom<XsdNonNegativeIntegerValue> for XsdUnsignedShortValue {
+	type Error = XsdNonNegativeIntegerValue;
+	fn try_from(value: XsdNonNegativeIntegerValue) -> Result<Self, XsdNonNegativeIntegerValue> {
 		match value {
-			NonNegativeIntegerValue::UnsignedShort(value) => Ok(Self::UnsignedShort(value)),
-			NonNegativeIntegerValue::UnsignedByte(value) => Ok(Self::UnsignedByte(value)),
+			XsdNonNegativeIntegerValue::UnsignedShort(value) => Ok(Self::UnsignedShort(value)),
+			XsdNonNegativeIntegerValue::UnsignedByte(value) => Ok(Self::UnsignedByte(value)),
 			other => Err(other),
 		}
 	}
@@ -3401,10 +3421,10 @@ impl XsdUnsignedLongDatatype {
 		}
 	}
 	/// Parses `value` as a lexical representation of this specific datatype.
-	pub fn parse(&self, value: &str) -> Result<UnsignedLongValue, XsdError> {
+	pub fn parse(&self, value: &str) -> Result<XsdUnsignedLongValue, XsdError> {
 		match self {
 			Self::UnsignedLong => {
-				XsdFromStr::xsd_from_str(value).map(UnsignedLongValue::UnsignedLong)
+				XsdFromStr::xsd_from_str(value).map(XsdUnsignedLongValue::UnsignedLong)
 			}
 			Self::UnsignedInt(t) => t.parse(value).map(Into::into),
 		}
@@ -3442,7 +3462,7 @@ impl TryFrom<XsdUnsignedLongDatatype> for XsdUnsignedShortDatatype {
 }
 /// Any specialized [`XsdNonNegativeInteger`] value reference.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash)]
-pub enum NonNegativeIntegerValueRef<'a> {
+pub enum XsdNonNegativeIntegerValueRef<'a> {
 	/// A reference to a `NonNegativeInteger` value.
 	NonNegativeInteger(&'a XsdNonNegativeInteger),
 	/// A reference to a `PositiveInteger` value.
@@ -3456,22 +3476,22 @@ pub enum NonNegativeIntegerValueRef<'a> {
 	/// A reference to an `UnsignedByte` value.
 	UnsignedByte(XsdUnsignedByte),
 }
-impl NonNegativeIntegerValue {
+impl XsdNonNegativeIntegerValue {
 	/// Borrows this value.
-	pub fn as_ref(&self) -> NonNegativeIntegerValueRef<'_> {
+	pub fn as_ref(&self) -> XsdNonNegativeIntegerValueRef<'_> {
 		match self {
 			Self::NonNegativeInteger(value) => {
-				NonNegativeIntegerValueRef::NonNegativeInteger(value)
+				XsdNonNegativeIntegerValueRef::NonNegativeInteger(value)
 			}
-			Self::PositiveInteger(value) => NonNegativeIntegerValueRef::PositiveInteger(value),
-			Self::UnsignedLong(value) => NonNegativeIntegerValueRef::UnsignedLong(*value),
-			Self::UnsignedInt(value) => NonNegativeIntegerValueRef::UnsignedInt(*value),
-			Self::UnsignedShort(value) => NonNegativeIntegerValueRef::UnsignedShort(*value),
-			Self::UnsignedByte(value) => NonNegativeIntegerValueRef::UnsignedByte(*value),
+			Self::PositiveInteger(value) => XsdNonNegativeIntegerValueRef::PositiveInteger(value),
+			Self::UnsignedLong(value) => XsdNonNegativeIntegerValueRef::UnsignedLong(*value),
+			Self::UnsignedInt(value) => XsdNonNegativeIntegerValueRef::UnsignedInt(*value),
+			Self::UnsignedShort(value) => XsdNonNegativeIntegerValueRef::UnsignedShort(*value),
+			Self::UnsignedByte(value) => XsdNonNegativeIntegerValueRef::UnsignedByte(*value),
 		}
 	}
 }
-impl<'a> NonNegativeIntegerValueRef<'a> {
+impl<'a> XsdNonNegativeIntegerValueRef<'a> {
 	/// Returns the specific datatype of this value.
 	pub fn datatype(&self) -> XsdNonNegativeIntegerDatatype {
 		match self {
@@ -3496,27 +3516,27 @@ impl<'a> NonNegativeIntegerValueRef<'a> {
 		}
 	}
 	/// Clones the referenced data into an owned value.
-	pub fn into_owned(self) -> NonNegativeIntegerValue {
+	pub fn into_owned(self) -> XsdNonNegativeIntegerValue {
 		match self {
 			Self::NonNegativeInteger(value) => {
-				NonNegativeIntegerValue::NonNegativeInteger(value.to_owned())
+				XsdNonNegativeIntegerValue::NonNegativeInteger(value.to_owned())
 			}
 			Self::PositiveInteger(value) => {
-				NonNegativeIntegerValue::PositiveInteger(value.to_owned())
+				XsdNonNegativeIntegerValue::PositiveInteger(value.to_owned())
 			}
-			Self::UnsignedLong(value) => NonNegativeIntegerValue::UnsignedLong(value),
-			Self::UnsignedInt(value) => NonNegativeIntegerValue::UnsignedInt(value),
-			Self::UnsignedShort(value) => NonNegativeIntegerValue::UnsignedShort(value),
-			Self::UnsignedByte(value) => NonNegativeIntegerValue::UnsignedByte(value),
+			Self::UnsignedLong(value) => XsdNonNegativeIntegerValue::UnsignedLong(value),
+			Self::UnsignedInt(value) => XsdNonNegativeIntegerValue::UnsignedInt(value),
+			Self::UnsignedShort(value) => XsdNonNegativeIntegerValue::UnsignedShort(value),
+			Self::UnsignedByte(value) => XsdNonNegativeIntegerValue::UnsignedByte(value),
 		}
 	}
 }
-impl<'a> XsdTyped for NonNegativeIntegerValueRef<'a> {
+impl<'a> XsdTyped for XsdNonNegativeIntegerValueRef<'a> {
 	fn datatype(&self) -> XsdDatatype {
 		self.datatype().into()
 	}
 }
-impl<'a> fmt::Display for NonNegativeIntegerValueRef<'a> {
+impl<'a> fmt::Display for XsdNonNegativeIntegerValueRef<'a> {
 	fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
 		match self {
 			Self::NonNegativeInteger(v) => v.fmt(f),
@@ -3530,7 +3550,7 @@ impl<'a> fmt::Display for NonNegativeIntegerValueRef<'a> {
 }
 /// Any specialized [`XsdUnsignedLong`] value.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash)]
-pub enum UnsignedLongValue {
+pub enum XsdUnsignedLongValue {
 	/// An `UnsignedLong` value.
 	UnsignedLong(XsdUnsignedLong),
 	/// An `UnsignedInt` value.
@@ -3540,7 +3560,7 @@ pub enum UnsignedLongValue {
 	/// An `UnsignedByte` value.
 	UnsignedByte(XsdUnsignedByte),
 }
-impl UnsignedLongValue {
+impl XsdUnsignedLongValue {
 	/// Returns the specific datatype of this value.
 	pub fn datatype(&self) -> XsdUnsignedLongDatatype {
 		match self {
@@ -3557,12 +3577,12 @@ impl UnsignedLongValue {
 		}
 	}
 }
-impl XsdTyped for UnsignedLongValue {
+impl XsdTyped for XsdUnsignedLongValue {
 	fn datatype(&self) -> XsdDatatype {
 		self.datatype().into()
 	}
 }
-impl fmt::Display for UnsignedLongValue {
+impl fmt::Display for XsdUnsignedLongValue {
 	fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
 		match self {
 			Self::UnsignedLong(v) => v.fmt(f),
@@ -3572,40 +3592,40 @@ impl fmt::Display for UnsignedLongValue {
 		}
 	}
 }
-impl From<UnsignedIntValue> for UnsignedLongValue {
-	fn from(value: UnsignedIntValue) -> Self {
+impl From<XsdUnsignedIntValue> for XsdUnsignedLongValue {
+	fn from(value: XsdUnsignedIntValue) -> Self {
 		match value {
-			UnsignedIntValue::UnsignedInt(value) => Self::UnsignedInt(value),
-			UnsignedIntValue::UnsignedShort(value) => Self::UnsignedShort(value),
-			UnsignedIntValue::UnsignedByte(value) => Self::UnsignedByte(value),
+			XsdUnsignedIntValue::UnsignedInt(value) => Self::UnsignedInt(value),
+			XsdUnsignedIntValue::UnsignedShort(value) => Self::UnsignedShort(value),
+			XsdUnsignedIntValue::UnsignedByte(value) => Self::UnsignedByte(value),
 		}
 	}
 }
-impl From<UnsignedShortValue> for UnsignedLongValue {
-	fn from(value: UnsignedShortValue) -> Self {
+impl From<XsdUnsignedShortValue> for XsdUnsignedLongValue {
+	fn from(value: XsdUnsignedShortValue) -> Self {
 		match value {
-			UnsignedShortValue::UnsignedShort(value) => Self::UnsignedShort(value),
-			UnsignedShortValue::UnsignedByte(value) => Self::UnsignedByte(value),
+			XsdUnsignedShortValue::UnsignedShort(value) => Self::UnsignedShort(value),
+			XsdUnsignedShortValue::UnsignedByte(value) => Self::UnsignedByte(value),
 		}
 	}
 }
-impl TryFrom<UnsignedLongValue> for UnsignedIntValue {
-	type Error = UnsignedLongValue;
-	fn try_from(value: UnsignedLongValue) -> Result<Self, UnsignedLongValue> {
+impl TryFrom<XsdUnsignedLongValue> for XsdUnsignedIntValue {
+	type Error = XsdUnsignedLongValue;
+	fn try_from(value: XsdUnsignedLongValue) -> Result<Self, XsdUnsignedLongValue> {
 		match value {
-			UnsignedLongValue::UnsignedInt(value) => Ok(Self::UnsignedInt(value)),
-			UnsignedLongValue::UnsignedShort(value) => Ok(Self::UnsignedShort(value)),
-			UnsignedLongValue::UnsignedByte(value) => Ok(Self::UnsignedByte(value)),
+			XsdUnsignedLongValue::UnsignedInt(value) => Ok(Self::UnsignedInt(value)),
+			XsdUnsignedLongValue::UnsignedShort(value) => Ok(Self::UnsignedShort(value)),
+			XsdUnsignedLongValue::UnsignedByte(value) => Ok(Self::UnsignedByte(value)),
 			other => Err(other),
 		}
 	}
 }
-impl TryFrom<UnsignedLongValue> for UnsignedShortValue {
-	type Error = UnsignedLongValue;
-	fn try_from(value: UnsignedLongValue) -> Result<Self, UnsignedLongValue> {
+impl TryFrom<XsdUnsignedLongValue> for XsdUnsignedShortValue {
+	type Error = XsdUnsignedLongValue;
+	fn try_from(value: XsdUnsignedLongValue) -> Result<Self, XsdUnsignedLongValue> {
 		match value {
-			UnsignedLongValue::UnsignedShort(value) => Ok(Self::UnsignedShort(value)),
-			UnsignedLongValue::UnsignedByte(value) => Ok(Self::UnsignedByte(value)),
+			XsdUnsignedLongValue::UnsignedShort(value) => Ok(Self::UnsignedShort(value)),
+			XsdUnsignedLongValue::UnsignedByte(value) => Ok(Self::UnsignedByte(value)),
 			other => Err(other),
 		}
 	}
@@ -3637,9 +3657,11 @@ impl XsdUnsignedIntDatatype {
 		}
 	}
 	/// Parses `value` as a lexical representation of this specific datatype.
-	pub fn parse(&self, value: &str) -> Result<UnsignedIntValue, XsdError> {
+	pub fn parse(&self, value: &str) -> Result<XsdUnsignedIntValue, XsdError> {
 		match self {
-			Self::UnsignedInt => XsdFromStr::xsd_from_str(value).map(UnsignedIntValue::UnsignedInt),
+			Self::UnsignedInt => {
+				XsdFromStr::xsd_from_str(value).map(XsdUnsignedIntValue::UnsignedInt)
+			}
 			Self::UnsignedShort(t) => t.parse(value).map(Into::into),
 		}
 	}
@@ -3660,7 +3682,7 @@ impl TryFrom<XsdUnsignedIntDatatype> for XsdUnsignedShortDatatype {
 }
 /// Any specialized [`XsdUnsignedInt`] value.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash)]
-pub enum UnsignedIntValue {
+pub enum XsdUnsignedIntValue {
 	/// An `UnsignedInt` value.
 	UnsignedInt(XsdUnsignedInt),
 	/// An `UnsignedShort` value.
@@ -3668,7 +3690,7 @@ pub enum UnsignedIntValue {
 	/// An `UnsignedByte` value.
 	UnsignedByte(XsdUnsignedByte),
 }
-impl UnsignedIntValue {
+impl XsdUnsignedIntValue {
 	/// Returns the specific datatype of this value.
 	pub fn datatype(&self) -> XsdUnsignedIntDatatype {
 		match self {
@@ -3682,12 +3704,12 @@ impl UnsignedIntValue {
 		}
 	}
 }
-impl XsdTyped for UnsignedIntValue {
+impl XsdTyped for XsdUnsignedIntValue {
 	fn datatype(&self) -> XsdDatatype {
 		self.datatype().into()
 	}
 }
-impl fmt::Display for UnsignedIntValue {
+impl fmt::Display for XsdUnsignedIntValue {
 	fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
 		match self {
 			Self::UnsignedInt(v) => v.fmt(f),
@@ -3696,20 +3718,20 @@ impl fmt::Display for UnsignedIntValue {
 		}
 	}
 }
-impl From<UnsignedShortValue> for UnsignedIntValue {
-	fn from(value: UnsignedShortValue) -> Self {
+impl From<XsdUnsignedShortValue> for XsdUnsignedIntValue {
+	fn from(value: XsdUnsignedShortValue) -> Self {
 		match value {
-			UnsignedShortValue::UnsignedShort(value) => Self::UnsignedShort(value),
-			UnsignedShortValue::UnsignedByte(value) => Self::UnsignedByte(value),
+			XsdUnsignedShortValue::UnsignedShort(value) => Self::UnsignedShort(value),
+			XsdUnsignedShortValue::UnsignedByte(value) => Self::UnsignedByte(value),
 		}
 	}
 }
-impl TryFrom<UnsignedIntValue> for UnsignedShortValue {
-	type Error = UnsignedIntValue;
-	fn try_from(value: UnsignedIntValue) -> Result<Self, UnsignedIntValue> {
+impl TryFrom<XsdUnsignedIntValue> for XsdUnsignedShortValue {
+	type Error = XsdUnsignedIntValue;
+	fn try_from(value: XsdUnsignedIntValue) -> Result<Self, XsdUnsignedIntValue> {
 		match value {
-			UnsignedIntValue::UnsignedShort(value) => Ok(Self::UnsignedShort(value)),
-			UnsignedIntValue::UnsignedByte(value) => Ok(Self::UnsignedByte(value)),
+			XsdUnsignedIntValue::UnsignedShort(value) => Ok(Self::UnsignedShort(value)),
+			XsdUnsignedIntValue::UnsignedByte(value) => Ok(Self::UnsignedByte(value)),
 			other => Err(other),
 		}
 	}
@@ -3741,26 +3763,26 @@ impl XsdUnsignedShortDatatype {
 		}
 	}
 	/// Parses `value` as a lexical representation of this specific datatype.
-	pub fn parse(&self, value: &str) -> Result<UnsignedShortValue, XsdError> {
+	pub fn parse(&self, value: &str) -> Result<XsdUnsignedShortValue, XsdError> {
 		match self {
 			Self::UnsignedShort => {
-				XsdFromStr::xsd_from_str(value).map(UnsignedShortValue::UnsignedShort)
+				XsdFromStr::xsd_from_str(value).map(XsdUnsignedShortValue::UnsignedShort)
 			}
 			Self::UnsignedByte => {
-				XsdFromStr::xsd_from_str(value).map(UnsignedShortValue::UnsignedByte)
+				XsdFromStr::xsd_from_str(value).map(XsdUnsignedShortValue::UnsignedByte)
 			}
 		}
 	}
 }
 /// Any specialized [`XsdUnsignedShort`] value.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash)]
-pub enum UnsignedShortValue {
+pub enum XsdUnsignedShortValue {
 	/// An `UnsignedShort` value.
 	UnsignedShort(XsdUnsignedShort),
 	/// An `UnsignedByte` value.
 	UnsignedByte(XsdUnsignedByte),
 }
-impl UnsignedShortValue {
+impl XsdUnsignedShortValue {
 	/// Returns the specific datatype of this value.
 	pub fn datatype(&self) -> XsdUnsignedShortDatatype {
 		match self {
@@ -3769,12 +3791,12 @@ impl UnsignedShortValue {
 		}
 	}
 }
-impl XsdTyped for UnsignedShortValue {
+impl XsdTyped for XsdUnsignedShortValue {
 	fn datatype(&self) -> XsdDatatype {
 		self.datatype().into()
 	}
 }
-impl fmt::Display for UnsignedShortValue {
+impl fmt::Display for XsdUnsignedShortValue {
 	fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
 		match self {
 			Self::UnsignedShort(v) => v.fmt(f),
@@ -3784,7 +3806,7 @@ impl fmt::Display for UnsignedShortValue {
 }
 /// Any specialized [`XsdLong`] value.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash)]
-pub enum LongValue {
+pub enum XsdLongValue {
 	/// A `Long` value.
 	Long(XsdLong),
 	/// An `Int` value.
@@ -3794,7 +3816,7 @@ pub enum LongValue {
 	/// A `Byte` value.
 	Byte(XsdByte),
 }
-impl LongValue {
+impl XsdLongValue {
 	/// Returns the specific datatype of this value.
 	pub fn datatype(&self) -> XsdLongDatatype {
 		match self {
@@ -3805,12 +3827,12 @@ impl LongValue {
 		}
 	}
 }
-impl XsdTyped for LongValue {
+impl XsdTyped for XsdLongValue {
 	fn datatype(&self) -> XsdDatatype {
 		self.datatype().into()
 	}
 }
-impl fmt::Display for LongValue {
+impl fmt::Display for XsdLongValue {
 	fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
 		match self {
 			Self::Long(v) => v.fmt(f),
@@ -3820,40 +3842,40 @@ impl fmt::Display for LongValue {
 		}
 	}
 }
-impl From<IntValue> for LongValue {
-	fn from(value: IntValue) -> Self {
+impl From<XsdIntValue> for XsdLongValue {
+	fn from(value: XsdIntValue) -> Self {
 		match value {
-			IntValue::Int(value) => Self::Int(value),
-			IntValue::Short(value) => Self::Short(value),
-			IntValue::Byte(value) => Self::Byte(value),
+			XsdIntValue::Int(value) => Self::Int(value),
+			XsdIntValue::Short(value) => Self::Short(value),
+			XsdIntValue::Byte(value) => Self::Byte(value),
 		}
 	}
 }
-impl From<ShortValue> for LongValue {
-	fn from(value: ShortValue) -> Self {
+impl From<XsdShortValue> for XsdLongValue {
+	fn from(value: XsdShortValue) -> Self {
 		match value {
-			ShortValue::Short(value) => Self::Short(value),
-			ShortValue::Byte(value) => Self::Byte(value),
+			XsdShortValue::Short(value) => Self::Short(value),
+			XsdShortValue::Byte(value) => Self::Byte(value),
 		}
 	}
 }
-impl TryFrom<LongValue> for IntValue {
-	type Error = LongValue;
-	fn try_from(value: LongValue) -> Result<Self, LongValue> {
+impl TryFrom<XsdLongValue> for XsdIntValue {
+	type Error = XsdLongValue;
+	fn try_from(value: XsdLongValue) -> Result<Self, XsdLongValue> {
 		match value {
-			LongValue::Int(value) => Ok(Self::Int(value)),
-			LongValue::Short(value) => Ok(Self::Short(value)),
-			LongValue::Byte(value) => Ok(Self::Byte(value)),
+			XsdLongValue::Int(value) => Ok(Self::Int(value)),
+			XsdLongValue::Short(value) => Ok(Self::Short(value)),
+			XsdLongValue::Byte(value) => Ok(Self::Byte(value)),
 			other => Err(other),
 		}
 	}
 }
-impl TryFrom<LongValue> for ShortValue {
-	type Error = LongValue;
-	fn try_from(value: LongValue) -> Result<Self, LongValue> {
+impl TryFrom<XsdLongValue> for XsdShortValue {
+	type Error = XsdLongValue;
+	fn try_from(value: XsdLongValue) -> Result<Self, XsdLongValue> {
 		match value {
-			LongValue::Short(value) => Ok(Self::Short(value)),
-			LongValue::Byte(value) => Ok(Self::Byte(value)),
+			XsdLongValue::Short(value) => Ok(Self::Short(value)),
+			XsdLongValue::Byte(value) => Ok(Self::Byte(value)),
 			other => Err(other),
 		}
 	}
@@ -3885,9 +3907,9 @@ impl XsdIntDatatype {
 		}
 	}
 	/// Parses `value` as a lexical representation of this specific datatype.
-	pub fn parse(&self, value: &str) -> Result<IntValue, XsdError> {
+	pub fn parse(&self, value: &str) -> Result<XsdIntValue, XsdError> {
 		match self {
-			Self::Int => XsdFromStr::xsd_from_str(value).map(IntValue::Int),
+			Self::Int => XsdFromStr::xsd_from_str(value).map(XsdIntValue::Int),
 			Self::Short(t) => t.parse(value).map(Into::into),
 		}
 	}
@@ -3908,7 +3930,7 @@ impl TryFrom<XsdIntDatatype> for XsdShortDatatype {
 }
 /// Any specialized [`XsdInt`] value.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash)]
-pub enum IntValue {
+pub enum XsdIntValue {
 	/// An `Int` value.
 	Int(XsdInt),
 	/// A `Short` value.
@@ -3916,7 +3938,7 @@ pub enum IntValue {
 	/// A `Byte` value.
 	Byte(XsdByte),
 }
-impl IntValue {
+impl XsdIntValue {
 	/// Returns the specific datatype of this value.
 	pub fn datatype(&self) -> XsdIntDatatype {
 		match self {
@@ -3926,12 +3948,12 @@ impl IntValue {
 		}
 	}
 }
-impl XsdTyped for IntValue {
+impl XsdTyped for XsdIntValue {
 	fn datatype(&self) -> XsdDatatype {
 		self.datatype().into()
 	}
 }
-impl fmt::Display for IntValue {
+impl fmt::Display for XsdIntValue {
 	fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
 		match self {
 			Self::Int(v) => v.fmt(f),
@@ -3940,20 +3962,20 @@ impl fmt::Display for IntValue {
 		}
 	}
 }
-impl From<ShortValue> for IntValue {
-	fn from(value: ShortValue) -> Self {
+impl From<XsdShortValue> for XsdIntValue {
+	fn from(value: XsdShortValue) -> Self {
 		match value {
-			ShortValue::Short(value) => Self::Short(value),
-			ShortValue::Byte(value) => Self::Byte(value),
+			XsdShortValue::Short(value) => Self::Short(value),
+			XsdShortValue::Byte(value) => Self::Byte(value),
 		}
 	}
 }
-impl TryFrom<IntValue> for ShortValue {
-	type Error = IntValue;
-	fn try_from(value: IntValue) -> Result<Self, IntValue> {
+impl TryFrom<XsdIntValue> for XsdShortValue {
+	type Error = XsdIntValue;
+	fn try_from(value: XsdIntValue) -> Result<Self, XsdIntValue> {
 		match value {
-			IntValue::Short(value) => Ok(Self::Short(value)),
-			IntValue::Byte(value) => Ok(Self::Byte(value)),
+			XsdIntValue::Short(value) => Ok(Self::Short(value)),
+			XsdIntValue::Byte(value) => Ok(Self::Byte(value)),
 			other => Err(other),
 		}
 	}
@@ -3985,22 +4007,22 @@ impl XsdShortDatatype {
 		}
 	}
 	/// Parses `value` as a lexical representation of this specific datatype.
-	pub fn parse(&self, value: &str) -> Result<ShortValue, XsdError> {
+	pub fn parse(&self, value: &str) -> Result<XsdShortValue, XsdError> {
 		match self {
-			Self::Short => XsdFromStr::xsd_from_str(value).map(ShortValue::Short),
-			Self::Byte => XsdFromStr::xsd_from_str(value).map(ShortValue::Byte),
+			Self::Short => XsdFromStr::xsd_from_str(value).map(XsdShortValue::Short),
+			Self::Byte => XsdFromStr::xsd_from_str(value).map(XsdShortValue::Byte),
 		}
 	}
 }
 /// Any specialized [`XsdShort`] value.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash)]
-pub enum ShortValue {
+pub enum XsdShortValue {
 	/// A `Short` value.
 	Short(XsdShort),
 	/// A `Byte` value.
 	Byte(XsdByte),
 }
-impl ShortValue {
+impl XsdShortValue {
 	/// Returns the specific datatype of this value.
 	pub fn datatype(&self) -> XsdShortDatatype {
 		match self {
@@ -4009,12 +4031,12 @@ impl ShortValue {
 		}
 	}
 }
-impl XsdTyped for ShortValue {
+impl XsdTyped for XsdShortValue {
 	fn datatype(&self) -> XsdDatatype {
 		self.datatype().into()
 	}
 }
-impl fmt::Display for ShortValue {
+impl fmt::Display for XsdShortValue {
 	fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
 		match self {
 			Self::Short(v) => v.fmt(f),
@@ -4108,273 +4130,273 @@ impl TryFrom<XsdDatatype> for XsdNCNameDatatype {
 		}
 	}
 }
-impl From<StringValue> for Value {
-	fn from(value: StringValue) -> Self {
+impl From<XsdStringValue> for XsdValue {
+	fn from(value: XsdStringValue) -> Self {
 		match value {
-			StringValue::String(value) => Self::String(value),
-			StringValue::NormalizedString(value) => Self::NormalizedString(value),
-			StringValue::Token(value) => Self::Token(value),
-			StringValue::Language(value) => Self::Language(value),
-			StringValue::Name(value) => Self::Name(value),
-			StringValue::NCName(value) => Self::NCName(value),
-			StringValue::Id(value) => Self::Id(value),
-			StringValue::IdRef(value) => Self::IdRef(value),
-			StringValue::NMToken(value) => Self::NMToken(value),
+			XsdStringValue::String(value) => Self::String(value),
+			XsdStringValue::NormalizedString(value) => Self::NormalizedString(value),
+			XsdStringValue::Token(value) => Self::Token(value),
+			XsdStringValue::Language(value) => Self::Language(value),
+			XsdStringValue::Name(value) => Self::Name(value),
+			XsdStringValue::NCName(value) => Self::NCName(value),
+			XsdStringValue::Id(value) => Self::Id(value),
+			XsdStringValue::IdRef(value) => Self::IdRef(value),
+			XsdStringValue::NMToken(value) => Self::NMToken(value),
 		}
 	}
 }
-impl From<NormalizedStringValue> for Value {
-	fn from(value: NormalizedStringValue) -> Self {
+impl From<XsdNormalizedStringValue> for XsdValue {
+	fn from(value: XsdNormalizedStringValue) -> Self {
 		match value {
-			NormalizedStringValue::NormalizedString(value) => Self::NormalizedString(value),
-			NormalizedStringValue::Token(value) => Self::Token(value),
-			NormalizedStringValue::Language(value) => Self::Language(value),
-			NormalizedStringValue::Name(value) => Self::Name(value),
-			NormalizedStringValue::NCName(value) => Self::NCName(value),
-			NormalizedStringValue::Id(value) => Self::Id(value),
-			NormalizedStringValue::IdRef(value) => Self::IdRef(value),
-			NormalizedStringValue::NMToken(value) => Self::NMToken(value),
+			XsdNormalizedStringValue::NormalizedString(value) => Self::NormalizedString(value),
+			XsdNormalizedStringValue::Token(value) => Self::Token(value),
+			XsdNormalizedStringValue::Language(value) => Self::Language(value),
+			XsdNormalizedStringValue::Name(value) => Self::Name(value),
+			XsdNormalizedStringValue::NCName(value) => Self::NCName(value),
+			XsdNormalizedStringValue::Id(value) => Self::Id(value),
+			XsdNormalizedStringValue::IdRef(value) => Self::IdRef(value),
+			XsdNormalizedStringValue::NMToken(value) => Self::NMToken(value),
 		}
 	}
 }
-impl From<TokenValue> for Value {
-	fn from(value: TokenValue) -> Self {
+impl From<XsdTokenValue> for XsdValue {
+	fn from(value: XsdTokenValue) -> Self {
 		match value {
-			TokenValue::Token(value) => Self::Token(value),
-			TokenValue::Language(value) => Self::Language(value),
-			TokenValue::Name(value) => Self::Name(value),
-			TokenValue::NCName(value) => Self::NCName(value),
-			TokenValue::Id(value) => Self::Id(value),
-			TokenValue::IdRef(value) => Self::IdRef(value),
-			TokenValue::NMToken(value) => Self::NMToken(value),
+			XsdTokenValue::Token(value) => Self::Token(value),
+			XsdTokenValue::Language(value) => Self::Language(value),
+			XsdTokenValue::Name(value) => Self::Name(value),
+			XsdTokenValue::NCName(value) => Self::NCName(value),
+			XsdTokenValue::Id(value) => Self::Id(value),
+			XsdTokenValue::IdRef(value) => Self::IdRef(value),
+			XsdTokenValue::NMToken(value) => Self::NMToken(value),
 		}
 	}
 }
-impl From<NameValue> for Value {
-	fn from(value: NameValue) -> Self {
+impl From<XsdNameValue> for XsdValue {
+	fn from(value: XsdNameValue) -> Self {
 		match value {
-			NameValue::Name(value) => Self::Name(value),
-			NameValue::NCName(value) => Self::NCName(value),
-			NameValue::Id(value) => Self::Id(value),
-			NameValue::IdRef(value) => Self::IdRef(value),
+			XsdNameValue::Name(value) => Self::Name(value),
+			XsdNameValue::NCName(value) => Self::NCName(value),
+			XsdNameValue::Id(value) => Self::Id(value),
+			XsdNameValue::IdRef(value) => Self::IdRef(value),
 		}
 	}
 }
-impl From<NCNameValue> for Value {
-	fn from(value: NCNameValue) -> Self {
+impl From<XsdNCNameValue> for XsdValue {
+	fn from(value: XsdNCNameValue) -> Self {
 		match value {
-			NCNameValue::NCName(value) => Self::NCName(value),
-			NCNameValue::Id(value) => Self::Id(value),
-			NCNameValue::IdRef(value) => Self::IdRef(value),
+			XsdNCNameValue::NCName(value) => Self::NCName(value),
+			XsdNCNameValue::Id(value) => Self::Id(value),
+			XsdNCNameValue::IdRef(value) => Self::IdRef(value),
 		}
 	}
 }
-impl TryFrom<Value> for StringValue {
-	type Error = Value;
-	fn try_from(value: Value) -> Result<Self, Value> {
+impl TryFrom<XsdValue> for XsdStringValue {
+	type Error = XsdValue;
+	fn try_from(value: XsdValue) -> Result<Self, XsdValue> {
 		match value {
-			Value::String(value) => Ok(Self::String(value)),
-			Value::NormalizedString(value) => Ok(Self::NormalizedString(value)),
-			Value::Token(value) => Ok(Self::Token(value)),
-			Value::Language(value) => Ok(Self::Language(value)),
-			Value::Name(value) => Ok(Self::Name(value)),
-			Value::NCName(value) => Ok(Self::NCName(value)),
-			Value::Id(value) => Ok(Self::Id(value)),
-			Value::IdRef(value) => Ok(Self::IdRef(value)),
-			Value::NMToken(value) => Ok(Self::NMToken(value)),
+			XsdValue::String(value) => Ok(Self::String(value)),
+			XsdValue::NormalizedString(value) => Ok(Self::NormalizedString(value)),
+			XsdValue::Token(value) => Ok(Self::Token(value)),
+			XsdValue::Language(value) => Ok(Self::Language(value)),
+			XsdValue::Name(value) => Ok(Self::Name(value)),
+			XsdValue::NCName(value) => Ok(Self::NCName(value)),
+			XsdValue::Id(value) => Ok(Self::Id(value)),
+			XsdValue::IdRef(value) => Ok(Self::IdRef(value)),
+			XsdValue::NMToken(value) => Ok(Self::NMToken(value)),
 			other => Err(other),
 		}
 	}
 }
-impl TryFrom<Value> for NormalizedStringValue {
-	type Error = Value;
-	fn try_from(value: Value) -> Result<Self, Value> {
+impl TryFrom<XsdValue> for XsdNormalizedStringValue {
+	type Error = XsdValue;
+	fn try_from(value: XsdValue) -> Result<Self, XsdValue> {
 		match value {
-			Value::NormalizedString(value) => Ok(Self::NormalizedString(value)),
-			Value::Token(value) => Ok(Self::Token(value)),
-			Value::Language(value) => Ok(Self::Language(value)),
-			Value::Name(value) => Ok(Self::Name(value)),
-			Value::NCName(value) => Ok(Self::NCName(value)),
-			Value::Id(value) => Ok(Self::Id(value)),
-			Value::IdRef(value) => Ok(Self::IdRef(value)),
-			Value::NMToken(value) => Ok(Self::NMToken(value)),
+			XsdValue::NormalizedString(value) => Ok(Self::NormalizedString(value)),
+			XsdValue::Token(value) => Ok(Self::Token(value)),
+			XsdValue::Language(value) => Ok(Self::Language(value)),
+			XsdValue::Name(value) => Ok(Self::Name(value)),
+			XsdValue::NCName(value) => Ok(Self::NCName(value)),
+			XsdValue::Id(value) => Ok(Self::Id(value)),
+			XsdValue::IdRef(value) => Ok(Self::IdRef(value)),
+			XsdValue::NMToken(value) => Ok(Self::NMToken(value)),
 			other => Err(other),
 		}
 	}
 }
-impl TryFrom<Value> for TokenValue {
-	type Error = Value;
-	fn try_from(value: Value) -> Result<Self, Value> {
+impl TryFrom<XsdValue> for XsdTokenValue {
+	type Error = XsdValue;
+	fn try_from(value: XsdValue) -> Result<Self, XsdValue> {
 		match value {
-			Value::Token(value) => Ok(Self::Token(value)),
-			Value::Language(value) => Ok(Self::Language(value)),
-			Value::Name(value) => Ok(Self::Name(value)),
-			Value::NCName(value) => Ok(Self::NCName(value)),
-			Value::Id(value) => Ok(Self::Id(value)),
-			Value::IdRef(value) => Ok(Self::IdRef(value)),
-			Value::NMToken(value) => Ok(Self::NMToken(value)),
+			XsdValue::Token(value) => Ok(Self::Token(value)),
+			XsdValue::Language(value) => Ok(Self::Language(value)),
+			XsdValue::Name(value) => Ok(Self::Name(value)),
+			XsdValue::NCName(value) => Ok(Self::NCName(value)),
+			XsdValue::Id(value) => Ok(Self::Id(value)),
+			XsdValue::IdRef(value) => Ok(Self::IdRef(value)),
+			XsdValue::NMToken(value) => Ok(Self::NMToken(value)),
 			other => Err(other),
 		}
 	}
 }
-impl TryFrom<Value> for NameValue {
-	type Error = Value;
-	fn try_from(value: Value) -> Result<Self, Value> {
+impl TryFrom<XsdValue> for XsdNameValue {
+	type Error = XsdValue;
+	fn try_from(value: XsdValue) -> Result<Self, XsdValue> {
 		match value {
-			Value::Name(value) => Ok(Self::Name(value)),
-			Value::NCName(value) => Ok(Self::NCName(value)),
-			Value::Id(value) => Ok(Self::Id(value)),
-			Value::IdRef(value) => Ok(Self::IdRef(value)),
+			XsdValue::Name(value) => Ok(Self::Name(value)),
+			XsdValue::NCName(value) => Ok(Self::NCName(value)),
+			XsdValue::Id(value) => Ok(Self::Id(value)),
+			XsdValue::IdRef(value) => Ok(Self::IdRef(value)),
 			other => Err(other),
 		}
 	}
 }
-impl TryFrom<Value> for NCNameValue {
-	type Error = Value;
-	fn try_from(value: Value) -> Result<Self, Value> {
+impl TryFrom<XsdValue> for XsdNCNameValue {
+	type Error = XsdValue;
+	fn try_from(value: XsdValue) -> Result<Self, XsdValue> {
 		match value {
-			Value::NCName(value) => Ok(Self::NCName(value)),
-			Value::Id(value) => Ok(Self::Id(value)),
-			Value::IdRef(value) => Ok(Self::IdRef(value)),
+			XsdValue::NCName(value) => Ok(Self::NCName(value)),
+			XsdValue::Id(value) => Ok(Self::Id(value)),
+			XsdValue::IdRef(value) => Ok(Self::IdRef(value)),
 			other => Err(other),
 		}
 	}
 }
-impl<'a> From<StringValueRef<'a>> for ValueRef<'a> {
-	fn from(value: StringValueRef<'a>) -> Self {
+impl<'a> From<XsdStringValueRef<'a>> for XsdValueRef<'a> {
+	fn from(value: XsdStringValueRef<'a>) -> Self {
 		match value {
-			StringValueRef::String(value) => Self::String(value),
-			StringValueRef::NormalizedString(value) => Self::NormalizedString(value),
-			StringValueRef::Token(value) => Self::Token(value),
-			StringValueRef::Language(value) => Self::Language(value),
-			StringValueRef::Name(value) => Self::Name(value),
-			StringValueRef::NCName(value) => Self::NCName(value),
-			StringValueRef::Id(value) => Self::Id(value),
-			StringValueRef::IdRef(value) => Self::IdRef(value),
-			StringValueRef::NMToken(value) => Self::NMToken(value),
+			XsdStringValueRef::String(value) => Self::String(value),
+			XsdStringValueRef::NormalizedString(value) => Self::NormalizedString(value),
+			XsdStringValueRef::Token(value) => Self::Token(value),
+			XsdStringValueRef::Language(value) => Self::Language(value),
+			XsdStringValueRef::Name(value) => Self::Name(value),
+			XsdStringValueRef::NCName(value) => Self::NCName(value),
+			XsdStringValueRef::Id(value) => Self::Id(value),
+			XsdStringValueRef::IdRef(value) => Self::IdRef(value),
+			XsdStringValueRef::NMToken(value) => Self::NMToken(value),
 		}
 	}
 }
-impl<'a> From<NormalizedStringValueRef<'a>> for ValueRef<'a> {
-	fn from(value: NormalizedStringValueRef<'a>) -> Self {
+impl<'a> From<XsdNormalizedStringValueRef<'a>> for XsdValueRef<'a> {
+	fn from(value: XsdNormalizedStringValueRef<'a>) -> Self {
 		match value {
-			NormalizedStringValueRef::NormalizedString(value) => Self::NormalizedString(value),
-			NormalizedStringValueRef::Token(value) => Self::Token(value),
-			NormalizedStringValueRef::Language(value) => Self::Language(value),
-			NormalizedStringValueRef::Name(value) => Self::Name(value),
-			NormalizedStringValueRef::NCName(value) => Self::NCName(value),
-			NormalizedStringValueRef::Id(value) => Self::Id(value),
-			NormalizedStringValueRef::IdRef(value) => Self::IdRef(value),
-			NormalizedStringValueRef::NMToken(value) => Self::NMToken(value),
+			XsdNormalizedStringValueRef::NormalizedString(value) => Self::NormalizedString(value),
+			XsdNormalizedStringValueRef::Token(value) => Self::Token(value),
+			XsdNormalizedStringValueRef::Language(value) => Self::Language(value),
+			XsdNormalizedStringValueRef::Name(value) => Self::Name(value),
+			XsdNormalizedStringValueRef::NCName(value) => Self::NCName(value),
+			XsdNormalizedStringValueRef::Id(value) => Self::Id(value),
+			XsdNormalizedStringValueRef::IdRef(value) => Self::IdRef(value),
+			XsdNormalizedStringValueRef::NMToken(value) => Self::NMToken(value),
 		}
 	}
 }
-impl<'a> From<TokenValueRef<'a>> for ValueRef<'a> {
-	fn from(value: TokenValueRef<'a>) -> Self {
+impl<'a> From<XsdTokenValueRef<'a>> for XsdValueRef<'a> {
+	fn from(value: XsdTokenValueRef<'a>) -> Self {
 		match value {
-			TokenValueRef::Token(value) => Self::Token(value),
-			TokenValueRef::Language(value) => Self::Language(value),
-			TokenValueRef::Name(value) => Self::Name(value),
-			TokenValueRef::NCName(value) => Self::NCName(value),
-			TokenValueRef::Id(value) => Self::Id(value),
-			TokenValueRef::IdRef(value) => Self::IdRef(value),
-			TokenValueRef::NMToken(value) => Self::NMToken(value),
+			XsdTokenValueRef::Token(value) => Self::Token(value),
+			XsdTokenValueRef::Language(value) => Self::Language(value),
+			XsdTokenValueRef::Name(value) => Self::Name(value),
+			XsdTokenValueRef::NCName(value) => Self::NCName(value),
+			XsdTokenValueRef::Id(value) => Self::Id(value),
+			XsdTokenValueRef::IdRef(value) => Self::IdRef(value),
+			XsdTokenValueRef::NMToken(value) => Self::NMToken(value),
 		}
 	}
 }
-impl<'a> From<NameValueRef<'a>> for ValueRef<'a> {
-	fn from(value: NameValueRef<'a>) -> Self {
+impl<'a> From<XsdNameValueRef<'a>> for XsdValueRef<'a> {
+	fn from(value: XsdNameValueRef<'a>) -> Self {
 		match value {
-			NameValueRef::Name(value) => Self::Name(value),
-			NameValueRef::NCName(value) => Self::NCName(value),
-			NameValueRef::Id(value) => Self::Id(value),
-			NameValueRef::IdRef(value) => Self::IdRef(value),
+			XsdNameValueRef::Name(value) => Self::Name(value),
+			XsdNameValueRef::NCName(value) => Self::NCName(value),
+			XsdNameValueRef::Id(value) => Self::Id(value),
+			XsdNameValueRef::IdRef(value) => Self::IdRef(value),
 		}
 	}
 }
-impl<'a> From<NCNameValueRef<'a>> for ValueRef<'a> {
-	fn from(value: NCNameValueRef<'a>) -> Self {
+impl<'a> From<XsdNCNameValueRef<'a>> for XsdValueRef<'a> {
+	fn from(value: XsdNCNameValueRef<'a>) -> Self {
 		match value {
-			NCNameValueRef::NCName(value) => Self::NCName(value),
-			NCNameValueRef::Id(value) => Self::Id(value),
-			NCNameValueRef::IdRef(value) => Self::IdRef(value),
+			XsdNCNameValueRef::NCName(value) => Self::NCName(value),
+			XsdNCNameValueRef::Id(value) => Self::Id(value),
+			XsdNCNameValueRef::IdRef(value) => Self::IdRef(value),
 		}
 	}
 }
-impl<'a> TryFrom<ValueRef<'a>> for StringValueRef<'a> {
-	type Error = ValueRef<'a>;
-	fn try_from(value: ValueRef<'a>) -> Result<Self, ValueRef<'a>> {
+impl<'a> TryFrom<XsdValueRef<'a>> for XsdStringValueRef<'a> {
+	type Error = XsdValueRef<'a>;
+	fn try_from(value: XsdValueRef<'a>) -> Result<Self, XsdValueRef<'a>> {
 		match value {
-			ValueRef::String(value) => Ok(Self::String(value)),
-			ValueRef::NormalizedString(value) => Ok(Self::NormalizedString(value)),
-			ValueRef::Token(value) => Ok(Self::Token(value)),
-			ValueRef::Language(value) => Ok(Self::Language(value)),
-			ValueRef::Name(value) => Ok(Self::Name(value)),
-			ValueRef::NCName(value) => Ok(Self::NCName(value)),
-			ValueRef::Id(value) => Ok(Self::Id(value)),
-			ValueRef::IdRef(value) => Ok(Self::IdRef(value)),
-			ValueRef::NMToken(value) => Ok(Self::NMToken(value)),
+			XsdValueRef::String(value) => Ok(Self::String(value)),
+			XsdValueRef::NormalizedString(value) => Ok(Self::NormalizedString(value)),
+			XsdValueRef::Token(value) => Ok(Self::Token(value)),
+			XsdValueRef::Language(value) => Ok(Self::Language(value)),
+			XsdValueRef::Name(value) => Ok(Self::Name(value)),
+			XsdValueRef::NCName(value) => Ok(Self::NCName(value)),
+			XsdValueRef::Id(value) => Ok(Self::Id(value)),
+			XsdValueRef::IdRef(value) => Ok(Self::IdRef(value)),
+			XsdValueRef::NMToken(value) => Ok(Self::NMToken(value)),
 			other => Err(other),
 		}
 	}
 }
-impl<'a> TryFrom<ValueRef<'a>> for NormalizedStringValueRef<'a> {
-	type Error = ValueRef<'a>;
-	fn try_from(value: ValueRef<'a>) -> Result<Self, ValueRef<'a>> {
+impl<'a> TryFrom<XsdValueRef<'a>> for XsdNormalizedStringValueRef<'a> {
+	type Error = XsdValueRef<'a>;
+	fn try_from(value: XsdValueRef<'a>) -> Result<Self, XsdValueRef<'a>> {
 		match value {
-			ValueRef::NormalizedString(value) => Ok(Self::NormalizedString(value)),
-			ValueRef::Token(value) => Ok(Self::Token(value)),
-			ValueRef::Language(value) => Ok(Self::Language(value)),
-			ValueRef::Name(value) => Ok(Self::Name(value)),
-			ValueRef::NCName(value) => Ok(Self::NCName(value)),
-			ValueRef::Id(value) => Ok(Self::Id(value)),
-			ValueRef::IdRef(value) => Ok(Self::IdRef(value)),
-			ValueRef::NMToken(value) => Ok(Self::NMToken(value)),
+			XsdValueRef::NormalizedString(value) => Ok(Self::NormalizedString(value)),
+			XsdValueRef::Token(value) => Ok(Self::Token(value)),
+			XsdValueRef::Language(value) => Ok(Self::Language(value)),
+			XsdValueRef::Name(value) => Ok(Self::Name(value)),
+			XsdValueRef::NCName(value) => Ok(Self::NCName(value)),
+			XsdValueRef::Id(value) => Ok(Self::Id(value)),
+			XsdValueRef::IdRef(value) => Ok(Self::IdRef(value)),
+			XsdValueRef::NMToken(value) => Ok(Self::NMToken(value)),
 			other => Err(other),
 		}
 	}
 }
-impl<'a> TryFrom<ValueRef<'a>> for TokenValueRef<'a> {
-	type Error = ValueRef<'a>;
-	fn try_from(value: ValueRef<'a>) -> Result<Self, ValueRef<'a>> {
+impl<'a> TryFrom<XsdValueRef<'a>> for XsdTokenValueRef<'a> {
+	type Error = XsdValueRef<'a>;
+	fn try_from(value: XsdValueRef<'a>) -> Result<Self, XsdValueRef<'a>> {
 		match value {
-			ValueRef::Token(value) => Ok(Self::Token(value)),
-			ValueRef::Language(value) => Ok(Self::Language(value)),
-			ValueRef::Name(value) => Ok(Self::Name(value)),
-			ValueRef::NCName(value) => Ok(Self::NCName(value)),
-			ValueRef::Id(value) => Ok(Self::Id(value)),
-			ValueRef::IdRef(value) => Ok(Self::IdRef(value)),
-			ValueRef::NMToken(value) => Ok(Self::NMToken(value)),
+			XsdValueRef::Token(value) => Ok(Self::Token(value)),
+			XsdValueRef::Language(value) => Ok(Self::Language(value)),
+			XsdValueRef::Name(value) => Ok(Self::Name(value)),
+			XsdValueRef::NCName(value) => Ok(Self::NCName(value)),
+			XsdValueRef::Id(value) => Ok(Self::Id(value)),
+			XsdValueRef::IdRef(value) => Ok(Self::IdRef(value)),
+			XsdValueRef::NMToken(value) => Ok(Self::NMToken(value)),
 			other => Err(other),
 		}
 	}
 }
-impl<'a> TryFrom<ValueRef<'a>> for NameValueRef<'a> {
-	type Error = ValueRef<'a>;
-	fn try_from(value: ValueRef<'a>) -> Result<Self, ValueRef<'a>> {
+impl<'a> TryFrom<XsdValueRef<'a>> for XsdNameValueRef<'a> {
+	type Error = XsdValueRef<'a>;
+	fn try_from(value: XsdValueRef<'a>) -> Result<Self, XsdValueRef<'a>> {
 		match value {
-			ValueRef::Name(value) => Ok(Self::Name(value)),
-			ValueRef::NCName(value) => Ok(Self::NCName(value)),
-			ValueRef::Id(value) => Ok(Self::Id(value)),
-			ValueRef::IdRef(value) => Ok(Self::IdRef(value)),
+			XsdValueRef::Name(value) => Ok(Self::Name(value)),
+			XsdValueRef::NCName(value) => Ok(Self::NCName(value)),
+			XsdValueRef::Id(value) => Ok(Self::Id(value)),
+			XsdValueRef::IdRef(value) => Ok(Self::IdRef(value)),
 			other => Err(other),
 		}
 	}
 }
-impl<'a> TryFrom<ValueRef<'a>> for NCNameValueRef<'a> {
-	type Error = ValueRef<'a>;
-	fn try_from(value: ValueRef<'a>) -> Result<Self, ValueRef<'a>> {
+impl<'a> TryFrom<XsdValueRef<'a>> for XsdNCNameValueRef<'a> {
+	type Error = XsdValueRef<'a>;
+	fn try_from(value: XsdValueRef<'a>) -> Result<Self, XsdValueRef<'a>> {
 		match value {
-			ValueRef::NCName(value) => Ok(Self::NCName(value)),
-			ValueRef::Id(value) => Ok(Self::Id(value)),
-			ValueRef::IdRef(value) => Ok(Self::IdRef(value)),
+			XsdValueRef::NCName(value) => Ok(Self::NCName(value)),
+			XsdValueRef::Id(value) => Ok(Self::Id(value)),
+			XsdValueRef::IdRef(value) => Ok(Self::IdRef(value)),
 			other => Err(other),
 		}
 	}
 }
 /// Any specialized [`XsdStr`] value.
 #[derive(Debug, Clone, PartialEq, Eq, PartialOrd, Ord, Hash)]
-pub enum StringValue {
+pub enum XsdStringValue {
 	/// A `String` value.
 	String(XsdString),
 	/// A `NormalizedString` value.
@@ -4394,7 +4416,7 @@ pub enum StringValue {
 	/// A `NMToken` value.
 	NMToken(XsdNMTokenBuf),
 }
-impl StringValue {
+impl XsdStringValue {
 	/// Returns the specific datatype of this value.
 	pub fn datatype(&self) -> XsdStringDatatype {
 		match self {
@@ -4430,12 +4452,12 @@ impl StringValue {
 		}
 	}
 }
-impl XsdTyped for StringValue {
+impl XsdTyped for XsdStringValue {
 	fn datatype(&self) -> XsdDatatype {
 		self.datatype().into()
 	}
 }
-impl fmt::Display for StringValue {
+impl fmt::Display for XsdStringValue {
 	fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
 		match self {
 			Self::String(v) => v.fmt(f),
@@ -4450,102 +4472,102 @@ impl fmt::Display for StringValue {
 		}
 	}
 }
-impl From<NormalizedStringValue> for StringValue {
-	fn from(value: NormalizedStringValue) -> Self {
+impl From<XsdNormalizedStringValue> for XsdStringValue {
+	fn from(value: XsdNormalizedStringValue) -> Self {
 		match value {
-			NormalizedStringValue::NormalizedString(value) => Self::NormalizedString(value),
-			NormalizedStringValue::Token(value) => Self::Token(value),
-			NormalizedStringValue::Language(value) => Self::Language(value),
-			NormalizedStringValue::Name(value) => Self::Name(value),
-			NormalizedStringValue::NCName(value) => Self::NCName(value),
-			NormalizedStringValue::Id(value) => Self::Id(value),
-			NormalizedStringValue::IdRef(value) => Self::IdRef(value),
-			NormalizedStringValue::NMToken(value) => Self::NMToken(value),
+			XsdNormalizedStringValue::NormalizedString(value) => Self::NormalizedString(value),
+			XsdNormalizedStringValue::Token(value) => Self::Token(value),
+			XsdNormalizedStringValue::Language(value) => Self::Language(value),
+			XsdNormalizedStringValue::Name(value) => Self::Name(value),
+			XsdNormalizedStringValue::NCName(value) => Self::NCName(value),
+			XsdNormalizedStringValue::Id(value) => Self::Id(value),
+			XsdNormalizedStringValue::IdRef(value) => Self::IdRef(value),
+			XsdNormalizedStringValue::NMToken(value) => Self::NMToken(value),
 		}
 	}
 }
-impl From<TokenValue> for StringValue {
-	fn from(value: TokenValue) -> Self {
+impl From<XsdTokenValue> for XsdStringValue {
+	fn from(value: XsdTokenValue) -> Self {
 		match value {
-			TokenValue::Token(value) => Self::Token(value),
-			TokenValue::Language(value) => Self::Language(value),
-			TokenValue::Name(value) => Self::Name(value),
-			TokenValue::NCName(value) => Self::NCName(value),
-			TokenValue::Id(value) => Self::Id(value),
-			TokenValue::IdRef(value) => Self::IdRef(value),
-			TokenValue::NMToken(value) => Self::NMToken(value),
+			XsdTokenValue::Token(value) => Self::Token(value),
+			XsdTokenValue::Language(value) => Self::Language(value),
+			XsdTokenValue::Name(value) => Self::Name(value),
+			XsdTokenValue::NCName(value) => Self::NCName(value),
+			XsdTokenValue::Id(value) => Self::Id(value),
+			XsdTokenValue::IdRef(value) => Self::IdRef(value),
+			XsdTokenValue::NMToken(value) => Self::NMToken(value),
 		}
 	}
 }
-impl From<NameValue> for StringValue {
-	fn from(value: NameValue) -> Self {
+impl From<XsdNameValue> for XsdStringValue {
+	fn from(value: XsdNameValue) -> Self {
 		match value {
-			NameValue::Name(value) => Self::Name(value),
-			NameValue::NCName(value) => Self::NCName(value),
-			NameValue::Id(value) => Self::Id(value),
-			NameValue::IdRef(value) => Self::IdRef(value),
+			XsdNameValue::Name(value) => Self::Name(value),
+			XsdNameValue::NCName(value) => Self::NCName(value),
+			XsdNameValue::Id(value) => Self::Id(value),
+			XsdNameValue::IdRef(value) => Self::IdRef(value),
 		}
 	}
 }
-impl From<NCNameValue> for StringValue {
-	fn from(value: NCNameValue) -> Self {
+impl From<XsdNCNameValue> for XsdStringValue {
+	fn from(value: XsdNCNameValue) -> Self {
 		match value {
-			NCNameValue::NCName(value) => Self::NCName(value),
-			NCNameValue::Id(value) => Self::Id(value),
-			NCNameValue::IdRef(value) => Self::IdRef(value),
+			XsdNCNameValue::NCName(value) => Self::NCName(value),
+			XsdNCNameValue::Id(value) => Self::Id(value),
+			XsdNCNameValue::IdRef(value) => Self::IdRef(value),
 		}
 	}
 }
-impl TryFrom<StringValue> for NormalizedStringValue {
-	type Error = StringValue;
-	fn try_from(value: StringValue) -> Result<Self, StringValue> {
+impl TryFrom<XsdStringValue> for XsdNormalizedStringValue {
+	type Error = XsdStringValue;
+	fn try_from(value: XsdStringValue) -> Result<Self, XsdStringValue> {
 		match value {
-			StringValue::NormalizedString(value) => Ok(Self::NormalizedString(value)),
-			StringValue::Token(value) => Ok(Self::Token(value)),
-			StringValue::Language(value) => Ok(Self::Language(value)),
-			StringValue::Name(value) => Ok(Self::Name(value)),
-			StringValue::NCName(value) => Ok(Self::NCName(value)),
-			StringValue::Id(value) => Ok(Self::Id(value)),
-			StringValue::IdRef(value) => Ok(Self::IdRef(value)),
-			StringValue::NMToken(value) => Ok(Self::NMToken(value)),
+			XsdStringValue::NormalizedString(value) => Ok(Self::NormalizedString(value)),
+			XsdStringValue::Token(value) => Ok(Self::Token(value)),
+			XsdStringValue::Language(value) => Ok(Self::Language(value)),
+			XsdStringValue::Name(value) => Ok(Self::Name(value)),
+			XsdStringValue::NCName(value) => Ok(Self::NCName(value)),
+			XsdStringValue::Id(value) => Ok(Self::Id(value)),
+			XsdStringValue::IdRef(value) => Ok(Self::IdRef(value)),
+			XsdStringValue::NMToken(value) => Ok(Self::NMToken(value)),
 			other => Err(other),
 		}
 	}
 }
-impl TryFrom<StringValue> for TokenValue {
-	type Error = StringValue;
-	fn try_from(value: StringValue) -> Result<Self, StringValue> {
+impl TryFrom<XsdStringValue> for XsdTokenValue {
+	type Error = XsdStringValue;
+	fn try_from(value: XsdStringValue) -> Result<Self, XsdStringValue> {
 		match value {
-			StringValue::Token(value) => Ok(Self::Token(value)),
-			StringValue::Language(value) => Ok(Self::Language(value)),
-			StringValue::Name(value) => Ok(Self::Name(value)),
-			StringValue::NCName(value) => Ok(Self::NCName(value)),
-			StringValue::Id(value) => Ok(Self::Id(value)),
-			StringValue::IdRef(value) => Ok(Self::IdRef(value)),
-			StringValue::NMToken(value) => Ok(Self::NMToken(value)),
+			XsdStringValue::Token(value) => Ok(Self::Token(value)),
+			XsdStringValue::Language(value) => Ok(Self::Language(value)),
+			XsdStringValue::Name(value) => Ok(Self::Name(value)),
+			XsdStringValue::NCName(value) => Ok(Self::NCName(value)),
+			XsdStringValue::Id(value) => Ok(Self::Id(value)),
+			XsdStringValue::IdRef(value) => Ok(Self::IdRef(value)),
+			XsdStringValue::NMToken(value) => Ok(Self::NMToken(value)),
 			other => Err(other),
 		}
 	}
 }
-impl TryFrom<StringValue> for NameValue {
-	type Error = StringValue;
-	fn try_from(value: StringValue) -> Result<Self, StringValue> {
+impl TryFrom<XsdStringValue> for XsdNameValue {
+	type Error = XsdStringValue;
+	fn try_from(value: XsdStringValue) -> Result<Self, XsdStringValue> {
 		match value {
-			StringValue::Name(value) => Ok(Self::Name(value)),
-			StringValue::NCName(value) => Ok(Self::NCName(value)),
-			StringValue::Id(value) => Ok(Self::Id(value)),
-			StringValue::IdRef(value) => Ok(Self::IdRef(value)),
+			XsdStringValue::Name(value) => Ok(Self::Name(value)),
+			XsdStringValue::NCName(value) => Ok(Self::NCName(value)),
+			XsdStringValue::Id(value) => Ok(Self::Id(value)),
+			XsdStringValue::IdRef(value) => Ok(Self::IdRef(value)),
 			other => Err(other),
 		}
 	}
 }
-impl TryFrom<StringValue> for NCNameValue {
-	type Error = StringValue;
-	fn try_from(value: StringValue) -> Result<Self, StringValue> {
+impl TryFrom<XsdStringValue> for XsdNCNameValue {
+	type Error = XsdStringValue;
+	fn try_from(value: XsdStringValue) -> Result<Self, XsdStringValue> {
 		match value {
-			StringValue::NCName(value) => Ok(Self::NCName(value)),
-			StringValue::Id(value) => Ok(Self::Id(value)),
-			StringValue::IdRef(value) => Ok(Self::IdRef(value)),
+			XsdStringValue::NCName(value) => Ok(Self::NCName(value)),
+			XsdStringValue::Id(value) => Ok(Self::Id(value)),
+			XsdStringValue::IdRef(value) => Ok(Self::IdRef(value)),
 			other => Err(other),
 		}
 	}
@@ -4577,10 +4599,10 @@ impl XsdNormalizedStringDatatype {
 		}
 	}
 	/// Parses `value` as a lexical representation of this specific datatype.
-	pub fn parse(&self, value: &str) -> Result<NormalizedStringValue, XsdError> {
+	pub fn parse(&self, value: &str) -> Result<XsdNormalizedStringValue, XsdError> {
 		match self {
 			Self::NormalizedString => {
-				XsdFromStr::xsd_from_str(value).map(NormalizedStringValue::NormalizedString)
+				XsdFromStr::xsd_from_str(value).map(XsdNormalizedStringValue::NormalizedString)
 			}
 			Self::Token(t) => t.parse(value).map(Into::into),
 		}
@@ -4632,7 +4654,7 @@ impl TryFrom<XsdNormalizedStringDatatype> for XsdNCNameDatatype {
 }
 /// Any specialized [`XsdStr`] value reference.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash)]
-pub enum StringValueRef<'a> {
+pub enum XsdStringValueRef<'a> {
 	/// A reference to a `String` value.
 	String(&'a XsdStr),
 	/// A reference to a `NormalizedString` value.
@@ -4652,23 +4674,23 @@ pub enum StringValueRef<'a> {
 	/// A reference to a `NMToken` value.
 	NMToken(&'a XsdNMToken),
 }
-impl StringValue {
+impl XsdStringValue {
 	/// Borrows this value.
-	pub fn as_ref(&self) -> StringValueRef<'_> {
+	pub fn as_ref(&self) -> XsdStringValueRef<'_> {
 		match self {
-			Self::String(value) => StringValueRef::String(value),
-			Self::NormalizedString(value) => StringValueRef::NormalizedString(value),
-			Self::Token(value) => StringValueRef::Token(value),
-			Self::Language(value) => StringValueRef::Language(value),
-			Self::Name(value) => StringValueRef::Name(value),
-			Self::NCName(value) => StringValueRef::NCName(value),
-			Self::Id(value) => StringValueRef::Id(value),
-			Self::IdRef(value) => StringValueRef::IdRef(value),
-			Self::NMToken(value) => StringValueRef::NMToken(value),
+			Self::String(value) => XsdStringValueRef::String(value),
+			Self::NormalizedString(value) => XsdStringValueRef::NormalizedString(value),
+			Self::Token(value) => XsdStringValueRef::Token(value),
+			Self::Language(value) => XsdStringValueRef::Language(value),
+			Self::Name(value) => XsdStringValueRef::Name(value),
+			Self::NCName(value) => XsdStringValueRef::NCName(value),
+			Self::Id(value) => XsdStringValueRef::Id(value),
+			Self::IdRef(value) => XsdStringValueRef::IdRef(value),
+			Self::NMToken(value) => XsdStringValueRef::NMToken(value),
 		}
 	}
 }
-impl<'a> StringValueRef<'a> {
+impl<'a> XsdStringValueRef<'a> {
 	/// Returns the specific datatype of this value.
 	pub fn datatype(&self) -> XsdStringDatatype {
 		match self {
@@ -4704,26 +4726,26 @@ impl<'a> StringValueRef<'a> {
 		}
 	}
 	/// Clones the referenced data into an owned value.
-	pub fn into_owned(self) -> StringValue {
+	pub fn into_owned(self) -> XsdStringValue {
 		match self {
-			Self::String(value) => StringValue::String(value.to_owned()),
-			Self::NormalizedString(value) => StringValue::NormalizedString(value.to_owned()),
-			Self::Token(value) => StringValue::Token(value.to_owned()),
-			Self::Language(value) => StringValue::Language(value.to_owned()),
-			Self::Name(value) => StringValue::Name(value.to_owned()),
-			Self::NCName(value) => StringValue::NCName(value.to_owned()),
-			Self::Id(value) => StringValue::Id(value.to_owned()),
-			Self::IdRef(value) => StringValue::IdRef(value.to_owned()),
-			Self::NMToken(value) => StringValue::NMToken(value.to_owned()),
+			Self::String(value) => XsdStringValue::String(value.to_owned()),
+			Self::NormalizedString(value) => XsdStringValue::NormalizedString(value.to_owned()),
+			Self::Token(value) => XsdStringValue::Token(value.to_owned()),
+			Self::Language(value) => XsdStringValue::Language(value.to_owned()),
+			Self::Name(value) => XsdStringValue::Name(value.to_owned()),
+			Self::NCName(value) => XsdStringValue::NCName(value.to_owned()),
+			Self::Id(value) => XsdStringValue::Id(value.to_owned()),
+			Self::IdRef(value) => XsdStringValue::IdRef(value.to_owned()),
+			Self::NMToken(value) => XsdStringValue::NMToken(value.to_owned()),
 		}
 	}
 }
-impl<'a> XsdTyped for StringValueRef<'a> {
+impl<'a> XsdTyped for XsdStringValueRef<'a> {
 	fn datatype(&self) -> XsdDatatype {
 		self.datatype().into()
 	}
 }
-impl<'a> fmt::Display for StringValueRef<'a> {
+impl<'a> fmt::Display for XsdStringValueRef<'a> {
 	fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
 		match self {
 			Self::String(v) => v.fmt(f),
@@ -4738,109 +4760,109 @@ impl<'a> fmt::Display for StringValueRef<'a> {
 		}
 	}
 }
-impl<'a> From<NormalizedStringValueRef<'a>> for StringValueRef<'a> {
-	fn from(value: NormalizedStringValueRef<'a>) -> Self {
+impl<'a> From<XsdNormalizedStringValueRef<'a>> for XsdStringValueRef<'a> {
+	fn from(value: XsdNormalizedStringValueRef<'a>) -> Self {
 		match value {
-			NormalizedStringValueRef::NormalizedString(value) => Self::NormalizedString(value),
-			NormalizedStringValueRef::Token(value) => Self::Token(value),
-			NormalizedStringValueRef::Language(value) => Self::Language(value),
-			NormalizedStringValueRef::Name(value) => Self::Name(value),
-			NormalizedStringValueRef::NCName(value) => Self::NCName(value),
-			NormalizedStringValueRef::Id(value) => Self::Id(value),
-			NormalizedStringValueRef::IdRef(value) => Self::IdRef(value),
-			NormalizedStringValueRef::NMToken(value) => Self::NMToken(value),
+			XsdNormalizedStringValueRef::NormalizedString(value) => Self::NormalizedString(value),
+			XsdNormalizedStringValueRef::Token(value) => Self::Token(value),
+			XsdNormalizedStringValueRef::Language(value) => Self::Language(value),
+			XsdNormalizedStringValueRef::Name(value) => Self::Name(value),
+			XsdNormalizedStringValueRef::NCName(value) => Self::NCName(value),
+			XsdNormalizedStringValueRef::Id(value) => Self::Id(value),
+			XsdNormalizedStringValueRef::IdRef(value) => Self::IdRef(value),
+			XsdNormalizedStringValueRef::NMToken(value) => Self::NMToken(value),
 		}
 	}
 }
-impl<'a> From<TokenValueRef<'a>> for StringValueRef<'a> {
-	fn from(value: TokenValueRef<'a>) -> Self {
+impl<'a> From<XsdTokenValueRef<'a>> for XsdStringValueRef<'a> {
+	fn from(value: XsdTokenValueRef<'a>) -> Self {
 		match value {
-			TokenValueRef::Token(value) => Self::Token(value),
-			TokenValueRef::Language(value) => Self::Language(value),
-			TokenValueRef::Name(value) => Self::Name(value),
-			TokenValueRef::NCName(value) => Self::NCName(value),
-			TokenValueRef::Id(value) => Self::Id(value),
-			TokenValueRef::IdRef(value) => Self::IdRef(value),
-			TokenValueRef::NMToken(value) => Self::NMToken(value),
+			XsdTokenValueRef::Token(value) => Self::Token(value),
+			XsdTokenValueRef::Language(value) => Self::Language(value),
+			XsdTokenValueRef::Name(value) => Self::Name(value),
+			XsdTokenValueRef::NCName(value) => Self::NCName(value),
+			XsdTokenValueRef::Id(value) => Self::Id(value),
+			XsdTokenValueRef::IdRef(value) => Self::IdRef(value),
+			XsdTokenValueRef::NMToken(value) => Self::NMToken(value),
 		}
 	}
 }
-impl<'a> From<NameValueRef<'a>> for StringValueRef<'a> {
-	fn from(value: NameValueRef<'a>) -> Self {
+impl<'a> From<XsdNameValueRef<'a>> for XsdStringValueRef<'a> {
+	fn from(value: XsdNameValueRef<'a>) -> Self {
 		match value {
-			NameValueRef::Name(value) => Self::Name(value),
-			NameValueRef::NCName(value) => Self::NCName(value),
-			NameValueRef::Id(value) => Self::Id(value),
-			NameValueRef::IdRef(value) => Self::IdRef(value),
+			XsdNameValueRef::Name(value) => Self::Name(value),
+			XsdNameValueRef::NCName(value) => Self::NCName(value),
+			XsdNameValueRef::Id(value) => Self::Id(value),
+			XsdNameValueRef::IdRef(value) => Self::IdRef(value),
 		}
 	}
 }
-impl<'a> From<NCNameValueRef<'a>> for StringValueRef<'a> {
-	fn from(value: NCNameValueRef<'a>) -> Self {
+impl<'a> From<XsdNCNameValueRef<'a>> for XsdStringValueRef<'a> {
+	fn from(value: XsdNCNameValueRef<'a>) -> Self {
 		match value {
-			NCNameValueRef::NCName(value) => Self::NCName(value),
-			NCNameValueRef::Id(value) => Self::Id(value),
-			NCNameValueRef::IdRef(value) => Self::IdRef(value),
+			XsdNCNameValueRef::NCName(value) => Self::NCName(value),
+			XsdNCNameValueRef::Id(value) => Self::Id(value),
+			XsdNCNameValueRef::IdRef(value) => Self::IdRef(value),
 		}
 	}
 }
-impl<'a> TryFrom<StringValueRef<'a>> for NormalizedStringValueRef<'a> {
-	type Error = StringValueRef<'a>;
-	fn try_from(value: StringValueRef<'a>) -> Result<Self, StringValueRef<'a>> {
+impl<'a> TryFrom<XsdStringValueRef<'a>> for XsdNormalizedStringValueRef<'a> {
+	type Error = XsdStringValueRef<'a>;
+	fn try_from(value: XsdStringValueRef<'a>) -> Result<Self, XsdStringValueRef<'a>> {
 		match value {
-			StringValueRef::NormalizedString(value) => Ok(Self::NormalizedString(value)),
-			StringValueRef::Token(value) => Ok(Self::Token(value)),
-			StringValueRef::Language(value) => Ok(Self::Language(value)),
-			StringValueRef::Name(value) => Ok(Self::Name(value)),
-			StringValueRef::NCName(value) => Ok(Self::NCName(value)),
-			StringValueRef::Id(value) => Ok(Self::Id(value)),
-			StringValueRef::IdRef(value) => Ok(Self::IdRef(value)),
-			StringValueRef::NMToken(value) => Ok(Self::NMToken(value)),
+			XsdStringValueRef::NormalizedString(value) => Ok(Self::NormalizedString(value)),
+			XsdStringValueRef::Token(value) => Ok(Self::Token(value)),
+			XsdStringValueRef::Language(value) => Ok(Self::Language(value)),
+			XsdStringValueRef::Name(value) => Ok(Self::Name(value)),
+			XsdStringValueRef::NCName(value) => Ok(Self::NCName(value)),
+			XsdStringValueRef::Id(value) => Ok(Self::Id(value)),
+			XsdStringValueRef::IdRef(value) => Ok(Self::IdRef(value)),
+			XsdStringValueRef::NMToken(value) => Ok(Self::NMToken(value)),
 			other => Err(other),
 		}
 	}
 }
-impl<'a> TryFrom<StringValueRef<'a>> for TokenValueRef<'a> {
-	type Error = StringValueRef<'a>;
-	fn try_from(value: StringValueRef<'a>) -> Result<Self, StringValueRef<'a>> {
+impl<'a> TryFrom<XsdStringValueRef<'a>> for XsdTokenValueRef<'a> {
+	type Error = XsdStringValueRef<'a>;
+	fn try_from(value: XsdStringValueRef<'a>) -> Result<Self, XsdStringValueRef<'a>> {
 		match value {
-			StringValueRef::Token(value) => Ok(Self::Token(value)),
-			StringValueRef::Language(value) => Ok(Self::Language(value)),
-			StringValueRef::Name(value) => Ok(Self::Name(value)),
-			StringValueRef::NCName(value) => Ok(Self::NCName(value)),
-			StringValueRef::Id(value) => Ok(Self::Id(value)),
-			StringValueRef::IdRef(value) => Ok(Self::IdRef(value)),
-			StringValueRef::NMToken(value) => Ok(Self::NMToken(value)),
+			XsdStringValueRef::Token(value) => Ok(Self::Token(value)),
+			XsdStringValueRef::Language(value) => Ok(Self::Language(value)),
+			XsdStringValueRef::Name(value) => Ok(Self::Name(value)),
+			XsdStringValueRef::NCName(value) => Ok(Self::NCName(value)),
+			XsdStringValueRef::Id(value) => Ok(Self::Id(value)),
+			XsdStringValueRef::IdRef(value) => Ok(Self::IdRef(value)),
+			XsdStringValueRef::NMToken(value) => Ok(Self::NMToken(value)),
 			other => Err(other),
 		}
 	}
 }
-impl<'a> TryFrom<StringValueRef<'a>> for NameValueRef<'a> {
-	type Error = StringValueRef<'a>;
-	fn try_from(value: StringValueRef<'a>) -> Result<Self, StringValueRef<'a>> {
+impl<'a> TryFrom<XsdStringValueRef<'a>> for XsdNameValueRef<'a> {
+	type Error = XsdStringValueRef<'a>;
+	fn try_from(value: XsdStringValueRef<'a>) -> Result<Self, XsdStringValueRef<'a>> {
 		match value {
-			StringValueRef::Name(value) => Ok(Self::Name(value)),
-			StringValueRef::NCName(value) => Ok(Self::NCName(value)),
-			StringValueRef::Id(value) => Ok(Self::Id(value)),
-			StringValueRef::IdRef(value) => Ok(Self::IdRef(value)),
+			XsdStringValueRef::Name(value) => Ok(Self::Name(value)),
+			XsdStringValueRef::NCName(value) => Ok(Self::NCName(value)),
+			XsdStringValueRef::Id(value) => Ok(Self::Id(value)),
+			XsdStringValueRef::IdRef(value) => Ok(Self::IdRef(value)),
 			other => Err(other),
 		}
 	}
 }
-impl<'a> TryFrom<StringValueRef<'a>> for NCNameValueRef<'a> {
-	type Error = StringValueRef<'a>;
-	fn try_from(value: StringValueRef<'a>) -> Result<Self, StringValueRef<'a>> {
+impl<'a> TryFrom<XsdStringValueRef<'a>> for XsdNCNameValueRef<'a> {
+	type Error = XsdStringValueRef<'a>;
+	fn try_from(value: XsdStringValueRef<'a>) -> Result<Self, XsdStringValueRef<'a>> {
 		match value {
-			StringValueRef::NCName(value) => Ok(Self::NCName(value)),
-			StringValueRef::Id(value) => Ok(Self::Id(value)),
-			StringValueRef::IdRef(value) => Ok(Self::IdRef(value)),
+			XsdStringValueRef::NCName(value) => Ok(Self::NCName(value)),
+			XsdStringValueRef::Id(value) => Ok(Self::Id(value)),
+			XsdStringValueRef::IdRef(value) => Ok(Self::IdRef(value)),
 			other => Err(other),
 		}
 	}
 }
 /// Any specialized [`XsdNormalizedStr`] value.
 #[derive(Debug, Clone, PartialEq, Eq, PartialOrd, Ord, Hash)]
-pub enum NormalizedStringValue {
+pub enum XsdNormalizedStringValue {
 	/// A `NormalizedString` value.
 	NormalizedString(XsdNormalizedString),
 	/// A `Token` value.
@@ -4858,7 +4880,7 @@ pub enum NormalizedStringValue {
 	/// A `NMToken` value.
 	NMToken(XsdNMTokenBuf),
 }
-impl NormalizedStringValue {
+impl XsdNormalizedStringValue {
 	/// Returns the specific datatype of this value.
 	pub fn datatype(&self) -> XsdNormalizedStringDatatype {
 		match self {
@@ -4881,12 +4903,12 @@ impl NormalizedStringValue {
 		}
 	}
 }
-impl XsdTyped for NormalizedStringValue {
+impl XsdTyped for XsdNormalizedStringValue {
 	fn datatype(&self) -> XsdDatatype {
 		self.datatype().into()
 	}
 }
-impl fmt::Display for NormalizedStringValue {
+impl fmt::Display for XsdNormalizedStringValue {
 	fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
 		match self {
 			Self::NormalizedString(v) => v.fmt(f),
@@ -4900,72 +4922,72 @@ impl fmt::Display for NormalizedStringValue {
 		}
 	}
 }
-impl From<TokenValue> for NormalizedStringValue {
-	fn from(value: TokenValue) -> Self {
+impl From<XsdTokenValue> for XsdNormalizedStringValue {
+	fn from(value: XsdTokenValue) -> Self {
 		match value {
-			TokenValue::Token(value) => Self::Token(value),
-			TokenValue::Language(value) => Self::Language(value),
-			TokenValue::Name(value) => Self::Name(value),
-			TokenValue::NCName(value) => Self::NCName(value),
-			TokenValue::Id(value) => Self::Id(value),
-			TokenValue::IdRef(value) => Self::IdRef(value),
-			TokenValue::NMToken(value) => Self::NMToken(value),
+			XsdTokenValue::Token(value) => Self::Token(value),
+			XsdTokenValue::Language(value) => Self::Language(value),
+			XsdTokenValue::Name(value) => Self::Name(value),
+			XsdTokenValue::NCName(value) => Self::NCName(value),
+			XsdTokenValue::Id(value) => Self::Id(value),
+			XsdTokenValue::IdRef(value) => Self::IdRef(value),
+			XsdTokenValue::NMToken(value) => Self::NMToken(value),
 		}
 	}
 }
-impl From<NameValue> for NormalizedStringValue {
-	fn from(value: NameValue) -> Self {
+impl From<XsdNameValue> for XsdNormalizedStringValue {
+	fn from(value: XsdNameValue) -> Self {
 		match value {
-			NameValue::Name(value) => Self::Name(value),
-			NameValue::NCName(value) => Self::NCName(value),
-			NameValue::Id(value) => Self::Id(value),
-			NameValue::IdRef(value) => Self::IdRef(value),
+			XsdNameValue::Name(value) => Self::Name(value),
+			XsdNameValue::NCName(value) => Self::NCName(value),
+			XsdNameValue::Id(value) => Self::Id(value),
+			XsdNameValue::IdRef(value) => Self::IdRef(value),
 		}
 	}
 }
-impl From<NCNameValue> for NormalizedStringValue {
-	fn from(value: NCNameValue) -> Self {
+impl From<XsdNCNameValue> for XsdNormalizedStringValue {
+	fn from(value: XsdNCNameValue) -> Self {
 		match value {
-			NCNameValue::NCName(value) => Self::NCName(value),
-			NCNameValue::Id(value) => Self::Id(value),
-			NCNameValue::IdRef(value) => Self::IdRef(value),
+			XsdNCNameValue::NCName(value) => Self::NCName(value),
+			XsdNCNameValue::Id(value) => Self::Id(value),
+			XsdNCNameValue::IdRef(value) => Self::IdRef(value),
 		}
 	}
 }
-impl TryFrom<NormalizedStringValue> for TokenValue {
-	type Error = NormalizedStringValue;
-	fn try_from(value: NormalizedStringValue) -> Result<Self, NormalizedStringValue> {
+impl TryFrom<XsdNormalizedStringValue> for XsdTokenValue {
+	type Error = XsdNormalizedStringValue;
+	fn try_from(value: XsdNormalizedStringValue) -> Result<Self, XsdNormalizedStringValue> {
 		match value {
-			NormalizedStringValue::Token(value) => Ok(Self::Token(value)),
-			NormalizedStringValue::Language(value) => Ok(Self::Language(value)),
-			NormalizedStringValue::Name(value) => Ok(Self::Name(value)),
-			NormalizedStringValue::NCName(value) => Ok(Self::NCName(value)),
-			NormalizedStringValue::Id(value) => Ok(Self::Id(value)),
-			NormalizedStringValue::IdRef(value) => Ok(Self::IdRef(value)),
-			NormalizedStringValue::NMToken(value) => Ok(Self::NMToken(value)),
+			XsdNormalizedStringValue::Token(value) => Ok(Self::Token(value)),
+			XsdNormalizedStringValue::Language(value) => Ok(Self::Language(value)),
+			XsdNormalizedStringValue::Name(value) => Ok(Self::Name(value)),
+			XsdNormalizedStringValue::NCName(value) => Ok(Self::NCName(value)),
+			XsdNormalizedStringValue::Id(value) => Ok(Self::Id(value)),
+			XsdNormalizedStringValue::IdRef(value) => Ok(Self::IdRef(value)),
+			XsdNormalizedStringValue::NMToken(value) => Ok(Self::NMToken(value)),
 			other => Err(other),
 		}
 	}
 }
-impl TryFrom<NormalizedStringValue> for NameValue {
-	type Error = NormalizedStringValue;
-	fn try_from(value: NormalizedStringValue) -> Result<Self, NormalizedStringValue> {
+impl TryFrom<XsdNormalizedStringValue> for XsdNameValue {
+	type Error = XsdNormalizedStringValue;
+	fn try_from(value: XsdNormalizedStringValue) -> Result<Self, XsdNormalizedStringValue> {
 		match value {
-			NormalizedStringValue::Name(value) => Ok(Self::Name(value)),
-			NormalizedStringValue::NCName(value) => Ok(Self::NCName(value)),
-			NormalizedStringValue::Id(value) => Ok(Self::Id(value)),
-			NormalizedStringValue::IdRef(value) => Ok(Self::IdRef(value)),
+			XsdNormalizedStringValue::Name(value) => Ok(Self::Name(value)),
+			XsdNormalizedStringValue::NCName(value) => Ok(Self::NCName(value)),
+			XsdNormalizedStringValue::Id(value) => Ok(Self::Id(value)),
+			XsdNormalizedStringValue::IdRef(value) => Ok(Self::IdRef(value)),
 			other => Err(other),
 		}
 	}
 }
-impl TryFrom<NormalizedStringValue> for NCNameValue {
-	type Error = NormalizedStringValue;
-	fn try_from(value: NormalizedStringValue) -> Result<Self, NormalizedStringValue> {
+impl TryFrom<XsdNormalizedStringValue> for XsdNCNameValue {
+	type Error = XsdNormalizedStringValue;
+	fn try_from(value: XsdNormalizedStringValue) -> Result<Self, XsdNormalizedStringValue> {
 		match value {
-			NormalizedStringValue::NCName(value) => Ok(Self::NCName(value)),
-			NormalizedStringValue::Id(value) => Ok(Self::Id(value)),
-			NormalizedStringValue::IdRef(value) => Ok(Self::IdRef(value)),
+			XsdNormalizedStringValue::NCName(value) => Ok(Self::NCName(value)),
+			XsdNormalizedStringValue::Id(value) => Ok(Self::Id(value)),
+			XsdNormalizedStringValue::IdRef(value) => Ok(Self::IdRef(value)),
 			other => Err(other),
 		}
 	}
@@ -5009,12 +5031,12 @@ impl XsdTokenDatatype {
 		}
 	}
 	/// Parses `value` as a lexical representation of this specific datatype.
-	pub fn parse(&self, value: &str) -> Result<TokenValue, XsdError> {
+	pub fn parse(&self, value: &str) -> Result<XsdTokenValue, XsdError> {
 		match self {
-			Self::Token => XsdFromStr::xsd_from_str(value).map(TokenValue::Token),
-			Self::Language => XsdFromStr::xsd_from_str(value).map(TokenValue::Language),
+			Self::Token => XsdFromStr::xsd_from_str(value).map(XsdTokenValue::Token),
+			Self::Language => XsdFromStr::xsd_from_str(value).map(XsdTokenValue::Language),
 			Self::Name(t) => t.parse(value).map(Into::into),
-			Self::NMToken => XsdFromStr::xsd_from_str(value).map(TokenValue::NMToken),
+			Self::NMToken => XsdFromStr::xsd_from_str(value).map(XsdTokenValue::NMToken),
 		}
 	}
 }
@@ -5048,7 +5070,7 @@ impl TryFrom<XsdTokenDatatype> for XsdNCNameDatatype {
 }
 /// Any specialized [`XsdNormalizedStr`] value reference.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash)]
-pub enum NormalizedStringValueRef<'a> {
+pub enum XsdNormalizedStringValueRef<'a> {
 	/// A reference to a `NormalizedString` value.
 	NormalizedString(&'a XsdNormalizedStr),
 	/// A reference to a `Token` value.
@@ -5066,22 +5088,22 @@ pub enum NormalizedStringValueRef<'a> {
 	/// A reference to a `NMToken` value.
 	NMToken(&'a XsdNMToken),
 }
-impl NormalizedStringValue {
+impl XsdNormalizedStringValue {
 	/// Borrows this value.
-	pub fn as_ref(&self) -> NormalizedStringValueRef<'_> {
+	pub fn as_ref(&self) -> XsdNormalizedStringValueRef<'_> {
 		match self {
-			Self::NormalizedString(value) => NormalizedStringValueRef::NormalizedString(value),
-			Self::Token(value) => NormalizedStringValueRef::Token(value),
-			Self::Language(value) => NormalizedStringValueRef::Language(value),
-			Self::Name(value) => NormalizedStringValueRef::Name(value),
-			Self::NCName(value) => NormalizedStringValueRef::NCName(value),
-			Self::Id(value) => NormalizedStringValueRef::Id(value),
-			Self::IdRef(value) => NormalizedStringValueRef::IdRef(value),
-			Self::NMToken(value) => NormalizedStringValueRef::NMToken(value),
+			Self::NormalizedString(value) => XsdNormalizedStringValueRef::NormalizedString(value),
+			Self::Token(value) => XsdNormalizedStringValueRef::Token(value),
+			Self::Language(value) => XsdNormalizedStringValueRef::Language(value),
+			Self::Name(value) => XsdNormalizedStringValueRef::Name(value),
+			Self::NCName(value) => XsdNormalizedStringValueRef::NCName(value),
+			Self::Id(value) => XsdNormalizedStringValueRef::Id(value),
+			Self::IdRef(value) => XsdNormalizedStringValueRef::IdRef(value),
+			Self::NMToken(value) => XsdNormalizedStringValueRef::NMToken(value),
 		}
 	}
 }
-impl<'a> NormalizedStringValueRef<'a> {
+impl<'a> XsdNormalizedStringValueRef<'a> {
 	/// Returns the specific datatype of this value.
 	pub fn datatype(&self) -> XsdNormalizedStringDatatype {
 		match self {
@@ -5104,27 +5126,27 @@ impl<'a> NormalizedStringValueRef<'a> {
 		}
 	}
 	/// Clones the referenced data into an owned value.
-	pub fn into_owned(self) -> NormalizedStringValue {
+	pub fn into_owned(self) -> XsdNormalizedStringValue {
 		match self {
 			Self::NormalizedString(value) => {
-				NormalizedStringValue::NormalizedString(value.to_owned())
+				XsdNormalizedStringValue::NormalizedString(value.to_owned())
 			}
-			Self::Token(value) => NormalizedStringValue::Token(value.to_owned()),
-			Self::Language(value) => NormalizedStringValue::Language(value.to_owned()),
-			Self::Name(value) => NormalizedStringValue::Name(value.to_owned()),
-			Self::NCName(value) => NormalizedStringValue::NCName(value.to_owned()),
-			Self::Id(value) => NormalizedStringValue::Id(value.to_owned()),
-			Self::IdRef(value) => NormalizedStringValue::IdRef(value.to_owned()),
-			Self::NMToken(value) => NormalizedStringValue::NMToken(value.to_owned()),
+			Self::Token(value) => XsdNormalizedStringValue::Token(value.to_owned()),
+			Self::Language(value) => XsdNormalizedStringValue::Language(value.to_owned()),
+			Self::Name(value) => XsdNormalizedStringValue::Name(value.to_owned()),
+			Self::NCName(value) => XsdNormalizedStringValue::NCName(value.to_owned()),
+			Self::Id(value) => XsdNormalizedStringValue::Id(value.to_owned()),
+			Self::IdRef(value) => XsdNormalizedStringValue::IdRef(value.to_owned()),
+			Self::NMToken(value) => XsdNormalizedStringValue::NMToken(value.to_owned()),
 		}
 	}
 }
-impl<'a> XsdTyped for NormalizedStringValueRef<'a> {
+impl<'a> XsdTyped for XsdNormalizedStringValueRef<'a> {
 	fn datatype(&self) -> XsdDatatype {
 		self.datatype().into()
 	}
 }
-impl<'a> fmt::Display for NormalizedStringValueRef<'a> {
+impl<'a> fmt::Display for XsdNormalizedStringValueRef<'a> {
 	fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
 		match self {
 			Self::NormalizedString(v) => v.fmt(f),
@@ -5138,79 +5160,85 @@ impl<'a> fmt::Display for NormalizedStringValueRef<'a> {
 		}
 	}
 }
-impl<'a> From<TokenValueRef<'a>> for NormalizedStringValueRef<'a> {
-	fn from(value: TokenValueRef<'a>) -> Self {
+impl<'a> From<XsdTokenValueRef<'a>> for XsdNormalizedStringValueRef<'a> {
+	fn from(value: XsdTokenValueRef<'a>) -> Self {
 		match value {
-			TokenValueRef::Token(value) => Self::Token(value),
-			TokenValueRef::Language(value) => Self::Language(value),
-			TokenValueRef::Name(value) => Self::Name(value),
-			TokenValueRef::NCName(value) => Self::NCName(value),
-			TokenValueRef::Id(value) => Self::Id(value),
-			TokenValueRef::IdRef(value) => Self::IdRef(value),
-			TokenValueRef::NMToken(value) => Self::NMToken(value),
+			XsdTokenValueRef::Token(value) => Self::Token(value),
+			XsdTokenValueRef::Language(value) => Self::Language(value),
+			XsdTokenValueRef::Name(value) => Self::Name(value),
+			XsdTokenValueRef::NCName(value) => Self::NCName(value),
+			XsdTokenValueRef::Id(value) => Self::Id(value),
+			XsdTokenValueRef::IdRef(value) => Self::IdRef(value),
+			XsdTokenValueRef::NMToken(value) => Self::NMToken(value),
 		}
 	}
 }
-impl<'a> From<NameValueRef<'a>> for NormalizedStringValueRef<'a> {
-	fn from(value: NameValueRef<'a>) -> Self {
+impl<'a> From<XsdNameValueRef<'a>> for XsdNormalizedStringValueRef<'a> {
+	fn from(value: XsdNameValueRef<'a>) -> Self {
 		match value {
-			NameValueRef::Name(value) => Self::Name(value),
-			NameValueRef::NCName(value) => Self::NCName(value),
-			NameValueRef::Id(value) => Self::Id(value),
-			NameValueRef::IdRef(value) => Self::IdRef(value),
+			XsdNameValueRef::Name(value) => Self::Name(value),
+			XsdNameValueRef::NCName(value) => Self::NCName(value),
+			XsdNameValueRef::Id(value) => Self::Id(value),
+			XsdNameValueRef::IdRef(value) => Self::IdRef(value),
 		}
 	}
 }
-impl<'a> From<NCNameValueRef<'a>> for NormalizedStringValueRef<'a> {
-	fn from(value: NCNameValueRef<'a>) -> Self {
+impl<'a> From<XsdNCNameValueRef<'a>> for XsdNormalizedStringValueRef<'a> {
+	fn from(value: XsdNCNameValueRef<'a>) -> Self {
 		match value {
-			NCNameValueRef::NCName(value) => Self::NCName(value),
-			NCNameValueRef::Id(value) => Self::Id(value),
-			NCNameValueRef::IdRef(value) => Self::IdRef(value),
+			XsdNCNameValueRef::NCName(value) => Self::NCName(value),
+			XsdNCNameValueRef::Id(value) => Self::Id(value),
+			XsdNCNameValueRef::IdRef(value) => Self::IdRef(value),
 		}
 	}
 }
-impl<'a> TryFrom<NormalizedStringValueRef<'a>> for TokenValueRef<'a> {
-	type Error = NormalizedStringValueRef<'a>;
-	fn try_from(value: NormalizedStringValueRef<'a>) -> Result<Self, NormalizedStringValueRef<'a>> {
+impl<'a> TryFrom<XsdNormalizedStringValueRef<'a>> for XsdTokenValueRef<'a> {
+	type Error = XsdNormalizedStringValueRef<'a>;
+	fn try_from(
+		value: XsdNormalizedStringValueRef<'a>,
+	) -> Result<Self, XsdNormalizedStringValueRef<'a>> {
 		match value {
-			NormalizedStringValueRef::Token(value) => Ok(Self::Token(value)),
-			NormalizedStringValueRef::Language(value) => Ok(Self::Language(value)),
-			NormalizedStringValueRef::Name(value) => Ok(Self::Name(value)),
-			NormalizedStringValueRef::NCName(value) => Ok(Self::NCName(value)),
-			NormalizedStringValueRef::Id(value) => Ok(Self::Id(value)),
-			NormalizedStringValueRef::IdRef(value) => Ok(Self::IdRef(value)),
-			NormalizedStringValueRef::NMToken(value) => Ok(Self::NMToken(value)),
+			XsdNormalizedStringValueRef::Token(value) => Ok(Self::Token(value)),
+			XsdNormalizedStringValueRef::Language(value) => Ok(Self::Language(value)),
+			XsdNormalizedStringValueRef::Name(value) => Ok(Self::Name(value)),
+			XsdNormalizedStringValueRef::NCName(value) => Ok(Self::NCName(value)),
+			XsdNormalizedStringValueRef::Id(value) => Ok(Self::Id(value)),
+			XsdNormalizedStringValueRef::IdRef(value) => Ok(Self::IdRef(value)),
+			XsdNormalizedStringValueRef::NMToken(value) => Ok(Self::NMToken(value)),
 			other => Err(other),
 		}
 	}
 }
-impl<'a> TryFrom<NormalizedStringValueRef<'a>> for NameValueRef<'a> {
-	type Error = NormalizedStringValueRef<'a>;
-	fn try_from(value: NormalizedStringValueRef<'a>) -> Result<Self, NormalizedStringValueRef<'a>> {
+impl<'a> TryFrom<XsdNormalizedStringValueRef<'a>> for XsdNameValueRef<'a> {
+	type Error = XsdNormalizedStringValueRef<'a>;
+	fn try_from(
+		value: XsdNormalizedStringValueRef<'a>,
+	) -> Result<Self, XsdNormalizedStringValueRef<'a>> {
 		match value {
-			NormalizedStringValueRef::Name(value) => Ok(Self::Name(value)),
-			NormalizedStringValueRef::NCName(value) => Ok(Self::NCName(value)),
-			NormalizedStringValueRef::Id(value) => Ok(Self::Id(value)),
-			NormalizedStringValueRef::IdRef(value) => Ok(Self::IdRef(value)),
+			XsdNormalizedStringValueRef::Name(value) => Ok(Self::Name(value)),
+			XsdNormalizedStringValueRef::NCName(value) => Ok(Self::NCName(value)),
+			XsdNormalizedStringValueRef::Id(value) => Ok(Self::Id(value)),
+			XsdNormalizedStringValueRef::IdRef(value) => Ok(Self::IdRef(value)),
 			other => Err(other),
 		}
 	}
 }
-impl<'a> TryFrom<NormalizedStringValueRef<'a>> for NCNameValueRef<'a> {
-	type Error = NormalizedStringValueRef<'a>;
-	fn try_from(value: NormalizedStringValueRef<'a>) -> Result<Self, NormalizedStringValueRef<'a>> {
+impl<'a> TryFrom<XsdNormalizedStringValueRef<'a>> for XsdNCNameValueRef<'a> {
+	type Error = XsdNormalizedStringValueRef<'a>;
+	fn try_from(
+		value: XsdNormalizedStringValueRef<'a>,
+	) -> Result<Self, XsdNormalizedStringValueRef<'a>> {
 		match value {
-			NormalizedStringValueRef::NCName(value) => Ok(Self::NCName(value)),
-			NormalizedStringValueRef::Id(value) => Ok(Self::Id(value)),
-			NormalizedStringValueRef::IdRef(value) => Ok(Self::IdRef(value)),
+			XsdNormalizedStringValueRef::NCName(value) => Ok(Self::NCName(value)),
+			XsdNormalizedStringValueRef::Id(value) => Ok(Self::Id(value)),
+			XsdNormalizedStringValueRef::IdRef(value) => Ok(Self::IdRef(value)),
 			other => Err(other),
 		}
 	}
 }
 /// Any specialized [`XsdToken`] value.
 #[derive(Debug, Clone, PartialEq, Eq, PartialOrd, Ord, Hash)]
-pub enum TokenValue {
+pub enum XsdTokenValue {
 	/// A `Token` value.
 	Token(XsdTokenBuf),
 	/// A `Language` value.
@@ -5226,7 +5254,7 @@ pub enum TokenValue {
 	/// A `NMToken` value.
 	NMToken(XsdNMTokenBuf),
 }
-impl TokenValue {
+impl XsdTokenValue {
 	/// Returns the specific datatype of this value.
 	pub fn datatype(&self) -> XsdTokenDatatype {
 		match self {
@@ -5244,12 +5272,12 @@ impl TokenValue {
 		}
 	}
 }
-impl XsdTyped for TokenValue {
+impl XsdTyped for XsdTokenValue {
 	fn datatype(&self) -> XsdDatatype {
 		self.datatype().into()
 	}
 }
-impl fmt::Display for TokenValue {
+impl fmt::Display for XsdTokenValue {
 	fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
 		match self {
 			Self::Token(v) => v.fmt(f),
@@ -5262,44 +5290,44 @@ impl fmt::Display for TokenValue {
 		}
 	}
 }
-impl From<NameValue> for TokenValue {
-	fn from(value: NameValue) -> Self {
+impl From<XsdNameValue> for XsdTokenValue {
+	fn from(value: XsdNameValue) -> Self {
 		match value {
-			NameValue::Name(value) => Self::Name(value),
-			NameValue::NCName(value) => Self::NCName(value),
-			NameValue::Id(value) => Self::Id(value),
-			NameValue::IdRef(value) => Self::IdRef(value),
+			XsdNameValue::Name(value) => Self::Name(value),
+			XsdNameValue::NCName(value) => Self::NCName(value),
+			XsdNameValue::Id(value) => Self::Id(value),
+			XsdNameValue::IdRef(value) => Self::IdRef(value),
 		}
 	}
 }
-impl From<NCNameValue> for TokenValue {
-	fn from(value: NCNameValue) -> Self {
+impl From<XsdNCNameValue> for XsdTokenValue {
+	fn from(value: XsdNCNameValue) -> Self {
 		match value {
-			NCNameValue::NCName(value) => Self::NCName(value),
-			NCNameValue::Id(value) => Self::Id(value),
-			NCNameValue::IdRef(value) => Self::IdRef(value),
+			XsdNCNameValue::NCName(value) => Self::NCName(value),
+			XsdNCNameValue::Id(value) => Self::Id(value),
+			XsdNCNameValue::IdRef(value) => Self::IdRef(value),
 		}
 	}
 }
-impl TryFrom<TokenValue> for NameValue {
-	type Error = TokenValue;
-	fn try_from(value: TokenValue) -> Result<Self, TokenValue> {
+impl TryFrom<XsdTokenValue> for XsdNameValue {
+	type Error = XsdTokenValue;
+	fn try_from(value: XsdTokenValue) -> Result<Self, XsdTokenValue> {
 		match value {
-			TokenValue::Name(value) => Ok(Self::Name(value)),
-			TokenValue::NCName(value) => Ok(Self::NCName(value)),
-			TokenValue::Id(value) => Ok(Self::Id(value)),
-			TokenValue::IdRef(value) => Ok(Self::IdRef(value)),
+			XsdTokenValue::Name(value) => Ok(Self::Name(value)),
+			XsdTokenValue::NCName(value) => Ok(Self::NCName(value)),
+			XsdTokenValue::Id(value) => Ok(Self::Id(value)),
+			XsdTokenValue::IdRef(value) => Ok(Self::IdRef(value)),
 			other => Err(other),
 		}
 	}
 }
-impl TryFrom<TokenValue> for NCNameValue {
-	type Error = TokenValue;
-	fn try_from(value: TokenValue) -> Result<Self, TokenValue> {
+impl TryFrom<XsdTokenValue> for XsdNCNameValue {
+	type Error = XsdTokenValue;
+	fn try_from(value: XsdTokenValue) -> Result<Self, XsdTokenValue> {
 		match value {
-			TokenValue::NCName(value) => Ok(Self::NCName(value)),
-			TokenValue::Id(value) => Ok(Self::Id(value)),
-			TokenValue::IdRef(value) => Ok(Self::IdRef(value)),
+			XsdTokenValue::NCName(value) => Ok(Self::NCName(value)),
+			XsdTokenValue::Id(value) => Ok(Self::Id(value)),
+			XsdTokenValue::IdRef(value) => Ok(Self::IdRef(value)),
 			other => Err(other),
 		}
 	}
@@ -5331,9 +5359,9 @@ impl XsdNameDatatype {
 		}
 	}
 	/// Parses `value` as a lexical representation of this specific datatype.
-	pub fn parse(&self, value: &str) -> Result<NameValue, XsdError> {
+	pub fn parse(&self, value: &str) -> Result<XsdNameValue, XsdError> {
 		match self {
-			Self::Name => XsdFromStr::xsd_from_str(value).map(NameValue::Name),
+			Self::Name => XsdFromStr::xsd_from_str(value).map(XsdNameValue::Name),
 			Self::NCName(t) => t.parse(value).map(Into::into),
 		}
 	}
@@ -5354,7 +5382,7 @@ impl TryFrom<XsdNameDatatype> for XsdNCNameDatatype {
 }
 /// Any specialized [`XsdToken`] value reference.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash)]
-pub enum TokenValueRef<'a> {
+pub enum XsdTokenValueRef<'a> {
 	/// A reference to a `Token` value.
 	Token(&'a XsdToken),
 	/// A reference to a `Language` value.
@@ -5370,21 +5398,21 @@ pub enum TokenValueRef<'a> {
 	/// A reference to a `NMToken` value.
 	NMToken(&'a XsdNMToken),
 }
-impl TokenValue {
+impl XsdTokenValue {
 	/// Borrows this value.
-	pub fn as_ref(&self) -> TokenValueRef<'_> {
+	pub fn as_ref(&self) -> XsdTokenValueRef<'_> {
 		match self {
-			Self::Token(value) => TokenValueRef::Token(value),
-			Self::Language(value) => TokenValueRef::Language(value),
-			Self::Name(value) => TokenValueRef::Name(value),
-			Self::NCName(value) => TokenValueRef::NCName(value),
-			Self::Id(value) => TokenValueRef::Id(value),
-			Self::IdRef(value) => TokenValueRef::IdRef(value),
-			Self::NMToken(value) => TokenValueRef::NMToken(value),
+			Self::Token(value) => XsdTokenValueRef::Token(value),
+			Self::Language(value) => XsdTokenValueRef::Language(value),
+			Self::Name(value) => XsdTokenValueRef::Name(value),
+			Self::NCName(value) => XsdTokenValueRef::NCName(value),
+			Self::Id(value) => XsdTokenValueRef::Id(value),
+			Self::IdRef(value) => XsdTokenValueRef::IdRef(value),
+			Self::NMToken(value) => XsdTokenValueRef::NMToken(value),
 		}
 	}
 }
-impl<'a> TokenValueRef<'a> {
+impl<'a> XsdTokenValueRef<'a> {
 	/// Returns the specific datatype of this value.
 	pub fn datatype(&self) -> XsdTokenDatatype {
 		match self {
@@ -5402,24 +5430,24 @@ impl<'a> TokenValueRef<'a> {
 		}
 	}
 	/// Clones the referenced data into an owned value.
-	pub fn into_owned(self) -> TokenValue {
+	pub fn into_owned(self) -> XsdTokenValue {
 		match self {
-			Self::Token(value) => TokenValue::Token(value.to_owned()),
-			Self::Language(value) => TokenValue::Language(value.to_owned()),
-			Self::Name(value) => TokenValue::Name(value.to_owned()),
-			Self::NCName(value) => TokenValue::NCName(value.to_owned()),
-			Self::Id(value) => TokenValue::Id(value.to_owned()),
-			Self::IdRef(value) => TokenValue::IdRef(value.to_owned()),
-			Self::NMToken(value) => TokenValue::NMToken(value.to_owned()),
+			Self::Token(value) => XsdTokenValue::Token(value.to_owned()),
+			Self::Language(value) => XsdTokenValue::Language(value.to_owned()),
+			Self::Name(value) => XsdTokenValue::Name(value.to_owned()),
+			Self::NCName(value) => XsdTokenValue::NCName(value.to_owned()),
+			Self::Id(value) => XsdTokenValue::Id(value.to_owned()),
+			Self::IdRef(value) => XsdTokenValue::IdRef(value.to_owned()),
+			Self::NMToken(value) => XsdTokenValue::NMToken(value.to_owned()),
 		}
 	}
 }
-impl<'a> XsdTyped for TokenValueRef<'a> {
+impl<'a> XsdTyped for XsdTokenValueRef<'a> {
 	fn datatype(&self) -> XsdDatatype {
 		self.datatype().into()
 	}
 }
-impl<'a> fmt::Display for TokenValueRef<'a> {
+impl<'a> fmt::Display for XsdTokenValueRef<'a> {
 	fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
 		match self {
 			Self::Token(v) => v.fmt(f),
@@ -5432,51 +5460,51 @@ impl<'a> fmt::Display for TokenValueRef<'a> {
 		}
 	}
 }
-impl<'a> From<NameValueRef<'a>> for TokenValueRef<'a> {
-	fn from(value: NameValueRef<'a>) -> Self {
+impl<'a> From<XsdNameValueRef<'a>> for XsdTokenValueRef<'a> {
+	fn from(value: XsdNameValueRef<'a>) -> Self {
 		match value {
-			NameValueRef::Name(value) => Self::Name(value),
-			NameValueRef::NCName(value) => Self::NCName(value),
-			NameValueRef::Id(value) => Self::Id(value),
-			NameValueRef::IdRef(value) => Self::IdRef(value),
+			XsdNameValueRef::Name(value) => Self::Name(value),
+			XsdNameValueRef::NCName(value) => Self::NCName(value),
+			XsdNameValueRef::Id(value) => Self::Id(value),
+			XsdNameValueRef::IdRef(value) => Self::IdRef(value),
 		}
 	}
 }
-impl<'a> From<NCNameValueRef<'a>> for TokenValueRef<'a> {
-	fn from(value: NCNameValueRef<'a>) -> Self {
+impl<'a> From<XsdNCNameValueRef<'a>> for XsdTokenValueRef<'a> {
+	fn from(value: XsdNCNameValueRef<'a>) -> Self {
 		match value {
-			NCNameValueRef::NCName(value) => Self::NCName(value),
-			NCNameValueRef::Id(value) => Self::Id(value),
-			NCNameValueRef::IdRef(value) => Self::IdRef(value),
+			XsdNCNameValueRef::NCName(value) => Self::NCName(value),
+			XsdNCNameValueRef::Id(value) => Self::Id(value),
+			XsdNCNameValueRef::IdRef(value) => Self::IdRef(value),
 		}
 	}
 }
-impl<'a> TryFrom<TokenValueRef<'a>> for NameValueRef<'a> {
-	type Error = TokenValueRef<'a>;
-	fn try_from(value: TokenValueRef<'a>) -> Result<Self, TokenValueRef<'a>> {
+impl<'a> TryFrom<XsdTokenValueRef<'a>> for XsdNameValueRef<'a> {
+	type Error = XsdTokenValueRef<'a>;
+	fn try_from(value: XsdTokenValueRef<'a>) -> Result<Self, XsdTokenValueRef<'a>> {
 		match value {
-			TokenValueRef::Name(value) => Ok(Self::Name(value)),
-			TokenValueRef::NCName(value) => Ok(Self::NCName(value)),
-			TokenValueRef::Id(value) => Ok(Self::Id(value)),
-			TokenValueRef::IdRef(value) => Ok(Self::IdRef(value)),
+			XsdTokenValueRef::Name(value) => Ok(Self::Name(value)),
+			XsdTokenValueRef::NCName(value) => Ok(Self::NCName(value)),
+			XsdTokenValueRef::Id(value) => Ok(Self::Id(value)),
+			XsdTokenValueRef::IdRef(value) => Ok(Self::IdRef(value)),
 			other => Err(other),
 		}
 	}
 }
-impl<'a> TryFrom<TokenValueRef<'a>> for NCNameValueRef<'a> {
-	type Error = TokenValueRef<'a>;
-	fn try_from(value: TokenValueRef<'a>) -> Result<Self, TokenValueRef<'a>> {
+impl<'a> TryFrom<XsdTokenValueRef<'a>> for XsdNCNameValueRef<'a> {
+	type Error = XsdTokenValueRef<'a>;
+	fn try_from(value: XsdTokenValueRef<'a>) -> Result<Self, XsdTokenValueRef<'a>> {
 		match value {
-			TokenValueRef::NCName(value) => Ok(Self::NCName(value)),
-			TokenValueRef::Id(value) => Ok(Self::Id(value)),
-			TokenValueRef::IdRef(value) => Ok(Self::IdRef(value)),
+			XsdTokenValueRef::NCName(value) => Ok(Self::NCName(value)),
+			XsdTokenValueRef::Id(value) => Ok(Self::Id(value)),
+			XsdTokenValueRef::IdRef(value) => Ok(Self::IdRef(value)),
 			other => Err(other),
 		}
 	}
 }
 /// Any specialized [`XsdName`] value.
 #[derive(Debug, Clone, PartialEq, Eq, PartialOrd, Ord, Hash)]
-pub enum NameValue {
+pub enum XsdNameValue {
 	/// A `Name` value.
 	Name(XsdNameBuf),
 	/// A `NCName` value.
@@ -5486,7 +5514,7 @@ pub enum NameValue {
 	/// An `IdRef` value.
 	IdRef(XsdIdRefBuf),
 }
-impl NameValue {
+impl XsdNameValue {
 	/// Returns the specific datatype of this value.
 	pub fn datatype(&self) -> XsdNameDatatype {
 		match self {
@@ -5497,12 +5525,12 @@ impl NameValue {
 		}
 	}
 }
-impl XsdTyped for NameValue {
+impl XsdTyped for XsdNameValue {
 	fn datatype(&self) -> XsdDatatype {
 		self.datatype().into()
 	}
 }
-impl fmt::Display for NameValue {
+impl fmt::Display for XsdNameValue {
 	fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
 		match self {
 			Self::Name(v) => v.fmt(f),
@@ -5512,22 +5540,22 @@ impl fmt::Display for NameValue {
 		}
 	}
 }
-impl From<NCNameValue> for NameValue {
-	fn from(value: NCNameValue) -> Self {
+impl From<XsdNCNameValue> for XsdNameValue {
+	fn from(value: XsdNCNameValue) -> Self {
 		match value {
-			NCNameValue::NCName(value) => Self::NCName(value),
-			NCNameValue::Id(value) => Self::Id(value),
-			NCNameValue::IdRef(value) => Self::IdRef(value),
+			XsdNCNameValue::NCName(value) => Self::NCName(value),
+			XsdNCNameValue::Id(value) => Self::Id(value),
+			XsdNCNameValue::IdRef(value) => Self::IdRef(value),
 		}
 	}
 }
-impl TryFrom<NameValue> for NCNameValue {
-	type Error = NameValue;
-	fn try_from(value: NameValue) -> Result<Self, NameValue> {
+impl TryFrom<XsdNameValue> for XsdNCNameValue {
+	type Error = XsdNameValue;
+	fn try_from(value: XsdNameValue) -> Result<Self, XsdNameValue> {
 		match value {
-			NameValue::NCName(value) => Ok(Self::NCName(value)),
-			NameValue::Id(value) => Ok(Self::Id(value)),
-			NameValue::IdRef(value) => Ok(Self::IdRef(value)),
+			XsdNameValue::NCName(value) => Ok(Self::NCName(value)),
+			XsdNameValue::Id(value) => Ok(Self::Id(value)),
+			XsdNameValue::IdRef(value) => Ok(Self::IdRef(value)),
 			other => Err(other),
 		}
 	}
@@ -5565,17 +5593,17 @@ impl XsdNCNameDatatype {
 		}
 	}
 	/// Parses `value` as a lexical representation of this specific datatype.
-	pub fn parse(&self, value: &str) -> Result<NCNameValue, XsdError> {
+	pub fn parse(&self, value: &str) -> Result<XsdNCNameValue, XsdError> {
 		match self {
-			Self::NCName => XsdFromStr::xsd_from_str(value).map(NCNameValue::NCName),
-			Self::Id => XsdFromStr::xsd_from_str(value).map(NCNameValue::Id),
-			Self::IdRef => XsdFromStr::xsd_from_str(value).map(NCNameValue::IdRef),
+			Self::NCName => XsdFromStr::xsd_from_str(value).map(XsdNCNameValue::NCName),
+			Self::Id => XsdFromStr::xsd_from_str(value).map(XsdNCNameValue::Id),
+			Self::IdRef => XsdFromStr::xsd_from_str(value).map(XsdNCNameValue::IdRef),
 		}
 	}
 }
 /// Any specialized [`XsdName`] value reference.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash)]
-pub enum NameValueRef<'a> {
+pub enum XsdNameValueRef<'a> {
 	/// A reference to a `Name` value.
 	Name(&'a XsdName),
 	/// A reference to a `NCName` value.
@@ -5585,18 +5613,18 @@ pub enum NameValueRef<'a> {
 	/// A reference to an `IdRef` value.
 	IdRef(&'a XsdIdRef),
 }
-impl NameValue {
+impl XsdNameValue {
 	/// Borrows this value.
-	pub fn as_ref(&self) -> NameValueRef<'_> {
+	pub fn as_ref(&self) -> XsdNameValueRef<'_> {
 		match self {
-			Self::Name(value) => NameValueRef::Name(value),
-			Self::NCName(value) => NameValueRef::NCName(value),
-			Self::Id(value) => NameValueRef::Id(value),
-			Self::IdRef(value) => NameValueRef::IdRef(value),
+			Self::Name(value) => XsdNameValueRef::Name(value),
+			Self::NCName(value) => XsdNameValueRef::NCName(value),
+			Self::Id(value) => XsdNameValueRef::Id(value),
+			Self::IdRef(value) => XsdNameValueRef::IdRef(value),
 		}
 	}
 }
-impl<'a> NameValueRef<'a> {
+impl<'a> XsdNameValueRef<'a> {
 	/// Returns the specific datatype of this value.
 	pub fn datatype(&self) -> XsdNameDatatype {
 		match self {
@@ -5607,21 +5635,21 @@ impl<'a> NameValueRef<'a> {
 		}
 	}
 	/// Clones the referenced data into an owned value.
-	pub fn into_owned(self) -> NameValue {
+	pub fn into_owned(self) -> XsdNameValue {
 		match self {
-			Self::Name(value) => NameValue::Name(value.to_owned()),
-			Self::NCName(value) => NameValue::NCName(value.to_owned()),
-			Self::Id(value) => NameValue::Id(value.to_owned()),
-			Self::IdRef(value) => NameValue::IdRef(value.to_owned()),
+			Self::Name(value) => XsdNameValue::Name(value.to_owned()),
+			Self::NCName(value) => XsdNameValue::NCName(value.to_owned()),
+			Self::Id(value) => XsdNameValue::Id(value.to_owned()),
+			Self::IdRef(value) => XsdNameValue::IdRef(value.to_owned()),
 		}
 	}
 }
-impl<'a> XsdTyped for NameValueRef<'a> {
+impl<'a> XsdTyped for XsdNameValueRef<'a> {
 	fn datatype(&self) -> XsdDatatype {
 		self.datatype().into()
 	}
 }
-impl<'a> fmt::Display for NameValueRef<'a> {
+impl<'a> fmt::Display for XsdNameValueRef<'a> {
 	fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
 		match self {
 			Self::Name(v) => v.fmt(f),
@@ -5631,29 +5659,29 @@ impl<'a> fmt::Display for NameValueRef<'a> {
 		}
 	}
 }
-impl<'a> From<NCNameValueRef<'a>> for NameValueRef<'a> {
-	fn from(value: NCNameValueRef<'a>) -> Self {
+impl<'a> From<XsdNCNameValueRef<'a>> for XsdNameValueRef<'a> {
+	fn from(value: XsdNCNameValueRef<'a>) -> Self {
 		match value {
-			NCNameValueRef::NCName(value) => Self::NCName(value),
-			NCNameValueRef::Id(value) => Self::Id(value),
-			NCNameValueRef::IdRef(value) => Self::IdRef(value),
+			XsdNCNameValueRef::NCName(value) => Self::NCName(value),
+			XsdNCNameValueRef::Id(value) => Self::Id(value),
+			XsdNCNameValueRef::IdRef(value) => Self::IdRef(value),
 		}
 	}
 }
-impl<'a> TryFrom<NameValueRef<'a>> for NCNameValueRef<'a> {
-	type Error = NameValueRef<'a>;
-	fn try_from(value: NameValueRef<'a>) -> Result<Self, NameValueRef<'a>> {
+impl<'a> TryFrom<XsdNameValueRef<'a>> for XsdNCNameValueRef<'a> {
+	type Error = XsdNameValueRef<'a>;
+	fn try_from(value: XsdNameValueRef<'a>) -> Result<Self, XsdNameValueRef<'a>> {
 		match value {
-			NameValueRef::NCName(value) => Ok(Self::NCName(value)),
-			NameValueRef::Id(value) => Ok(Self::Id(value)),
-			NameValueRef::IdRef(value) => Ok(Self::IdRef(value)),
+			XsdNameValueRef::NCName(value) => Ok(Self::NCName(value)),
+			XsdNameValueRef::Id(value) => Ok(Self::Id(value)),
+			XsdNameValueRef::IdRef(value) => Ok(Self::IdRef(value)),
 			other => Err(other),
 		}
 	}
 }
 /// Any specialized [`XsdNCName`] value.
 #[derive(Debug, Clone, PartialEq, Eq, PartialOrd, Ord, Hash)]
-pub enum NCNameValue {
+pub enum XsdNCNameValue {
 	/// A `NCName` value.
 	NCName(XsdNCNameBuf),
 	/// An `Id` value.
@@ -5661,7 +5689,7 @@ pub enum NCNameValue {
 	/// An `IdRef` value.
 	IdRef(XsdIdRefBuf),
 }
-impl NCNameValue {
+impl XsdNCNameValue {
 	/// Returns the specific datatype of this value.
 	pub fn datatype(&self) -> XsdNCNameDatatype {
 		match self {
@@ -5671,12 +5699,12 @@ impl NCNameValue {
 		}
 	}
 }
-impl XsdTyped for NCNameValue {
+impl XsdTyped for XsdNCNameValue {
 	fn datatype(&self) -> XsdDatatype {
 		self.datatype().into()
 	}
 }
-impl fmt::Display for NCNameValue {
+impl fmt::Display for XsdNCNameValue {
 	fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
 		match self {
 			Self::NCName(v) => v.fmt(f),
@@ -5687,7 +5715,7 @@ impl fmt::Display for NCNameValue {
 }
 /// Any specialized [`XsdNCName`] value reference.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash)]
-pub enum NCNameValueRef<'a> {
+pub enum XsdNCNameValueRef<'a> {
 	/// A reference to a `NCName` value.
 	NCName(&'a XsdNCName),
 	/// A reference to an `Id` value.
@@ -5695,17 +5723,17 @@ pub enum NCNameValueRef<'a> {
 	/// A reference to an `IdRef` value.
 	IdRef(&'a XsdIdRef),
 }
-impl NCNameValue {
+impl XsdNCNameValue {
 	/// Borrows this value.
-	pub fn as_ref(&self) -> NCNameValueRef<'_> {
+	pub fn as_ref(&self) -> XsdNCNameValueRef<'_> {
 		match self {
-			Self::NCName(value) => NCNameValueRef::NCName(value),
-			Self::Id(value) => NCNameValueRef::Id(value),
-			Self::IdRef(value) => NCNameValueRef::IdRef(value),
+			Self::NCName(value) => XsdNCNameValueRef::NCName(value),
+			Self::Id(value) => XsdNCNameValueRef::Id(value),
+			Self::IdRef(value) => XsdNCNameValueRef::IdRef(value),
 		}
 	}
 }
-impl<'a> NCNameValueRef<'a> {
+impl<'a> XsdNCNameValueRef<'a> {
 	/// Returns the specific datatype of this value.
 	pub fn datatype(&self) -> XsdNCNameDatatype {
 		match self {
@@ -5715,20 +5743,20 @@ impl<'a> NCNameValueRef<'a> {
 		}
 	}
 	/// Clones the referenced data into an owned value.
-	pub fn into_owned(self) -> NCNameValue {
+	pub fn into_owned(self) -> XsdNCNameValue {
 		match self {
-			Self::NCName(value) => NCNameValue::NCName(value.to_owned()),
-			Self::Id(value) => NCNameValue::Id(value.to_owned()),
-			Self::IdRef(value) => NCNameValue::IdRef(value.to_owned()),
+			Self::NCName(value) => XsdNCNameValue::NCName(value.to_owned()),
+			Self::Id(value) => XsdNCNameValue::Id(value.to_owned()),
+			Self::IdRef(value) => XsdNCNameValue::IdRef(value.to_owned()),
 		}
 	}
 }
-impl<'a> XsdTyped for NCNameValueRef<'a> {
+impl<'a> XsdTyped for XsdNCNameValueRef<'a> {
 	fn datatype(&self) -> XsdDatatype {
 		self.datatype().into()
 	}
 }
-impl<'a> fmt::Display for NCNameValueRef<'a> {
+impl<'a> fmt::Display for XsdNCNameValueRef<'a> {
 	fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
 		match self {
 			Self::NCName(v) => v.fmt(f),
@@ -5751,29 +5779,29 @@ impl TryFrom<XsdDatatype> for XsdDurationDatatype {
 		}
 	}
 }
-impl From<DurationValue> for Value {
-	fn from(value: DurationValue) -> Self {
+impl From<XsdDurationValue> for XsdValue {
+	fn from(value: XsdDurationValue) -> Self {
 		match value {
-			DurationValue::Duration(value) => Self::Duration(value),
-			DurationValue::DayTimeDuration(value) => Self::DayTimeDuration(value),
-			DurationValue::YearMonthDuration(value) => Self::YearMonthDuration(value),
+			XsdDurationValue::Duration(value) => Self::Duration(value),
+			XsdDurationValue::DayTimeDuration(value) => Self::DayTimeDuration(value),
+			XsdDurationValue::YearMonthDuration(value) => Self::YearMonthDuration(value),
 		}
 	}
 }
-impl TryFrom<Value> for DurationValue {
-	type Error = Value;
-	fn try_from(value: Value) -> Result<Self, Value> {
+impl TryFrom<XsdValue> for XsdDurationValue {
+	type Error = XsdValue;
+	fn try_from(value: XsdValue) -> Result<Self, XsdValue> {
 		match value {
-			Value::Duration(value) => Ok(Self::Duration(value)),
-			Value::DayTimeDuration(value) => Ok(Self::DayTimeDuration(value)),
-			Value::YearMonthDuration(value) => Ok(Self::YearMonthDuration(value)),
+			XsdValue::Duration(value) => Ok(Self::Duration(value)),
+			XsdValue::DayTimeDuration(value) => Ok(Self::DayTimeDuration(value)),
+			XsdValue::YearMonthDuration(value) => Ok(Self::YearMonthDuration(value)),
 			other => Err(other),
 		}
 	}
 }
 /// Any specialized [`XsdDuration`] value.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Hash)]
-pub enum DurationValue {
+pub enum XsdDurationValue {
 	/// A `Duration` value.
 	Duration(XsdDuration),
 	/// A `DayTimeDuration` value.
@@ -5781,7 +5809,7 @@ pub enum DurationValue {
 	/// A `YearMonthDuration` value.
 	YearMonthDuration(XsdYearMonthDuration),
 }
-impl DurationValue {
+impl XsdDurationValue {
 	/// Returns the specific datatype of this value.
 	pub fn datatype(&self) -> XsdDurationDatatype {
 		match self {
@@ -5791,12 +5819,12 @@ impl DurationValue {
 		}
 	}
 }
-impl XsdTyped for DurationValue {
+impl XsdTyped for XsdDurationValue {
 	fn datatype(&self) -> XsdDatatype {
 		self.datatype().into()
 	}
 }
-impl fmt::Display for DurationValue {
+impl fmt::Display for XsdDurationValue {
 	fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
 		match self {
 			Self::Duration(v) => v.fmt(f),
@@ -5819,33 +5847,33 @@ impl TryFrom<XsdDatatype> for XsdDateTimeDatatype {
 		}
 	}
 }
-impl From<DateTimeValue> for Value {
-	fn from(value: DateTimeValue) -> Self {
+impl From<XsdDateTimeValue> for XsdValue {
+	fn from(value: XsdDateTimeValue) -> Self {
 		match value {
-			DateTimeValue::DateTime(value) => Self::DateTime(value),
-			DateTimeValue::DateTimeStamp(value) => Self::DateTimeStamp(value),
+			XsdDateTimeValue::DateTime(value) => Self::DateTime(value),
+			XsdDateTimeValue::DateTimeStamp(value) => Self::DateTimeStamp(value),
 		}
 	}
 }
-impl TryFrom<Value> for DateTimeValue {
-	type Error = Value;
-	fn try_from(value: Value) -> Result<Self, Value> {
+impl TryFrom<XsdValue> for XsdDateTimeValue {
+	type Error = XsdValue;
+	fn try_from(value: XsdValue) -> Result<Self, XsdValue> {
 		match value {
-			Value::DateTime(value) => Ok(Self::DateTime(value)),
-			Value::DateTimeStamp(value) => Ok(Self::DateTimeStamp(value)),
+			XsdValue::DateTime(value) => Ok(Self::DateTime(value)),
+			XsdValue::DateTimeStamp(value) => Ok(Self::DateTimeStamp(value)),
 			other => Err(other),
 		}
 	}
 }
 /// Any specialized [`XsdDateTime`] value.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Hash)]
-pub enum DateTimeValue {
+pub enum XsdDateTimeValue {
 	/// A `DateTime` value.
 	DateTime(XsdDateTime),
 	/// A `DateTimeStamp` value.
 	DateTimeStamp(XsdDateTimeStamp),
 }
-impl DateTimeValue {
+impl XsdDateTimeValue {
 	/// Returns the specific datatype of this value.
 	pub fn datatype(&self) -> XsdDateTimeDatatype {
 		match self {
@@ -5854,12 +5882,12 @@ impl DateTimeValue {
 		}
 	}
 }
-impl XsdTyped for DateTimeValue {
+impl XsdTyped for XsdDateTimeValue {
 	fn datatype(&self) -> XsdDatatype {
 		self.datatype().into()
 	}
 }
-impl fmt::Display for DateTimeValue {
+impl fmt::Display for XsdDateTimeValue {
 	fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
 		match self {
 			Self::DateTime(v) => v.fmt(f),
