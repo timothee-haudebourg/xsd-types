@@ -1,9 +1,4 @@
-/// Name value.
-///
-/// Value space representation of the `XsdName` datatype.
-/// See: <https://www.w3.org/TR/xmlschema11-2/#Name>.
-pub use crate::lexical::XsdName;
-pub use crate::lexical::{InvalidXsdName, XsdNameBuf};
+use crate::lexical::{XsdName, XsdNameBuf};
 
 impl<'a> crate::XsdFromStr<'a> for XsdNameBuf {
 	fn xsd_from_str(lexical_value: &'a str) -> Result<Self, crate::XsdError> {

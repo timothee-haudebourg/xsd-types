@@ -9,12 +9,6 @@ mod nmtoken;
 mod normalized;
 mod token;
 
-pub use id::*;
-pub use idref::*;
-pub use language::*;
-pub use name::*;
-pub use ncname::*;
-pub use nmtoken::*;
 pub use normalized::*;
 pub use token::*;
 

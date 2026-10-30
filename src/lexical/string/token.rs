@@ -1,6 +1,5 @@
 use crate::lexical::XsdLexicalForm;
-use crate::{InvalidToken, XsdError};
-pub use crate::{XsdToken, XsdTokenBuf};
+use crate::{InvalidToken, XsdError, XsdToken};
 
 impl XsdLexicalForm for XsdToken {
 	type Value = crate::XsdTokenBuf;

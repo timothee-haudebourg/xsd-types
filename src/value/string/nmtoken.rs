@@ -1,9 +1,4 @@
-/// NMTOKEN value.
-///
-/// Value space representation of the `NMTOKEN` datatype.
-/// See: <https://www.w3.org/TR/xmlschema11-2/#NMTOKEN>.
-pub use crate::lexical::XsdNMToken;
-pub use crate::lexical::{InvalidXsdNMToken, XsdNMTokenBuf};
+use crate::lexical::{XsdNMToken, XsdNMTokenBuf};
 
 impl<'a> crate::XsdFromStr<'a> for XsdNMTokenBuf {
 	fn xsd_from_str(lexical_value: &'a str) -> Result<Self, crate::XsdError> {

@@ -6,26 +6,24 @@
 //! # Usage
 //!
 //! For each XSD datatype, this library provides two families of types:
-//! one representing the *lexical space* of the datatype (see the [`lexical`]
-//! module), and one representing the *value space* of the datatype (see the
-//! [`value`] module).
+//! one representing the *lexical space* of the datatype (types ending with
+//! `Str` or `String`, like [`XsdDecimalStr`]), and one representing the
+//! *value space* of the datatype (like [`XsdDecimal`]).
 //!
 //! For instance, assume we wish to store the lexical representation of an
 //! [XSD decimal][xsd-decimal] datatype value. We can use the
-//! [`lexical::XsdDecimalStr`] type (or its owned variant,
-//! [`lexical::XsdDecimalString`])
+//! [`XsdDecimalStr`] type (or its owned variant, [`XsdDecimalString`])
 //!
-//! [`lexical`]: crate::lexical
-//! [`value`]: crate::value
+//! [`XsdDecimal`]: crate::XsdDecimal
 //! [xsd-decimal]: <https://www.w3.org/TR/xmlschema11-2/#decimal>
-//! [`lexical::XsdDecimalStr`]: crate::lexical::XsdDecimalStr
-//! [`lexical::XsdDecimalString`]: crate::lexical::XsdDecimalString
+//! [`XsdDecimalStr`]: crate::XsdDecimalStr
+//! [`XsdDecimalString`]: crate::XsdDecimalString
 //!
 //! ```
 //! let string = "3.141592653589793";
 //!
 //! // Parse the lexical representation (lexical domain).
-//! let lexical_repr = xsd_types::lexical::XsdDecimalStr::new(string).unwrap();
+//! let lexical_repr = xsd_types::XsdDecimalStr::new(string).unwrap();
 //!
 //! // Interprets the lexical representation (value domain).
 //! let value_repr: xsd_types::XsdDecimal = lexical_repr.into();
@@ -54,13 +52,14 @@ pub use iref;
 use iref::{Iri, iri};
 
 mod error;
-pub mod lexical;
+mod lexical;
 mod literal;
 mod types;
 pub(crate) mod utils;
-pub mod value;
+mod value;
 
 pub use error::*;
+pub use lexical::*;
 pub use literal::*;
 pub use types::*;
 pub use value::*;

@@ -1,9 +1,4 @@
-/// ID value.
-///
-/// Value space representation of the `ID` datatype.
-/// See: <https://www.w3.org/TR/xmlschema11-2/#ID>.
-pub use crate::lexical::XsdId;
-pub use crate::lexical::{InvalidXsdId, XsdIdBuf};
+use crate::lexical::{XsdId, XsdIdBuf};
 
 impl<'a> crate::XsdFromStr<'a> for XsdIdBuf {
 	fn xsd_from_str(lexical_value: &'a str) -> Result<Self, crate::XsdError> {

@@ -1,9 +1,4 @@
-/// NCName value.
-///
-/// Value space representation of the `XsdNCName` datatype.
-/// See: <https://www.w3.org/TR/xmlschema11-2/#NCName>.
-pub use crate::lexical::XsdNCName;
-pub use crate::lexical::{InvalidXsdNCName, XsdNCNameBuf};
+use crate::lexical::{XsdNCName, XsdNCNameBuf};
 
 impl<'a> crate::XsdFromStr<'a> for XsdNCNameBuf {
 	fn xsd_from_str(lexical_value: &'a str) -> Result<Self, crate::XsdError> {

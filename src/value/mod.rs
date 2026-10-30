@@ -33,7 +33,7 @@ pub use g_month_day::*;
 pub use g_year::*;
 pub use g_year_month::*;
 pub use hex_binary::{InvalidHex, XsdHexBinary, XsdHexBinaryBuf};
-pub use q_name::*;
+
 pub use string::*;
 pub use time::*;
 

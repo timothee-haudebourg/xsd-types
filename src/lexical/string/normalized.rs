@@ -1,6 +1,5 @@
 use crate::lexical::XsdLexicalForm;
-use crate::{InvalidNormalizedStr, XsdError};
-pub use crate::{XsdNormalizedStr, XsdNormalizedString};
+use crate::{InvalidNormalizedStr, XsdError, XsdNormalizedStr};
 
 impl XsdLexicalForm for XsdNormalizedStr {
 	type Value = crate::XsdNormalizedString;

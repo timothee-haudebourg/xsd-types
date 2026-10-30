@@ -1,9 +1,4 @@
-/// Language value.
-///
-/// Value space representation of the `language` datatype.
-/// See: <https://www.w3.org/TR/xmlschema11-2/#language>.
-pub use crate::lexical::XsdLanguage;
-pub use crate::lexical::{InvalidXsdLanguage, XsdLanguageBuf};
+use crate::lexical::{XsdLanguage, XsdLanguageBuf};
 
 impl<'a> crate::XsdFromStr<'a> for XsdLanguageBuf {
 	fn xsd_from_str(lexical_value: &'a str) -> Result<Self, crate::XsdError> {

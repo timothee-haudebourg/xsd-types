@@ -1,9 +1,4 @@
-/// IDREF value.
-///
-/// Value space representation of the `IDREF` datatype.
-/// See: <https://www.w3.org/TR/xmlschema11-2/#IDREF>.
-pub use crate::lexical::XsdIdRef;
-pub use crate::lexical::{InvalidXsdIdRef, XsdIdRefBuf};
+use crate::lexical::{XsdIdRef, XsdIdRefBuf};
 
 impl<'a> crate::XsdFromStr<'a> for XsdIdRefBuf {
 	fn xsd_from_str(lexical_value: &'a str) -> Result<Self, crate::XsdError> {

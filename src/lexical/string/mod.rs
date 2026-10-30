@@ -28,8 +28,6 @@ pub use language::*;
 pub use name::*;
 pub use ncname::*;
 pub use nmtoken::*;
-pub use normalized::*;
-pub use token::*;
 
 use super::XsdLexicalForm;
 use crate::XsdError;

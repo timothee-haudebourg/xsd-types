@@ -181,7 +181,7 @@ impl<'de> serde::Deserialize<'de> for XsdNormalizedString {
 
 impl<'a> crate::XsdFromStr<'a> for XsdNormalizedString {
 	fn xsd_from_str(lexical_value: &'a str) -> Result<Self, crate::XsdError> {
-		crate::xsd_parse_via::<crate::lexical::XsdNormalizedStr, Self>(lexical_value)
+		crate::xsd_parse_via::<XsdNormalizedStr, Self>(lexical_value)
 	}
 }
 
@@ -192,7 +192,7 @@ impl crate::XsdTyped for XsdNormalizedString {
 }
 
 impl crate::XsdValue for XsdNormalizedString {
-	type LexicalForm = crate::lexical::XsdNormalizedStr;
+	type LexicalForm = XsdNormalizedStr;
 
 	fn to_lexical_form(&self) -> XsdNormalizedString {
 		self.clone()

@@ -1,10 +1,4 @@
-/// Qualified name value.
-///
-/// `XsdQName` has no distinct value-space encoding, so the lexical
-/// [`XsdQName`](crate::lexical::XsdQName)/[`XsdQNameBuf`](crate::lexical::XsdQNameBuf)
-/// representation is reused directly as the value type.
-/// See: <https://www.w3.org/TR/xmlschema11-2/#QName>.
-pub use crate::lexical::{XsdQName, XsdQNameBuf};
+use crate::lexical::{XsdQName, XsdQNameBuf};
 
 impl<'a> crate::XsdFromStr<'a> for XsdQNameBuf {
 	fn xsd_from_str(lexical_value: &'a str) -> Result<Self, crate::XsdError> {
